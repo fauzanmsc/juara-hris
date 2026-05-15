@@ -354,7 +354,7 @@
 
 <script>
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
-  const MAX_RADIUS = 50; // meters - overridden by config
+  let MAX_RADIUS = 50;// meters - overridden by config
   // Demo coordinates (override dengan koordinat kantor dari config)
   let OFFICE_LAT = -6.2088; // Jakarta default
   let OFFICE_LNG = 106.8456;
@@ -523,9 +523,22 @@
 
       // Get config
       if (data.config) {
-        OFFICE_LAT = parseFloat(data.config.office_latitude) || OFFICE_LAT;
-        OFFICE_LNG = parseFloat(data.config.office_longitude) || OFFICE_LNG;
-      }
+
+  OFFICE_LAT =
+    parseFloat(data.config.office_latitude) || OFFICE_LAT;
+
+  OFFICE_LNG =
+    parseFloat(data.config.office_longitude) || OFFICE_LNG;
+
+  MAX_RADIUS =
+    parseFloat(data.config.max_radius_meters) || MAX_RADIUS;
+
+  console.log('OFFICE CONFIG', {
+    lat: OFFICE_LAT,
+    lng: OFFICE_LNG,
+    radius: MAX_RADIUS
+  });
+}
 
       startGeo();
     } catch (e) {
