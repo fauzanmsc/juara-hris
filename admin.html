@@ -765,12 +765,14 @@
     }
 
     async function saveUser() {
+      const userId = document.getElementById('modalUserId').value;
       const payload = {
-        action: 'saveUser',
-        user_id: document.getElementById('modalUserId').value,
+        action: userId ? 'updateUser' : 'addUser',
+        user_id: userId,
         name: document.getElementById('mu_name').value,
         email: document.getElementById('mu_email').value,
         pin: document.getElementById('mu_pin').value,
+        password_pin: document.getElementById('mu_pin').value, // match code.gs key
         position: document.getElementById('mu_position').value,
         role: document.getElementById('mu_role').value
       };
@@ -787,7 +789,7 @@
       const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
       if (!confirm(`Yakin mengubah status karyawan menjadi ${newStatus}?`)) return;
       try {
-        await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'toggleUserStatus', user_id: id, status: newStatus }) });
+        await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateUserStatus', user_id: id, status: newStatus }) });
         showToast('Status diubah', 'success'); loadUsers();
       } catch (e) { showToast('[DEMO] Status diubah', 'success'); }
     }
@@ -795,7 +797,7 @@
     // ==== APPROVALS ====
     async function loadApprovals() {
       try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=getApprovals`);
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getPendingLeaves`);
         const data = await res.json();
         renderApprovals(data.requests || []);
       } catch (e) {
@@ -836,7 +838,7 @@
     async function processApproval(id, status) {
       if (!confirm(`Yakin ${status === 'Approved' ? 'menerima' : 'menolak'} pengajuan ini?`)) return;
       try {
-        await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'processApproval', request_id: id, status }) });
+        await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'decideLeave', request_id: id, status, approved_by: userData.name }) });
         showToast(`Pengajuan ${status}`, 'success'); loadApprovals(); loadDashboard();
       } catch (e) { showToast(`[DEMO] Pengajuan ${status}`, 'success'); }
     }
@@ -849,7 +851,7 @@
       const status = document.getElementById('attFilterStatus').value;
 
       try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=getAllAttendance&start=${start}&end=${end}&name=${encodeURIComponent(name)}&status=${status}`);
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&start_date=${start}&end_date=${end}&name=${encodeURIComponent(name)}&status=${status}`);
         const data = await res.json();
         renderAtt(data.records || []);
       } catch (e) {

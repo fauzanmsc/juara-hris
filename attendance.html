@@ -267,7 +267,7 @@ function checkReady() {
 
 async function preFlightCheck() {
   try {
-    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'preflight', user_id: userData.user_id }) });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=preflight&user_id=${userData.user_id}`);
     const data = await res.json();
     if (!data.success) { showLock(data.lock_type, data.message); return; }
     attendanceMode = data.has_clocked_in && !data.has_clocked_out ? 'out' : 'in';

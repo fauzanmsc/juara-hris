@@ -116,7 +116,7 @@ let allHistory = [], currentFilter = 'all';
 
 async function loadHistory() {
   try {
-    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getAttendance', user_id: userData.user_id }) });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&user_id=${userData.user_id}`);
     const data = await res.json();
     allHistory = data.success && data.records ? data.records : getDemoData();
     renderHistory();

@@ -243,7 +243,7 @@ updateClock(); setInterval(updateClock, 1000);
 
 async function loadDashboard() {
   try {
-    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'employeeDashboard', user_id: userData.user_id }) });
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=employeeDashboard&user_id=${userData.user_id}`);
     const data = await res.json();
     if (data.success) {
       document.getElementById('statHadir').textContent = data.stats.hadir ?? 0;
