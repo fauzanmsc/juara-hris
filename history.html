@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>JEF HRIS — Riwayat Kehadiran</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --text: #f0f0f8;
+    --muted: #6b6b80;
+    --danger: #ff4d6d;
+    --success: #00d4aa;
+    --warn: #f59e0b;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 24px 20px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+  .back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.05); }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin: 0;
+  }
+  .logout-btn {
+    background: rgba(255,77,109,0.1);
+    border: 1px solid rgba(255,77,109,0.2);
+    color: var(--danger);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .logout-btn:hover { background: rgba(255,77,109,0.2); }
+
+  /* CONTENT */
+  .content { padding: 20px; }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+  .filter-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .filter-chip:hover, .filter-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    margin-top: 20px;
+  }
+
+  /* HISTORY LIST */
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+  .history-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .history-date {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .history-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .history-status.on-time { background: rgba(0,212,170,0.2); color: var(--success); }
+  .history-status.late { background: rgba(245,158,11,0.2); color: var(--warn); }
+  .history-status.empty { background: rgba(107,107,128,0.1); color: var(--muted); }
+
+  .history-times {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .time-block {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .time-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .time-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-top: 4px;
+  }
+  .time-value.empty { font-size: 14px; color: var(--muted); }
+
+  .history-notes {
+    font-size: 12px;
+    color: var(--muted);
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .empty-state .emoji { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 8px; }
+  .empty-state p { color: var(--muted); font-size: 14px; }
+
+  /* LOADING */
+  .loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+  .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 12px 20px 20px;
+    gap: 0;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 10px;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .nav-item:hover { background: rgba(108,99,255,0.08); }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 10px; color: var(--muted); }
+  .nav-item.active .nav-label { color: var(--accent); }
+
+  .pb-nav { padding-bottom: 90px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <h1>Riwayat Kehadiran</h1>
+  </div>
+  <button class="logout-btn" onclick="logout()">Keluar</button>
+</div>
+
+<div class="content pb-nav">
+  <!-- FILTERS -->
+  <div class="filters" id="filterContainer">
+    <div class="filter-chip active" data-filter="all" onclick="filterHistory('all', this)">Semua</div>
+    <div class="filter-chip" data-filter="on-time" onclick="filterHistory('on-time', this)">Tepat Waktu</div>
+    <div class="filter-chip" data-filter="late" onclick="filterHistory('late', this)">Terlambat</div>
+  </div>
+
+  <!-- HISTORY LIST -->
+  <div id="historyContainer" class="section-label">Riwayat Kehadiran</div>
+  <div id="historyList" class="history-list">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 16px;">Memuat riwayat kehadiran...</p>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a href="employee.html" class="nav-item">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Beranda</div>
+  </a>
+  <a href="attendance.html" class="nav-item">
+    <div class="nav-icon">📍</div>
+    <div class="nav-label">Absensi</div>
+  </a>
+  <a href="leave.html" class="nav-item">
+    <div class="nav-icon">📋</div>
+    <div class="nav-label">Pengajuan</div>
+  </a>
+  <a href="history.html" class="nav-item active">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">Riwayat</div>
+  </a>
+</div>
+
+<script>
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+
+  // Auth Guard
+  const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
+  if (!userData || userData.role !== 'Employee') { window.location.href = 'index.html'; }
+
+  let allHistory = [];
+  let currentFilter = 'all';
+
+  async function loadHistory() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&user_id=${userData.user_id}`);
+      const data = await res.json();
+      if (data.success && data.records) {
+        allHistory = data.records;
+        renderHistory();
+      } else {
+        showEmpty();
+      }
+    } catch (e) {
+      console.error(e);
+      showEmpty();
+    }
+  }
+
+  function renderHistory() {
+    const filtered = filterByStatus(allHistory, currentFilter);
+    const container = document.getElementById('historyList');
+
+    if (filtered.length === 0) {
+      showEmpty();
+      return;
+    }
+
+    container.innerHTML = filtered.map(record => {
+      const hasClockOut = !!record.clock_out_time;
+      const statusClass = record.status_in === 'Terlambat' ? 'late' : 'on-time';
+
+      return `
+        <div class="history-item">
+          <div class="history-header">
+            <div class="history-date">${formatDisplayDate(record.date)}</div>
+            <div class="history-status ${statusClass}">${record.status_in || 'Belum Absen'}</div>
+          </div>
+          <div class="history-times">
+            <div class="time-block">
+              <div class="time-label">Masuk</div>
+              <div class="time-value ${record.clock_in_time ? '' : 'empty'}">
+                ${record.clock_in_time ? record.clock_in_time.substring(0, 5) : '--:--'}
+              </div>
+            </div>
+            <div class="time-block">
+              <div class="time-label">Pulang</div>
+              <div class="time-value ${hasClockOut ? '' : 'empty'}">
+                ${hasClockOut ? record.clock_out_time.substring(0, 5) : '--:--'}
+              </div>
+            </div>
+          </div>
+          ${record.notes ? `<div class="history-notes">📝 ${record.notes}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function filterByStatus(records, status) {
+    if (status === 'all') return records;
+    if (status === 'on-time') return records.filter(r => r.status_in !== 'Terlambat' && r.status_in !== '');
+    if (status === 'late') return records.filter(r => r.status_in === 'Terlambat');
+    return records;
+  }
+
+  function filterHistory(status, element) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
+    element.classList.add('active');
+    renderHistory();
+  }
+
+  function formatDisplayDate(dateStr) {
+    const [year, month, day] = dateStr.split('-');
+    const DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const d = new Date(year, month - 1, day);
+    return `${DAYS[d.getDay()]}, ${day} ${MONTHS[month-1]} ${year}`;
+  }
+
+  function showEmpty() {
+    const container = document.getElementById('historyList');
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">📭</div>
+        <h3>Belum ada riwayat</h3>
+        <p>Belum ada data kehadiran untuk ditampilkan</p>
+      </div>
+    `;
+  }
+
+  function goBack() {
+    window.location.href = 'employee.html';
+  }
+
+  function logout() {
+    if (confirm('Yakin ingin keluar?')) {
+      sessionStorage.removeItem('hris_user');
+      window.location.href = 'index.html';
+    }
+  }
+
+  loadHistory();
+</script>
+</body>
+</html>
