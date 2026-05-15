@@ -4,318 +4,127 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>JEF HRIS — Absensi</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#FFB703">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --card: #1a1a26;
-    --border: rgba(255,255,255,0.07);
-    --accent: #6c63ff;
-    --accent2: #00d4aa;
-    --text: #f0f0f8;
-    --muted: #6b6b80;
-    --danger: #ff4d6d;
-    --success: #00d4aa;
-    --warn: #f59e0b;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; }
+body{max-width:480px;margin:0 auto;background:var(--bg-deep)}
+.header{background:rgba(26,26,26,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:16px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.back-btn{width:38px;height:38px;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:20px;text-decoration:none;flex-shrink:0;transition:all var(--transition)}
+.back-btn:hover{border-color:var(--primary);color:var(--primary)}
+.header-info h2{font-family:var(--font-head);font-weight:800;font-size:17px}
+.header-info p{font-size:11px;color:var(--text-muted);margin-top:1px}
+.content{padding:18px;display:flex;flex-direction:column;gap:14px;padding-bottom:36px}
 
-  .header {
-    padding: 20px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 14px;
-  }
-  .back-btn {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 16px; text-decoration: none; color: inherit;
-    flex-shrink: 0;
-  }
-  .header-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; }
-  .header-sub { font-size: 12px; color: var(--muted); }
+/* CLOCK WIDGET */
+.clock-widget{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 20px;text-align:center;backdrop-filter:blur(12px)}
+.clock-time{font-family:var(--font-head);font-weight:900;font-size:56px;letter-spacing:-3px;color:var(--text);font-variant-numeric:tabular-nums;line-height:1;margin-bottom:8px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.clock-date{font-size:13px;color:var(--text-muted);font-weight:500}
 
-  .content { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+/* LOCK BANNER */
+.lock-banner{display:none;background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.3);border-radius:var(--radius-md);padding:16px 18px;align-items:flex-start;gap:12px}
+.lock-banner.show{display:flex}
+.lock-icon-wrap{width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;color:var(--warn)}
+.lock-text strong{display:block;font-size:14px;font-weight:700;color:var(--warn);margin-bottom:3px}
+.lock-text p{font-size:12px;color:var(--text-muted);line-height:1.5}
 
-  /* CLOCK */
-  .clock-widget {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 24px;
-    text-align: center;
-  }
-  .clock-time {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 52px;
-    letter-spacing: -2px;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-  .clock-date { font-size: 13px; color: var(--muted); }
+/* GEO WIDGET */
+.geo-widget{background:var(--bg-glass);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:18px;backdrop-filter:blur(8px);transition:all var(--transition)}
+.geo-widget.safe{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.04)}
+.geo-widget.unsafe{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.04)}
+.geo-widget.loading{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.04)}
+.geo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.geo-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted)}
+.geo-dot{width:10px;height:10px;border-radius:50%;background:var(--text-muted);transition:all .3s}
+.geo-dot.safe{background:var(--success);box-shadow:0 0 8px rgba(34,197,94,.5)}
+.geo-dot.unsafe{background:var(--danger);box-shadow:0 0 8px rgba(239,68,68,.5)}
+.geo-dot.loading{background:var(--warn);animation:livePulse 1s infinite}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.geo-main{display:flex;align-items:center;gap:14px}
+.geo-icon{width:52px;height:52px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;transition:all .3s}
+.geo-icon.safe{background:rgba(34,197,94,.12);color:var(--success)}
+.geo-icon.unsafe{background:rgba(239,68,68,.12);color:var(--danger)}
+.geo-icon.loading{background:rgba(245,158,11,.12);color:var(--warn)}
+.geo-title{font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:3px}
+.geo-distance{font-size:12px;color:var(--text-muted)}
+.geo-distance strong{color:var(--text)}
 
-  /* LOCK BANNER */
-  .lock-banner {
-    background: rgba(245,158,11,0.1);
-    border: 1px solid rgba(245,158,11,0.3);
-    border-radius: 14px;
-    padding: 16px 18px;
-    display: flex; align-items: flex-start; gap: 12px;
-    display: none;
-  }
-  .lock-banner.show { display: flex; }
-  .lock-icon { font-size: 22px; flex-shrink: 0; }
-  .lock-text strong { display: block; font-size: 14px; font-weight: 600; color: var(--warn); margin-bottom: 2px; }
-  .lock-text p { font-size: 12px; color: var(--muted); }
+/* CAMERA */
+.camera-card{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;backdrop-filter:blur(8px)}
+.camera-head{padding:14px 18px 0;display:flex;align-items:center;justify-content:space-between}
+.camera-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted)}
+.camera-toggle{font-size:11px;color:var(--primary);cursor:pointer;padding:5px 12px;border-radius:50px;border:1px solid rgba(255,183,3,0.3);background:rgba(255,183,3,0.08);font-weight:700;transition:all var(--transition)}
+.camera-toggle:hover{background:rgba(255,183,3,0.16)}
+.camera-container{position:relative;width:100%;padding-top:75%;background:#000;margin-top:14px;overflow:hidden}
+#videoEl{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.camera-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(0,0,0,0.75)}
+.camera-overlay.hidden{display:none}
+.camera-overlay i{font-size:40px;color:var(--text-muted)}
+.camera-overlay p{font-size:12px;color:var(--text-muted);text-align:center;padding:0 24px}
+.face-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:140px;height:165px;border:2px dashed rgba(255,183,3,0.5);border-radius:50%;pointer-events:none;animation:guidePulse 2s ease-in-out infinite}
+@keyframes guidePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,183,3,.3)}50%{box-shadow:0 0 0 10px rgba(255,183,3,0)}}
+#capturedImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.camera-actions{padding:14px 16px;display:flex;gap:10px}
+.btn-capture{flex:1;padding:12px;background:rgba(255,183,3,0.1);border:1.5px solid rgba(255,183,3,0.3);color:var(--primary);border-radius:var(--radius-md);font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;transition:all var(--transition);display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-capture:hover{background:rgba(255,183,3,0.18)}
+.btn-capture:disabled{opacity:.4;cursor:not-allowed}
+.btn-retake{padding:12px 16px;background:var(--bg-surface);border:1px solid var(--border);color:var(--text-muted);border-radius:var(--radius-md);font-family:var(--font-head);font-size:13px;cursor:pointer;display:none;transition:all var(--transition)}
+.btn-retake:hover{border-color:var(--primary);color:var(--primary)}
 
-  /* GEOFENCE WIDGET */
-  .geo-widget {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px;
-    transition: border-color 0.3s;
-  }
-  .geo-widget.safe { border-color: rgba(0,212,170,0.4); }
-  .geo-widget.unsafe { border-color: rgba(255,77,109,0.4); }
-  .geo-widget.loading { border-color: rgba(245,158,11,0.3); }
+/* CLOCK BTN */
+.btn-clock{width:100%;padding:20px;border:none;border-radius:var(--radius-lg);font-family:var(--font-head);font-weight:900;font-size:18px;letter-spacing:1px;cursor:pointer;transition:all var(--transition);display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-clock.clock-in{background:linear-gradient(135deg,var(--success),#15803d);color:#fff;box-shadow:0 6px 28px rgba(34,197,94,.3)}
+.btn-clock.clock-out{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#000;box-shadow:0 6px 28px rgba(255,183,3,.3)}
+.btn-clock:not(:disabled):hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(34,197,94,.45)}
+.btn-clock.clock-out:not(:disabled):hover{box-shadow:0 12px 36px rgba(255,183,3,.5)}
+.btn-clock:disabled{background:rgba(255,255,255,.06)!important;color:var(--text-muted)!important;cursor:not-allowed!important;box-shadow:none!important}
 
-  .geo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .geo-label { font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
-  .geo-status-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: var(--muted);
-    transition: background 0.3s;
-  }
-  .geo-status-dot.safe { background: var(--success); box-shadow: 0 0 8px rgba(0,212,170,0.5); }
-  .geo-status-dot.unsafe { background: var(--danger); box-shadow: 0 0 8px rgba(255,77,109,0.5); }
-  .geo-status-dot.loading { background: var(--warn); animation: pulse 1s infinite; }
-
-  .geo-main {
-    display: flex; align-items: center; gap: 14px;
-  }
-  .geo-icon {
-    width: 52px; height: 52px;
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
-    transition: background 0.3s;
-  }
-  .geo-icon.safe { background: rgba(0,212,170,0.12); }
-  .geo-icon.unsafe { background: rgba(255,77,109,0.12); }
-  .geo-icon.loading { background: rgba(245,158,11,0.12); }
-
-  .geo-info .geo-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 3px;
-  }
-  .geo-info .geo-distance { font-size: 13px; color: var(--muted); }
-  .geo-distance strong { color: var(--text); }
-
-  /* CAMERA */
-  .camera-widget {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-  }
-  .camera-header {
-    padding: 14px 18px 0;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .camera-label { font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
-  .camera-toggle {
-    font-size: 11px;
-    color: var(--accent);
-    cursor: pointer;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(108,99,255,0.3);
-    background: rgba(108,99,255,0.1);
-    transition: background 0.2s;
-  }
-  .camera-toggle:hover { background: rgba(108,99,255,0.2); }
-
-  .camera-container {
-    position: relative;
-    width: 100%;
-    padding-top: 75%; /* 4:3 ratio */
-    background: #000;
-    margin-top: 14px;
-    overflow: hidden;
-  }
-  #videoEl {
-    position: absolute;
-    inset: 0; width: 100%; height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1); /* Mirror for selfie */
-  }
-  .camera-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    gap: 10px;
-    background: rgba(0,0,0,0.7);
-  }
-  .camera-overlay.hidden { display: none; }
-  .camera-overlay p { font-size: 13px; color: var(--muted); text-align: center; padding: 0 20px; }
-
-  /* Face guide oval */
-  .face-guide {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 140px; height: 160px;
-    border: 2px dashed rgba(0,212,170,0.5);
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  #capturedImg {
-    position: absolute;
-    inset: 0; width: 100%; height: 100%;
-    object-fit: cover;
-    display: none;
-  }
-
-  .camera-actions {
-    padding: 14px 18px;
-    display: flex; gap: 10px;
-  }
-  .btn-capture {
-    flex: 1;
-    padding: 12px;
-    background: rgba(108,99,255,0.12);
-    border: 1px solid rgba(108,99,255,0.3);
-    color: var(--accent);
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: background 0.2s;
-  }
-  .btn-capture:hover { background: rgba(108,99,255,0.2); }
-  .btn-retake {
-    padding: 12px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    display: none;
-  }
-
-  /* MAIN ACTION BTN */
-  .btn-clock {
-    width: 100%;
-    padding: 18px;
-    border: none;
-    border-radius: 16px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 18px;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-clock.clock-in {
-    background: linear-gradient(135deg, var(--success), #00a882);
-    color: #fff;
-    box-shadow: 0 6px 24px rgba(0,212,170,0.3);
-  }
-  .btn-clock.clock-out {
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    color: #fff;
-    box-shadow: 0 6px 24px rgba(108,99,255,0.3);
-  }
-  .btn-clock:disabled {
-    background: var(--card) !important;
-    color: var(--muted) !important;
-    cursor: not-allowed !important;
-    box-shadow: none !important;
-  }
-  .btn-clock:not(:disabled):hover { transform: translateY(-2px); }
-  .btn-clock:not(:disabled):active { transform: translateY(0); }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    top: 20px; left: 50%;
-    transform: translateX(-50%) translateY(-80px);
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 999;
-    transition: transform 0.3s ease;
-    max-width: calc(100% - 40px);
-    text-align: center;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.success { border-color: rgba(0,212,170,0.4); color: var(--success); }
-  .toast.error { border-color: rgba(255,77,109,0.4); color: var(--danger); }
-  .toast.warn { border-color: rgba(245,158,11,0.4); color: var(--warn); }
-
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-  .pb-safe { padding-bottom: 24px; }
+/* TOAST */
+.toast-att{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 20px;font-size:13px;font-weight:600;z-index:999;transition:transform .3s ease;max-width:calc(100% - 32px);text-align:center;display:flex;align-items:center;gap:8px}
+.toast-att.show{transform:translateX(-50%) translateY(0)}
+.toast-att.success{border-color:rgba(34,197,94,.4);color:var(--success)}
+.toast-att.error{border-color:rgba(239,68,68,.4);color:var(--danger)}
+.toast-att.warn{border-color:rgba(245,158,11,.4);color:var(--warn)}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <a href="employee.html" class="back-btn">←</a>
-  <div>
-    <div class="header-title">Absensi</div>
-    <div class="header-sub" id="headerSub">Memuat status...</div>
+  <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+  <div class="header-info">
+    <h2>Absensi</h2>
+    <p id="headerSub">Memuat status...</p>
   </div>
 </div>
 
-<div class="toast" id="toastEl"></div>
+<div class="toast-att" id="toastEl"></div>
 
-<div class="content pb-safe">
-
+<div class="content">
   <!-- CLOCK -->
-  <div class="clock-widget">
+  <div class="clock-widget fade-in">
     <div class="clock-time" id="clockDisplay">--:--:--</div>
     <div class="clock-date" id="clockDate">—</div>
   </div>
 
   <!-- LOCK BANNER -->
   <div class="lock-banner" id="lockBanner">
-    <div class="lock-icon">🔒</div>
+    <div class="lock-icon-wrap"><i class="bi bi-lock-fill"></i></div>
     <div class="lock-text">
       <strong id="lockTitle">Absensi Dikunci</strong>
       <p id="lockReason">—</p>
     </div>
   </div>
 
-  <!-- GEOFENCE -->
+  <!-- GEO -->
   <div class="geo-widget loading" id="geoWidget">
     <div class="geo-header">
       <span class="geo-label">Status Lokasi</span>
-      <div class="geo-status-dot loading" id="geoDot"></div>
+      <div class="geo-dot loading" id="geoDot"></div>
     </div>
     <div class="geo-main">
-      <div class="geo-icon loading" id="geoIcon">📡</div>
-      <div class="geo-info">
+      <div class="geo-icon loading" id="geoIcon"><i class="bi bi-broadcast"></i></div>
+      <div>
         <div class="geo-title" id="geoTitle">Mendeteksi lokasi...</div>
         <div class="geo-distance" id="geoDistance">Meminta izin GPS</div>
       </div>
@@ -323,294 +132,201 @@
   </div>
 
   <!-- CAMERA -->
-  <div class="camera-widget">
-    <div class="camera-header">
-      <span class="camera-label">Foto Selfie</span>
+  <div class="camera-card fade-in">
+    <div class="camera-head">
+      <span class="camera-label"><i class="bi bi-camera-fill"></i> &nbsp;Foto Selfie</span>
       <span class="camera-toggle" id="cameraToggle" onclick="startCamera()">Aktifkan Kamera</span>
     </div>
     <div class="camera-container">
       <video id="videoEl" autoplay playsinline muted></video>
       <div class="camera-overlay" id="cameraOverlay">
-        <span style="font-size:32px">📷</span>
+        <i class="bi bi-camera"></i>
         <p>Aktifkan kamera untuk mengambil foto selfie sebelum absen</p>
       </div>
       <div class="face-guide" id="faceGuide" style="display:none"></div>
       <img id="capturedImg" alt="Foto selfie">
     </div>
     <div class="camera-actions">
-      <button class="btn-capture" id="btnCapture" onclick="capturePhoto()" disabled>📸 Ambil Foto</button>
-      <button class="btn-retake" id="btnRetake" onclick="retakePhoto()">🔄</button>
+      <button class="btn-capture" id="btnCapture" onclick="capturePhoto()" disabled>
+        <i class="bi bi-camera-fill"></i> Ambil Foto
+      </button>
+      <button class="btn-retake" id="btnRetake" onclick="retakePhoto()"><i class="bi bi-arrow-repeat"></i></button>
     </div>
   </div>
 
   <!-- MAIN ACTION -->
   <button class="btn-clock clock-in" id="mainBtn" disabled onclick="submitAttendance()">
-    <span id="mainBtnText">⬆ CLOCK IN</span>
+    <i class="bi bi-box-arrow-in-up"></i>
+    <span id="mainBtnText">CLOCK IN</span>
   </button>
-
 </div>
 
 <canvas id="photoCanvas" style="display:none"></canvas>
 
 <script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
-  let MAX_RADIUS = 50;// meters - overridden by config
-  // Demo coordinates (override dengan koordinat kantor dari config)
-  let OFFICE_LAT = -6.2088; // Jakarta default
-  let OFFICE_LNG = 106.8456;
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+let MAX_RADIUS = 50, OFFICE_LAT = -6.2088, OFFICE_LNG = 106.8456;
+const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
+if (!userData) window.location.href = 'index.html';
 
-  const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-  if (!userData) window.location.href = 'index.html';
+let geoOk = false, photoOk = false, currentDist = 0, photoBase64 = null, stream = null, isLockedOut = false, attendanceMode = 'in';
 
-  let geoOk = false;
-  let photoOk = false;
-  let currentDist = 0;
-  let photoBase64 = null;
-  let stream = null;
-  let isLockedOut = false;
-  let attendanceMode = 'in'; // 'in' or 'out'
+const DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function tick() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  document.getElementById('clockDate').textContent = `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+}
+tick(); setInterval(tick, 1000);
 
-  // ---- CLOCK ----
-  const DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  function tick() {
-    const now = new Date();
-    document.getElementById('clockDisplay').textContent =
-      [now.getHours(), now.getMinutes(), now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
-    document.getElementById('clockDate').textContent =
-      `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-  }
-  tick(); setInterval(tick, 1000);
-
-  // ---- TOAST ----
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toastEl');
-    t.textContent = msg;
-    t.className = `toast ${type} show`;
-    setTimeout(() => { t.className = `toast ${type}`; }, 3500);
-  }
-
-  // ---- HAVERSINE ----
-  function haversine(lat1, lng1, lat2, lng2) {
-    const R = 6371000;
-    const rad = x => x * Math.PI / 180;
-    const dLat = rad(lat2 - lat1), dLng = rad(lng2 - lng1);
-    const a = Math.sin(dLat/2)**2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  }
-
-  // ---- GEOFENCE ----
-  function updateGeoUI(dist, safe) {
-    const widget = document.getElementById('geoWidget');
-    const dot = document.getElementById('geoDot');
-    const icon = document.getElementById('geoIcon');
-    const title = document.getElementById('geoTitle');
-    const distEl = document.getElementById('geoDistance');
-    const cls = safe ? 'safe' : 'unsafe';
-    widget.className = `geo-widget ${cls}`;
-    dot.className = `geo-status-dot ${cls}`;
-    icon.className = `geo-icon ${cls}`;
-    icon.textContent = safe ? '✅' : '🔒';
-    title.textContent = safe
-      ? 'Anda di area kantor'
-      : 'Anda di luar area kantor';
-    distEl.innerHTML = `Jarak: <strong>${Math.round(dist)} meter</strong> (maks. ${MAX_RADIUS}m)`;
-  }
-
-  function startGeo() {
-    if (!navigator.geolocation) {
-      showToast('Browser tidak mendukung GPS', 'error'); return;
-    }
-    navigator.geolocation.watchPosition(
-      pos => {
-        const dist = haversine(pos.coords.latitude, pos.coords.longitude, OFFICE_LAT, OFFICE_LNG);
-        currentDist = dist;
-        geoOk = dist <= MAX_RADIUS;
-        updateGeoUI(dist, geoOk);
-        checkReady();
-      },
-      err => {
-        document.getElementById('geoTitle').textContent = 'Gagal mendapatkan lokasi';
-        document.getElementById('geoDistance').textContent = 'Izinkan akses GPS di browser Anda';
-        showToast('Izinkan akses lokasi untuk absen', 'warn');
-      },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
-    );
-  }
-
-  // ---- CAMERA ----
-  async function startCamera() {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-      });
-      const video = document.getElementById('videoEl');
-      video.srcObject = stream;
-      document.getElementById('cameraOverlay').classList.add('hidden');
-      document.getElementById('faceGuide').style.display = 'block';
-      document.getElementById('btnCapture').disabled = false;
-      document.getElementById('cameraToggle').textContent = 'Kamera Aktif ✓';
-      document.getElementById('cameraToggle').style.color = 'var(--success)';
-    } catch (e) {
-      showToast('Gagal mengakses kamera. Izinkan akses kamera.', 'error');
-    }
-  }
-
-  function capturePhoto() {
-    const video = document.getElementById('videoEl');
-    const canvas = document.getElementById('photoCanvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.save();
-    ctx.scale(-1, 1); // Mirror
-    ctx.drawImage(video, -canvas.width, 0);
-    ctx.restore();
-    photoBase64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
-
-    // Show preview
-    const img = document.getElementById('capturedImg');
-    img.src = canvas.toDataURL('image/jpeg', 0.75);
-    img.style.display = 'block';
-
-    // Stop stream
-    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    document.getElementById('videoEl').style.display = 'none';
-    document.getElementById('faceGuide').style.display = 'none';
-    document.getElementById('btnCapture').style.display = 'none';
-    document.getElementById('btnRetake').style.display = 'block';
-
-    photoOk = true;
-    checkReady();
-    showToast('Foto berhasil diambil ✓', 'success');
-  }
-
-  function retakePhoto() {
-    photoOk = false; photoBase64 = null;
-    document.getElementById('capturedImg').style.display = 'none';
-    document.getElementById('capturedImg').src = '';
-    document.getElementById('videoEl').style.display = 'block';
-    document.getElementById('btnCapture').style.display = 'block';
-    document.getElementById('btnCapture').disabled = false;
-    document.getElementById('btnRetake').style.display = 'none';
-    checkReady();
-    startCamera();
-  }
-
-  // ---- READY CHECK ----
-  function checkReady() {
-    const btn = document.getElementById('mainBtn');
-    if (isLockedOut) { btn.disabled = true; return; }
-    btn.disabled = !(geoOk && photoOk);
-  }
-
-  // ---- PRE-FLIGHT CHECK ----
-  async function preFlightCheck() {
-    try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=preflight&user_id=${userData.user_id}`);
-      const data = await res.json();
-      if (!data.success) {
-        // Locked
-        showLock(data.lock_type, data.message);
-        return;
-      }
-      // Set mode
-      attendanceMode = data.has_clocked_in && !data.has_clocked_out ? 'out' : 'in';
-      const btn = document.getElementById('mainBtn');
-      btn.textContent = attendanceMode === 'in' ? '⬆ CLOCK IN' : '⬇ CLOCK OUT';
-      btn.className = `btn-clock ${attendanceMode === 'in' ? 'clock-in' : 'clock-out'}`;
-      document.getElementById('headerSub').textContent = attendanceMode === 'in' ? 'Siap Clock In' : 'Siap Clock Out';
-
-      // Get config
-      if (data.config) {
-
-  OFFICE_LAT =
-    parseFloat(data.config.office_latitude) || OFFICE_LAT;
-
-  OFFICE_LNG =
-    parseFloat(data.config.office_longitude) || OFFICE_LNG;
-
-  MAX_RADIUS =
-    parseFloat(data.config.max_radius_meters) || MAX_RADIUS;
-
-  console.log('OFFICE CONFIG', {
-    lat: OFFICE_LAT,
-    lng: OFFICE_LNG,
-    radius: MAX_RADIUS
-  });
+function showToast(msg, type='success') {
+  const t = document.getElementById('toastEl');
+  t.innerHTML = `<i class="bi bi-${type==='success'?'check-circle-fill':type==='error'?'x-circle-fill':'exclamation-triangle-fill'}"></i> ${msg}`;
+  t.className = `toast-att ${type} show`;
+  setTimeout(() => { t.className = `toast-att ${type}`; }, 3500);
 }
 
-      startGeo();
-    } catch (e) {
-      // Demo fallback
-      document.getElementById('headerSub').textContent = 'Mode Demo (belum terhubung)';
-      attendanceMode = 'in';
-      startGeo();
-    }
-  }
+function haversine(lat1,lng1,lat2,lng2){const R=6371000,rad=x=>x*Math.PI/180,dLat=rad(lat2-lat1),dLng=rad(lng2-lng1),a=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
 
-  function showLock(type, reason) {
-    isLockedOut = true;
-    const banner = document.getElementById('lockBanner');
-    banner.classList.add('show');
-    document.getElementById('lockTitle').textContent =
-      type === 'holiday' ? '🎉 Hari Libur' :
-      type === 'leave' ? '📋 Status Cuti/Izin' : '🔒 Absensi Dikunci';
-    document.getElementById('lockReason').textContent = reason;
-    document.getElementById('mainBtn').disabled = true;
-    document.getElementById('headerSub').textContent = 'Tidak tersedia hari ini';
-  }
+function updateGeoUI(dist, safe) {
+  const cls = safe ? 'safe' : 'unsafe';
+  document.getElementById('geoWidget').className = `geo-widget ${cls}`;
+  document.getElementById('geoDot').className = `geo-dot ${cls}`;
+  const icon = document.getElementById('geoIcon');
+  icon.className = `geo-icon ${cls}`;
+  icon.innerHTML = safe ? '<i class="bi bi-geo-alt-fill"></i>' : '<i class="bi bi-lock-fill"></i>';
+  document.getElementById('geoTitle').textContent = safe ? 'Anda di area kantor' : 'Anda di luar area kantor';
+  document.getElementById('geoDistance').innerHTML = `Jarak: <strong>${Math.round(dist)} meter</strong> (maks. ${MAX_RADIUS}m)`;
+}
 
-  // ---- SUBMIT ----
-  async function submitAttendance() {
-    if (!geoOk || !photoOk) { showToast('Pastikan lokasi & foto selfie sudah siap', 'warn'); return; }
+function startGeo() {
+  if (!navigator.geolocation) { showToast('Browser tidak mendukung GPS', 'error'); return; }
+  navigator.geolocation.watchPosition(pos => {
+    const dist = haversine(pos.coords.latitude, pos.coords.longitude, OFFICE_LAT, OFFICE_LNG);
+    currentDist = dist; geoOk = dist <= MAX_RADIUS;
+    updateGeoUI(dist, geoOk); checkReady();
+  }, () => {
+    document.getElementById('geoTitle').textContent = 'Gagal mendapatkan lokasi';
+    document.getElementById('geoDistance').textContent = 'Izinkan akses GPS di browser Anda';
+    showToast('Izinkan akses lokasi untuk absen', 'warn');
+  }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
+}
 
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
+    const video = document.getElementById('videoEl');
+    video.srcObject = stream;
+    document.getElementById('cameraOverlay').classList.add('hidden');
+    document.getElementById('faceGuide').style.display = 'block';
+    document.getElementById('btnCapture').disabled = false;
+    const tog = document.getElementById('cameraToggle');
+    tog.textContent = 'Kamera Aktif ✓';
+    tog.style.color = 'var(--success)';
+    tog.style.borderColor = 'rgba(34,197,94,.3)';
+    tog.style.background = 'rgba(34,197,94,.08)';
+  } catch(e) { showToast('Gagal mengakses kamera. Izinkan akses kamera.', 'error'); }
+}
+
+function capturePhoto() {
+  const video = document.getElementById('videoEl');
+  const canvas = document.getElementById('photoCanvas');
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.save(); ctx.scale(-1,1); ctx.drawImage(video,-canvas.width,0); ctx.restore();
+  photoBase64 = canvas.toDataURL('image/jpeg',0.75).split(',')[1];
+  const img = document.getElementById('capturedImg');
+  img.src = canvas.toDataURL('image/jpeg',0.75);
+  img.style.display = 'block';
+  if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  document.getElementById('videoEl').style.display = 'none';
+  document.getElementById('faceGuide').style.display = 'none';
+  document.getElementById('btnCapture').style.display = 'none';
+  document.getElementById('btnRetake').style.display = 'block';
+  photoOk = true; checkReady();
+  showToast('Foto berhasil diambil ✓', 'success');
+}
+
+function retakePhoto() {
+  photoOk = false; photoBase64 = null;
+  const img = document.getElementById('capturedImg');
+  img.style.display = 'none'; img.src = '';
+  document.getElementById('videoEl').style.display = 'block';
+  document.getElementById('btnCapture').style.display = 'block';
+  document.getElementById('btnCapture').disabled = false;
+  document.getElementById('btnRetake').style.display = 'none';
+  checkReady(); startCamera();
+}
+
+function checkReady() {
+  const btn = document.getElementById('mainBtn');
+  if (isLockedOut) { btn.disabled = true; return; }
+  btn.disabled = !(geoOk && photoOk);
+}
+
+async function preFlightCheck() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'preflight', user_id: userData.user_id }) });
+    const data = await res.json();
+    if (!data.success) { showLock(data.lock_type, data.message); return; }
+    attendanceMode = data.has_clocked_in && !data.has_clocked_out ? 'out' : 'in';
     const btn = document.getElementById('mainBtn');
-    const origText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = '⏳ Menyimpan...';
-
-    try {
-      const payload = {
-        action: attendanceMode === 'in' ? 'clockIn' : 'clockOut',
-        user_id: userData.user_id,
-        lat: OFFICE_LAT, // replaced by real GPS in prod
-        lng: OFFICE_LNG,
-        distance_meters: Math.round(currentDist),
-        photo_base64: photoBase64
-      };
-
-      // Get real coords
-      await new Promise(res => {
-        navigator.geolocation.getCurrentPosition(pos => {
-          payload.lat = pos.coords.latitude;
-          payload.lng = pos.coords.longitude;
-          res();
-        }, res, { enableHighAccuracy: true });
-      });
-
-      const response = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json();
-      if (result.success) {
-        showToast(`${attendanceMode === 'in' ? 'Clock In' : 'Clock Out'} berhasil! ${result.status || ''}`, 'success');
-        setTimeout(() => window.location.href = 'employee.html', 2000);
-      } else {
-        showToast(result.message || 'Gagal menyimpan absensi', 'error');
-        btn.disabled = false;
-        btn.textContent = origText;
-      }
-    } catch (e) {
-      // Demo success
-      showToast(`[DEMO] ${attendanceMode === 'in' ? 'Clock In' : 'Clock Out'} berhasil!`, 'success');
-      setTimeout(() => window.location.href = 'employee.html', 2000);
+    const btnText = document.getElementById('mainBtnText');
+    if (attendanceMode === 'out') {
+      btn.className = 'btn-clock clock-out';
+      btn.querySelector('i').className = 'bi bi-box-arrow-down';
+      btnText.textContent = 'CLOCK OUT';
     }
+    document.getElementById('headerSub').textContent = attendanceMode === 'in' ? 'Siap Clock In' : 'Siap Clock Out';
+    if (data.config) {
+      OFFICE_LAT = parseFloat(data.config.office_latitude) || OFFICE_LAT;
+      OFFICE_LNG = parseFloat(data.config.office_longitude) || OFFICE_LNG;
+      MAX_RADIUS = parseFloat(data.config.max_radius_meters) || MAX_RADIUS;
+    }
+    startGeo();
+  } catch(e) {
+    document.getElementById('headerSub').textContent = 'Mode Demo';
+    attendanceMode = 'in';
+    startGeo();
   }
+}
 
-  // INIT
-  preFlightCheck();
+function showLock(type, reason) {
+  isLockedOut = true;
+  const banner = document.getElementById('lockBanner');
+  banner.classList.add('show');
+  document.getElementById('lockTitle').textContent = type==='holiday'?'Hari Libur':type==='leave'?'Status Cuti/Izin':'Absensi Dikunci';
+  document.getElementById('lockReason').textContent = reason;
+  document.getElementById('mainBtn').disabled = true;
+  document.getElementById('headerSub').textContent = 'Tidak tersedia hari ini';
+}
+
+async function submitAttendance() {
+  if (!geoOk||!photoOk) { showToast('Pastikan lokasi & foto selfie sudah siap','warn'); return; }
+  const btn = document.getElementById('mainBtn');
+  const origHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Menyimpan...';
+  try {
+    const payload = { action: attendanceMode==='in'?'clockIn':'clockOut', user_id: userData.user_id, lat: OFFICE_LAT, lng: OFFICE_LNG, distance_meters: Math.round(currentDist), photo_base64: photoBase64 };
+    await new Promise(res => navigator.geolocation.getCurrentPosition(pos => { payload.lat=pos.coords.latitude; payload.lng=pos.coords.longitude; res(); }, res, {enableHighAccuracy:true}));
+    const response = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+    const result = await response.json();
+    if (result.success) {
+      showToast(`${attendanceMode==='in'?'Clock In':'Clock Out'} berhasil! ${result.status||''}`, 'success');
+      setTimeout(() => window.location.href='employee.html', 2000);
+    } else {
+      showToast(result.message||'Gagal menyimpan absensi','error');
+      btn.disabled=false; btn.innerHTML=origHtml;
+    }
+  } catch(e) {
+    showToast(`[DEMO] ${attendanceMode==='in'?'Clock In':'Clock Out'} berhasil!`,'success');
+    setTimeout(() => window.location.href='employee.html', 2000);
+  }
+}
+
+preFlightCheck();
 </script>
 </body>
 </html>

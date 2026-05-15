@@ -4,223 +4,134 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>JEF HRIS — Pengajuan</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#FFB703">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 <style>
-  :root {
-    --bg: #0a0a0f; --surface: #12121a; --card: #1a1a26;
-    --border: rgba(255,255,255,0.07); --accent: #6c63ff;
-    --accent2: #00d4aa; --text: #f0f0f8; --muted: #6b6b80;
-    --danger: #ff4d6d; --success: #00d4aa; --warn: #f59e0b;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; }
+body{max-width:480px;margin:0 auto;background:var(--bg-deep)}
+.header{background:rgba(26,26,26,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:16px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.back-btn{width:38px;height:38px;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:20px;text-decoration:none;flex-shrink:0;transition:all var(--transition)}
+.back-btn:hover{border-color:var(--primary);color:var(--primary)}
+.header-info h2{font-family:var(--font-head);font-weight:800;font-size:17px}
+.header-info p{font-size:11px;color:var(--text-muted)}
 
-  .header {
-    padding: 20px; background: var(--surface); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10;
-  }
-  .back-btn { width: 36px; height: 36px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; text-decoration: none; color: inherit; flex-shrink: 0; }
-  .header-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; }
-  .header-sub { font-size: 12px; color: var(--muted); }
+/* TABS */
+.tabs{display:flex;background:rgba(26,26,26,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px}
+.tab-item{flex:1;padding:14px 8px;text-align:center;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:2.5px solid transparent;transition:all var(--transition)}
+.tab-item.active{color:var(--primary);border-bottom-color:var(--primary)}
 
-  /* TABS */
-  .tabs {
-    display: flex;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    gap: 0;
-  }
-  .tab-item {
-    flex: 1; padding: 14px 8px;
-    text-align: center;
-    font-size: 13px; font-weight: 500;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .tab-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+.content{padding:18px;padding-bottom:40px}
+.form-section{display:none}
+.form-section.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-  .content { padding: 20px; }
+/* INFO NOTE */
+.info-note{background:rgba(255,183,3,0.06);border:1px solid rgba(255,183,3,0.15);border-radius:var(--radius-md);padding:13px 16px;font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start}
+.info-note i{color:var(--primary);font-size:16px;flex-shrink:0;margin-top:1px}
 
-  /* FORM */
-  .form-section { display: none; }
-  .form-section.active { display: block; }
+/* TYPE CARDS */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:0}
+.type-card{background:var(--bg-glass);border:2px solid var(--border);border-radius:var(--radius-md);padding:16px 10px;text-align:center;cursor:pointer;transition:all var(--transition);backdrop-filter:blur(8px)}
+.type-card:hover{border-color:rgba(255,183,3,0.4)}
+.type-card.sel-cuti{border-color:var(--primary);background:rgba(255,183,3,0.08)}
+.type-card.sel-sakit{border-color:var(--danger);background:rgba(239,68,68,0.06)}
+.type-card.sel-izin{border-color:var(--warn);background:rgba(245,158,11,0.06)}
+.type-icon-wrap{font-size:26px;margin-bottom:8px}
+.type-name{font-size:12px;font-weight:700;font-family:var(--font-head)}
+.type-desc{font-size:10px;color:var(--text-muted);margin-top:2px}
 
-  .form-group { margin-bottom: 18px; }
-  .form-group label {
-    display: block; font-size: 11px; font-weight: 500;
-    letter-spacing: 0.8px; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 8px;
-  }
-  .form-group select,
-  .form-group input[type="date"],
-  .form-group textarea {
-    width: 100%;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px 16px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b80' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
-  .form-group select option { background: var(--card); }
-  .form-group textarea { resize: none; min-height: 90px; line-height: 1.5; }
-  .form-group select:focus,
-  .form-group input:focus,
-  .form-group textarea:focus { border-color: var(--accent); }
+/* FORM */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.form-input{width:100%;background:rgba(34,40,49,0.7);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px 16px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;transition:all var(--transition);backdrop-filter:blur(8px)}
+.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,183,3,0.12);background:rgba(34,40,49,0.9)}
+.form-input::placeholder{color:var(--text-muted)}
+select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8A9A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+select.form-input option{background:var(--bg-card)}
+textarea.form-input{resize:none;min-height:90px;line-height:1.6}
 
-  /* Date range display */
-  .date-range-info {
-    background: rgba(108,99,255,0.08);
-    border: 1px solid rgba(108,99,255,0.2);
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 13px;
-    color: var(--accent);
-    margin-top: 8px;
-    display: none;
-  }
-  .date-range-info.show { display: block; }
+/* DATE RANGE INFO */
+.date-range-info{display:none;background:rgba(255,183,3,0.07);border:1px solid rgba(255,183,3,0.2);border-radius:var(--radius-sm);padding:11px 14px;font-size:12px;color:var(--primary);font-weight:600;margin-top:8px}
+.date-range-info.show{display:block}
 
-  /* Type selector cards */
-  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .type-card {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .type-card:hover { border-color: var(--accent); }
-  .type-card.selected { border-color: var(--accent); background: rgba(108,99,255,0.1); }
-  .type-card.selected-green { border-color: var(--success); background: rgba(0,212,170,0.1); }
-  .type-card.selected-orange { border-color: var(--warn); background: rgba(245,158,11,0.1); }
-  .type-icon { font-size: 24px; margin-bottom: 6px; }
-  .type-name { font-size: 12px; font-weight: 600; }
-  .type-desc { font-size: 10px; color: var(--muted); margin-top: 2px; }
+/* UPLOAD */
+.upload-area{border:2px dashed rgba(255,183,3,0.2);border-radius:var(--radius-md);padding:28px 20px;text-align:center;cursor:pointer;transition:all var(--transition);position:relative}
+.upload-area:hover{border-color:rgba(255,183,3,0.5);background:rgba(255,183,3,0.03)}
+.upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-area i{font-size:32px;color:var(--primary);margin-bottom:8px;display:block}
+.upload-text{font-size:13px;color:var(--text-muted)}
+.upload-text span{color:var(--primary);font-weight:700}
+.upload-preview{margin-top:12px;display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;align-items:center;gap:10px}
+.upload-preview.show{display:flex}
+.upload-preview img{width:40px;height:40px;object-fit:cover;border-radius:8px}
+.del-upload{margin-left:auto;cursor:pointer;color:var(--danger);font-size:18px;flex-shrink:0}
 
-  /* Upload */
-  .upload-area {
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 28px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-  }
-  .upload-area:hover { border-color: var(--accent); background: rgba(108,99,255,0.04); }
-  .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-icon { font-size: 32px; margin-bottom: 8px; }
-  .upload-text { font-size: 13px; color: var(--muted); }
-  .upload-text span { color: var(--accent); }
-  .upload-preview {
-    margin-top: 12px; display: none;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .upload-preview.show { display: flex; }
-  .upload-preview img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; }
+/* SUBMIT */
+.btn-submit{width:100%;padding:17px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:50px;color:#000;font-family:var(--font-head);font-weight:900;font-size:15px;letter-spacing:.5px;cursor:pointer;transition:all var(--transition);margin-top:6px;box-shadow:0 4px 24px rgba(255,183,3,0.3);display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(255,183,3,0.5)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
 
-  /* SUBMIT BTN */
-  .btn-submit {
-    width: 100%; padding: 16px;
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    border: none; border-radius: 12px;
-    color: #fff; font-family: 'Syne', sans-serif;
-    font-weight: 700; font-size: 15px; letter-spacing: 0.5px;
-    cursor: pointer; transition: all 0.2s;
-    margin-top: 8px;
-  }
-  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,0.35); }
-  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+/* HISTORY */
+.history-list{display:flex;flex-direction:column;gap:12px}
+.history-card{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;backdrop-filter:blur(8px);transition:all var(--transition)}
+.history-card:hover{border-color:var(--border-hover)}
+.history-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.history-type{font-family:var(--font-head);font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px}
+.history-dates{font-size:12px;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.history-reason{font-size:13px;color:var(--text)}
 
-  /* HISTORY TAB */
-  .history-list { display: flex; flex-direction: column; gap: 12px; }
-  .history-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-  }
-  .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .history-type { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
-  .badge {
-    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
-  }
-  .badge.pending { background: rgba(245,158,11,0.12); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
-  .badge.approved { background: rgba(0,212,170,0.12); color: var(--success); border: 1px solid rgba(0,212,170,0.3); }
-  .badge.rejected { background: rgba(255,77,109,0.12); color: var(--danger); border: 1px solid rgba(255,77,109,0.3); }
-  .history-dates { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-  .history-reason { font-size: 13px; }
+.section-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,183,3,0.5);margin-bottom:14px}
 
-  /* TOAST */
-  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; font-size: 13px; z-index: 999; transition: transform 0.3s; max-width: calc(100% - 40px); text-align: center; }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.success { border-color: rgba(0,212,170,0.4); color: var(--success); }
-  .toast.error { border-color: rgba(255,77,109,0.4); color: var(--danger); }
-  .toast.warn { border-color: rgba(245,158,11,0.4); color: var(--warn); }
-
-  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
-  .info-note { background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.15); border-radius: 10px; padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 18px; }
-  .pb-safe { padding-bottom: 32px; }
+/* TOAST */
+.toast-lv{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 20px;font-size:13px;font-weight:600;z-index:999;transition:transform .3s;max-width:calc(100% - 32px);text-align:center;display:flex;align-items:center;gap:8px}
+.toast-lv.show{transform:translateX(-50%) translateY(0)}
+.toast-lv.success{border-color:rgba(34,197,94,.4);color:var(--success)}
+.toast-lv.error{border-color:rgba(239,68,68,.4);color:var(--danger)}
+.toast-lv.warn{border-color:rgba(245,158,11,.4);color:var(--warn)}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <a href="employee.html" class="back-btn">←</a>
-  <div>
-    <div class="header-title">Pengajuan</div>
-    <div class="header-sub">Cuti, Sakit & Izin</div>
+  <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+  <div class="header-info">
+    <h2>Pengajuan</h2>
+    <p>Cuti, Sakit &amp; Izin</p>
   </div>
 </div>
 
 <div class="tabs">
-  <div class="tab-item active" onclick="switchTab('form')">Ajukan Baru</div>
-  <div class="tab-item" onclick="switchTab('history')">Riwayat Ajuan</div>
+  <div class="tab-item active" id="tab-form" onclick="switchTab('form')">Ajukan Baru</div>
+  <div class="tab-item" id="tab-history" onclick="switchTab('history')">Riwayat Ajuan</div>
 </div>
 
-<div class="toast" id="toastEl"></div>
+<div class="toast-lv" id="toastEl"></div>
 
 <div class="content">
   <!-- FORM TAB -->
   <div class="form-section active" id="tabForm">
-
     <div class="info-note">
+      <i class="bi bi-info-circle-fill"></i>
       Pengajuan yang disetujui akan otomatis mengunci tombol absensi pada tanggal yang dipilih.
     </div>
 
-    <!-- TYPE SELECTOR -->
+    <!-- TYPE -->
     <div class="form-group">
-      <label>Jenis Pengajuan</label>
+      <label class="form-label">Jenis Pengajuan</label>
       <div class="type-grid">
-        <div class="type-card selected" id="type-Cuti" onclick="selectType('Cuti')">
-          <div class="type-icon">🌴</div>
+        <div class="type-card sel-cuti" id="type-Cuti" onclick="selectType('Cuti')">
+          <div class="type-icon-wrap">🌴</div>
           <div class="type-name">Cuti</div>
           <div class="type-desc">Cuti tahunan</div>
         </div>
         <div class="type-card" id="type-Sakit" onclick="selectType('Sakit')">
-          <div class="type-icon">🏥</div>
+          <div class="type-icon-wrap">🏥</div>
           <div class="type-name">Sakit</div>
           <div class="type-desc">Butuh dokumen</div>
         </div>
         <div class="type-card" id="type-Izin" onclick="selectType('Izin')">
-          <div class="type-icon">📝</div>
+          <div class="type-icon-wrap">📝</div>
           <div class="type-name">Izin</div>
           <div class="type-desc">Keperluan lain</div>
         </div>
@@ -228,49 +139,49 @@
       <input type="hidden" id="selectedType" value="Cuti">
     </div>
 
-    <!-- DATES -->
     <div class="form-group">
-      <label>Tanggal Mulai</label>
-      <input type="date" id="startDate" onchange="updateDateRange()">
+      <label class="form-label">Tanggal Mulai</label>
+      <input type="date" id="startDate" class="form-input" onchange="updateDateRange()">
     </div>
     <div class="form-group">
-      <label>Tanggal Selesai</label>
-      <input type="date" id="endDate" onchange="updateDateRange()">
+      <label class="form-label">Tanggal Selesai</label>
+      <input type="date" id="endDate" class="form-input" onchange="updateDateRange()">
+      <div class="date-range-info" id="dateRangeInfo"></div>
     </div>
-    <div class="date-range-info" id="dateRangeInfo"></div>
-
-    <!-- REASON -->
     <div class="form-group">
-      <label>Alasan / Keterangan</label>
-      <textarea id="reason" placeholder="Jelaskan alasan pengajuan Anda..."></textarea>
+      <label class="form-label">Alasan / Keterangan</label>
+      <textarea id="reason" class="form-input" placeholder="Jelaskan alasan pengajuan Anda..."></textarea>
     </div>
 
-    <!-- UPLOAD (Sakit only) -->
+    <!-- UPLOAD (Sakit) -->
     <div class="form-group" id="uploadSection" style="display:none">
-      <label>Dokumen Pendukung <span style="color:var(--danger)">*</span> (Surat Dokter)</label>
+      <label class="form-label">Dokumen Pendukung <span style="color:var(--danger)">*</span></label>
       <div class="upload-area">
         <input type="file" id="fileInput" accept="image/*,application/pdf" onchange="handleFile(this)">
-        <div class="upload-icon">📄</div>
+        <i class="bi bi-file-earmark-arrow-up"></i>
         <div class="upload-text">Tap untuk pilih foto / dokumen<br><span>dari kamera atau galeri</span></div>
       </div>
       <div class="upload-preview" id="uploadPreview">
         <img id="previewImg" src="" alt="">
         <div>
           <strong style="font-size:13px" id="fileName">—</strong>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px" id="fileSize">—</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px" id="fileSize">—</div>
         </div>
-        <span style="margin-left:auto;cursor:pointer;color:var(--danger)" onclick="clearFile()">✕</span>
+        <span class="del-upload" onclick="clearFile()"><i class="bi bi-x-circle-fill"></i></span>
       </div>
     </div>
 
-    <button class="btn-submit" id="submitBtn" onclick="submitLeave()">KIRIM PENGAJUAN</button>
+    <button class="btn-submit" id="submitBtn" onclick="submitLeave()">
+      <i class="bi bi-send-fill"></i> KIRIM PENGAJUAN
+    </button>
   </div>
 
   <!-- HISTORY TAB -->
-  <div class="form-section pb-safe" id="tabHistory">
+  <div class="form-section" id="tabHistory">
     <div class="section-label">Riwayat Pengajuan</div>
     <div class="history-list" id="historyList">
-      <div style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px">
+      <div style="text-align:center;padding:40px 0;color:var(--text-muted)">
+        <i class="bi bi-hourglass-split" style="font-size:36px;opacity:.4;display:block;margin-bottom:12px"></i>
         Memuat riwayat...
       </div>
     </div>
@@ -278,176 +189,118 @@
 </div>
 
 <script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
-  const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-  if (!userData) window.location.href = 'index.html';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
+if (!userData) window.location.href = 'index.html';
 
-  let selectedType = 'Cuti';
-  let fileBase64 = null;
-  let fileName = null;
+let selectedType = 'Cuti', fileBase64 = null, fileName = null;
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('startDate').min = today;
+document.getElementById('endDate').min = today;
 
-  // Set min date to today
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('startDate').min = today;
-  document.getElementById('endDate').min = today;
+function showToast(msg, type='success') {
+  const t = document.getElementById('toastEl');
+  const icons = { success:'check-circle-fill', error:'x-circle-fill', warn:'exclamation-triangle-fill' };
+  t.innerHTML = `<i class="bi bi-${icons[type]||'info-circle'}"></i> ${msg}`;
+  t.className = `toast-lv ${type} show`;
+  setTimeout(() => { t.className = `toast-lv ${type}`; }, 3500);
+}
 
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toastEl');
-    t.textContent = msg; t.className = `toast ${type} show`;
-    setTimeout(() => { t.className = `toast ${type}`; }, 3500);
+function switchTab(tab) {
+  document.getElementById('tab-form').classList.toggle('active', tab==='form');
+  document.getElementById('tab-history').classList.toggle('active', tab==='history');
+  document.getElementById('tabForm').classList.toggle('active', tab==='form');
+  document.getElementById('tabHistory').classList.toggle('active', tab==='history');
+  if (tab==='history') loadHistory();
+}
+
+function selectType(type) {
+  selectedType = type;
+  document.getElementById('selectedType').value = type;
+  ['Cuti','Sakit','Izin'].forEach(t => { document.getElementById(`type-${t}`).className='type-card'; });
+  const clsMap = { Cuti:'sel-cuti', Sakit:'sel-sakit', Izin:'sel-izin' };
+  document.getElementById(`type-${type}`).classList.add(clsMap[type]);
+  document.getElementById('uploadSection').style.display = type==='Sakit'?'block':'none';
+}
+
+function updateDateRange() {
+  const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value;
+  const info = document.getElementById('dateRangeInfo');
+  if (s && e) {
+    const days = Math.ceil((new Date(e)-new Date(s))/86400000)+1;
+    if (days < 1) { info.textContent='⚠ Tanggal selesai harus setelah tanggal mulai'; info.classList.add('show'); return; }
+    info.textContent=`📅 Total ${days} hari`; info.classList.add('show');
+    document.getElementById('endDate').min=s;
   }
+}
 
-  function switchTab(tab) {
-    document.querySelectorAll('.tab-item').forEach((el, i) => {
-      el.classList.toggle('active', (tab === 'form' && i === 0) || (tab === 'history' && i === 1));
-    });
-    document.getElementById('tabForm').classList.toggle('active', tab === 'form');
-    document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
-    if (tab === 'history') loadHistory();
-  }
+function handleFile(input) {
+  const file = input.files[0]; if (!file) return;
+  if (file.size > 5*1024*1024) { showToast('File terlalu besar. Maks 5MB.','error'); return; }
+  fileName = file.name;
+  document.getElementById('fileName').textContent=fileName;
+  document.getElementById('fileSize').textContent=(file.size/1024).toFixed(1)+' KB';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result; fileBase64=base64.split(',')[1];
+    if (file.type.startsWith('image/')) { document.getElementById('previewImg').src=base64; document.getElementById('previewImg').style.display='block'; }
+    else { document.getElementById('previewImg').style.display='none'; }
+    document.getElementById('uploadPreview').classList.add('show');
+  };
+  reader.readAsDataURL(file);
+}
 
-  function selectType(type) {
-    selectedType = type;
-    document.getElementById('selectedType').value = type;
-    // Reset all
-    ['Cuti','Sakit','Izin'].forEach(t => { document.getElementById(`type-${t}`).className = 'type-card'; });
-    const colorMap = { Cuti: 'selected-green', Sakit: 'selected', Izin: 'selected-orange' };
-    document.getElementById(`type-${type}`).classList.add(colorMap[type]);
-    document.getElementById('uploadSection').style.display = type === 'Sakit' ? 'block' : 'none';
-  }
+function clearFile() {
+  fileBase64=null; fileName=null;
+  document.getElementById('fileInput').value='';
+  document.getElementById('uploadPreview').classList.remove('show');
+  document.getElementById('previewImg').src='';
+}
 
-  function updateDateRange() {
-    const s = document.getElementById('startDate').value;
-    const e = document.getElementById('endDate').value;
-    const info = document.getElementById('dateRangeInfo');
-    if (s && e) {
-      const days = Math.ceil((new Date(e) - new Date(s)) / 86400000) + 1;
-      if (days < 1) { info.textContent = '⚠ Tanggal selesai harus setelah tanggal mulai'; info.classList.add('show'); return; }
-      info.textContent = `📅 Total ${days} hari kerja`;
-      info.classList.add('show');
-      document.getElementById('endDate').min = s;
-    }
-  }
+async function submitLeave() {
+  const startDate=document.getElementById('startDate').value, endDate=document.getElementById('endDate').value, reason=document.getElementById('reason').value.trim();
+  if (!startDate||!endDate) { showToast('Pilih tanggal mulai & selesai','warn'); return; }
+  if (!reason) { showToast('Alasan wajib diisi','warn'); return; }
+  if (selectedType==='Sakit'&&!fileBase64) { showToast('Upload surat dokter untuk pengajuan sakit','warn'); return; }
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<div class="spinner" style="border-top-color:#000"></div> Mengirim...';
+  try {
+    const res=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'submitLeave',user_id:userData.user_id,type:selectedType,start_date:startDate,end_date:endDate,reason,attachment_base64:fileBase64,attachment_name:fileName})});
+    const data=await res.json();
+    if (data.success) {
+      showToast('Pengajuan berhasil dikirim! Menunggu persetujuan HR.','success');
+      document.getElementById('startDate').value=''; document.getElementById('endDate').value=''; document.getElementById('reason').value='';
+      clearFile(); document.getElementById('dateRangeInfo').classList.remove('show');
+    } else { showToast(data.message||'Gagal mengirim pengajuan','error'); }
+  } catch(e) { showToast('[DEMO] Pengajuan berhasil dikirim!','success'); }
+  btn.disabled=false; btn.innerHTML='<i class="bi bi-send-fill"></i> KIRIM PENGAJUAN';
+}
 
-  function handleFile(input) {
-    const file = input.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { showToast('File terlalu besar. Maks 5MB.', 'error'); return; }
-    fileName = file.name;
-    document.getElementById('fileName').textContent = fileName;
-    document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
-
-    const reader = new FileReader();
-    reader.onload = e => {
-      const base64 = e.target.result;
-      fileBase64 = base64.split(',')[1];
-      if (file.type.startsWith('image/')) {
-        document.getElementById('previewImg').src = base64;
-        document.getElementById('previewImg').style.display = 'block';
-      } else {
-        document.getElementById('previewImg').style.display = 'none';
-      }
-      document.getElementById('uploadPreview').classList.add('show');
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function clearFile() {
-    fileBase64 = null; fileName = null;
-    document.getElementById('fileInput').value = '';
-    document.getElementById('uploadPreview').classList.remove('show');
-    document.getElementById('previewImg').src = '';
-  }
-
-  async function submitLeave() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    const reason = document.getElementById('reason').value.trim();
-
-    if (!startDate || !endDate) { showToast('Pilih tanggal mulai & selesai', 'warn'); return; }
-    if (!reason) { showToast('Alasan wajib diisi', 'warn'); return; }
-    if (selectedType === 'Sakit' && !fileBase64) { showToast('Upload surat dokter untuk pengajuan sakit', 'warn'); return; }
-
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Mengirim...';
-
-    try {
-      const payload = {
-        action: 'submitLeave',
-        user_id: userData.user_id,
-        type: selectedType,
-        start_date: startDate,
-        end_date: endDate,
-        reason,
-        attachment_base64: fileBase64,
-        attachment_name: fileName
-      };
-
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast('Pengajuan berhasil dikirim! Menunggu persetujuan HR.', 'success');
-        // Reset form
-        document.getElementById('startDate').value = '';
-        document.getElementById('endDate').value = '';
-        document.getElementById('reason').value = '';
-        clearFile();
-        document.getElementById('dateRangeInfo').classList.remove('show');
-      } else {
-        showToast(data.message || 'Gagal mengirim pengajuan', 'error');
-      }
-    } catch (e) {
-      showToast('[DEMO] Pengajuan berhasil dikirim! (mode demo)', 'success');
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'KIRIM PENGAJUAN';
-  }
-
-  async function loadHistory() {
-    const list = document.getElementById('historyList');
-    try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=leaveHistory&user_id=${userData.user_id}`);
-      const data = await res.json();
-      if (data.success && data.requests.length) {
-        list.innerHTML = data.requests.map(r => `
-          <div class="history-card">
-            <div class="history-header">
-              <div class="history-type">${r.type === 'Cuti' ? '🌴' : r.type === 'Sakit' ? '🏥' : '📝'} ${r.type}</div>
-              <span class="badge ${r.status.toLowerCase()}">${r.status}</span>
-            </div>
-            <div class="history-dates">📅 ${r.start_date} s.d ${r.end_date}</div>
-            <div class="history-reason">${r.reason}</div>
-          </div>
-        `).join('');
-      } else {
-        list.innerHTML = demoHistory();
-      }
-    } catch (e) {
-      list.innerHTML = demoHistory();
-    }
-  }
-
-  function demoHistory() {
-    return [
-      { type: 'Cuti', status: 'approved', start: '2026-05-17', end: '2026-05-18', reason: 'Liburan keluarga' },
-      { type: 'Sakit', status: 'pending', start: '2026-05-10', end: '2026-05-10', reason: 'Demam, ada surat dokter' },
-      { type: 'Izin', status: 'rejected', start: '2026-04-28', end: '2026-04-28', reason: 'Keperluan pribadi' },
-    ].map(r => `
-      <div class="history-card">
-        <div class="history-header">
-          <div class="history-type">${r.type === 'Cuti' ? '🌴' : r.type === 'Sakit' ? '🏥' : '📝'} ${r.type}</div>
-          <span class="badge ${r.status}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>
+async function loadHistory() {
+  const list=document.getElementById('historyList');
+  const statusBadge=(s)=>{const m={pending:'badge-warn',approved:'badge-success',rejected:'badge-danger'};return`<span class="badge ${m[s.toLowerCase()]||'badge-muted'}">${s.charAt(0).toUpperCase()+s.slice(1)}</span>`;};
+  const typeIcon=(t)=>({Cuti:'🌴',Sakit:'🏥',Izin:'📝'}[t]||'📄');
+  try {
+    const res=await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'leaveHistory', user_id: userData.user_id }) });
+    const data=await res.json();
+    const items=data.success&&data.requests.length?data.requests:[
+      {type:'Cuti',status:'approved',start_date:'2026-05-17',end_date:'2026-05-18',reason:'Liburan keluarga'},
+      {type:'Sakit',status:'pending',start_date:'2026-05-10',end_date:'2026-05-10',reason:'Demam, ada surat dokter'},
+      {type:'Izin',status:'rejected',start_date:'2026-04-28',end_date:'2026-04-28',reason:'Keperluan pribadi'},
+    ];
+    list.innerHTML=items.map(r=>`
+      <div class="history-card fade-in">
+        <div class="history-card-header">
+          <div class="history-type">${typeIcon(r.type)} ${r.type}</div>
+          ${statusBadge(r.status)}
         </div>
-        <div class="history-dates">📅 ${r.start} s.d ${r.end}</div>
+        <div class="history-dates"><i class="bi bi-calendar3"></i> ${r.start_date} s.d ${r.end_date}</div>
         <div class="history-reason">${r.reason}</div>
-      </div>
-    `).join('');
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat riwayat</div>';
   }
+}
 </script>
 </body>
 </html>

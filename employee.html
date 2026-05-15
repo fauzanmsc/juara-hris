@@ -4,319 +4,108 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>JEF HRIS — Portal Karyawan</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#FFB703">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --card: #1a1a26;
-    --border: rgba(255,255,255,0.07);
-    --accent: #6c63ff;
-    --accent2: #00d4aa;
-    --text: #f0f0f8;
-    --muted: #6b6b80;
-    --danger: #ff4d6d;
-    --success: #00d4aa;
-    --warn: #f59e0b;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    max-width: 480px;
-    margin: 0 auto;
-  }
+body{max-width:480px;margin:0 auto;background:var(--bg-deep)}
+.header{background:rgba(26,26,26,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:20px;position:sticky;top:0;z-index:100}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.brand-row{display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-weight:800;font-size:16px}
+.live-badge{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--success);border-radius:50px;padding:3px 10px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:5px}
+.live-badge::before{content:'';width:6px;height:6px;background:var(--success);border-radius:50%;animation:livePulse 2s infinite}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.btn-logout{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:var(--danger);padding:7px 16px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer;transition:all var(--transition);display:flex;align-items:center;gap:5px}
+.btn-logout:hover{background:rgba(239,68,68,0.15)}
+.profile-row{display:flex;align-items:center;gap:14px}
+.avatar-emp{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:900;font-size:19px;color:#000;border:2.5px solid rgba(255,183,3,0.4);overflow:hidden;flex-shrink:0}
+.avatar-emp img{width:100%;height:100%;object-fit:cover}
+.profile-info h3{font-family:var(--font-head);font-weight:800;font-size:17px;margin-bottom:2px}
+.profile-info p{font-size:12px;color:var(--text-muted)}
 
-  /* HEADER */
-  .header {
-    padding: 24px 20px 20px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 100;
-  }
-  .header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  .brand {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .brand-dot {
-    width: 8px; height: 8px;
-    background: var(--accent2);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+.content{padding:18px;display:flex;flex-direction:column;gap:16px}
 
-  .logout-btn {
-    background: rgba(255,77,109,0.1);
-    border: 1px solid rgba(255,77,109,0.2);
-    color: var(--danger);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .logout-btn:hover { background: rgba(255,77,109,0.2); }
+/* DATE BAR */
+.date-bar{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)}
+.date-info .day{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px}
+.date-info .date-full{font-family:var(--font-head);font-weight:800;font-size:18px}
+.live-clock{font-family:var(--font-head);font-weight:800;font-size:24px;color:var(--primary);font-variant-numeric:tabular-nums}
 
-  .profile-section {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .avatar {
-    width: 54px; height: 54px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
-    color: #fff;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 2px solid var(--accent);
-  }
-  .avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .profile-info h3 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 17px;
-    margin-bottom: 2px;
-  }
-  .profile-info p { font-size: 13px; color: var(--muted); }
+/* SECTION LABEL */
+.section-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,183,3,0.5);margin-bottom:0px}
 
-  /* CONTENT */
-  .content { padding: 20px; }
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-card-emp{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 12px;text-align:center;backdrop-filter:blur(8px);transition:all var(--transition)}
+.stat-card-emp:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+.stat-val{font-family:var(--font-head);font-weight:900;font-size:30px;margin-bottom:4px;line-height:1}
+.stat-lbl{font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.3px}
+.val-green{color:var(--success)}
+.val-warn{color:var(--warn)}
+.val-primary{color:var(--primary)}
 
-  /* DATE BAR */
-  .date-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 20px;
-  }
-  .date-info .day { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
-  .date-info .date-full { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; }
-  .time-live {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 22px;
-    color: var(--accent2);
-    font-variant-numeric: tabular-nums;
-  }
+/* TODAY CARD */
+.today-card{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;backdrop-filter:blur(12px)}
+.today-header{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,183,3,0.5);margin-bottom:16px}
+.time-row{display:flex;justify-content:space-around;gap:10px}
+.time-item{text-align:center;flex:1}
+.time-lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.time-val{font-family:var(--font-head);font-weight:800;font-size:22px;color:var(--text)}
+.time-val.empty{font-size:18px;color:rgba(255,255,255,0.2)}
+.time-divider{width:1px;background:var(--border);margin:0 8px;align-self:stretch}
+.status-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:10px;font-weight:700;margin-top:6px}
+.chip-empty{background:rgba(138,138,154,0.1);color:var(--text-muted);border:1px solid rgba(138,138,154,0.2)}
+.chip-ok{background:rgba(34,197,94,0.12);color:var(--success);border:1px solid rgba(34,197,94,0.25)}
+.chip-late{background:rgba(245,158,11,0.12);color:var(--warn);border:1px solid rgba(245,158,11,0.25)}
 
-  /* STATS CARDS */
-  .section-label {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 24px;
-  }
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 12px;
-    text-align: center;
-  }
-  .stat-value {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 28px;
-    margin-bottom: 4px;
-  }
-  .stat-value.green { color: var(--success); }
-  .stat-value.orange { color: var(--warn); }
-  .stat-value.purple { color: var(--accent); }
-  .stat-label { font-size: 11px; color: var(--muted); }
+/* MENU GRID */
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.menu-card{background:var(--bg-glass);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;cursor:pointer;transition:all var(--transition);text-decoration:none;color:inherit;display:block;backdrop-filter:blur(8px)}
+.menu-card:hover{transform:translateY(-4px);border-color:var(--border-hover);box-shadow:0 8px 32px rgba(255,183,3,0.15)}
+.menu-icon{width:46px;height:46px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+.icon-yellow{background:rgba(255,183,3,0.12);color:var(--primary)}
+.icon-success{background:rgba(34,197,94,0.12);color:var(--success)}
+.icon-warn{background:rgba(245,158,11,0.12);color:var(--warn)}
+.icon-danger{background:rgba(239,68,68,0.12);color:var(--danger)}
+.menu-card h4{font-family:var(--font-head);font-weight:800;font-size:14px;margin-bottom:4px}
+.menu-card p{font-size:11px;color:var(--text-muted);line-height:1.4}
 
-  /* TODAY STATUS */
-  .today-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px;
-    margin-bottom: 24px;
-  }
-  .today-card .card-title {
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
-  .time-row {
-    display: flex;
-    justify-content: space-between;
-  }
-  .time-item { text-align: center; flex: 1; }
-  .time-item .time-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
-  .time-item .time-val {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--text);
-  }
-  .time-item .time-val.muted { color: var(--muted); font-size: 16px; }
-  .time-divider {
-    width: 1px;
-    background: var(--border);
-    margin: 0 16px;
-  }
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 500;
-    margin-top: 6px;
-  }
-  .status-badge.on-time { background: rgba(0,212,170,0.1); color: var(--success); border: 1px solid rgba(0,212,170,0.2); }
-  .status-badge.late { background: rgba(245,158,11,0.1); color: var(--warn); border: 1px solid rgba(245,158,11,0.2); }
-  .status-badge.empty { background: rgba(107,107,128,0.1); color: var(--muted); border: 1px solid var(--border); }
+/* ACTIVITY */
+.activity-list{display:flex;flex-direction:column;gap:10px}
+.activity-item{display:flex;align-items:center;gap:14px;background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;backdrop-filter:blur(8px);transition:all var(--transition)}
+.activity-item:hover{border-color:var(--border-hover)}
+.act-dot{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.act-dot-green{background:rgba(34,197,94,0.12);color:var(--success)}
+.act-dot-yellow{background:rgba(255,183,3,0.12);color:var(--primary)}
+.act-dot-warn{background:rgba(245,158,11,0.12);color:var(--warn)}
+.act-content{flex:1;min-width:0}
+.act-content strong{font-size:13px;font-weight:700;display:block;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-content span{font-size:11px;color:var(--text-muted)}
+.act-time{font-size:11px;color:var(--text-muted);flex-shrink:0;font-variant-numeric:tabular-nums}
 
-  /* MAIN MENU */
-  .menu-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .menu-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 22px 18px;
-    cursor: pointer;
-    transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-  .menu-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
-    box-shadow: 0 8px 24px rgba(108,99,255,0.15);
-  }
-  .menu-card.green:hover {
-    border-color: var(--success);
-    box-shadow: 0 8px 24px rgba(0,212,170,0.15);
-  }
-  .menu-icon {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    margin-bottom: 14px;
-  }
-  .menu-icon.purple { background: rgba(108,99,255,0.15); }
-  .menu-icon.green { background: rgba(0,212,170,0.15); }
-  .menu-icon.orange { background: rgba(245,158,11,0.15); }
-  .menu-icon.red { background: rgba(255,77,109,0.15); }
-  .menu-card h4 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-  .menu-card p { font-size: 12px; color: var(--muted); line-height: 1.4; }
-
-  /* RECENT ACTIVITY */
-  .activity-list { display: flex; flex-direction: column; gap: 10px; }
-  .activity-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-  }
-  .activity-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .activity-dot.green { background: var(--success); }
-  .activity-dot.purple { background: var(--accent); }
-  .activity-dot.orange { background: var(--warn); }
-  .activity-content { flex: 1; }
-  .activity-content strong { font-size: 13px; display: block; margin-bottom: 2px; }
-  .activity-content span { font-size: 11px; color: var(--muted); }
-  .activity-time { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-  /* BOTTOM NAV */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 480px;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    display: flex;
-    padding: 12px 20px 20px;
-    gap: 0;
-  }
-  .nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 10px;
-    transition: background 0.2s;
-    text-decoration: none;
-    color: inherit;
-  }
-  .nav-item:hover { background: rgba(108,99,255,0.08); }
-  .nav-icon { font-size: 20px; }
-  .nav-label { font-size: 10px; color: var(--muted); }
-  .nav-item.active .nav-label { color: var(--accent); }
-
-  .pb-nav { padding-bottom: 90px; }
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(26,26,26,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:10px 0 calc(10px + env(safe-area-inset-bottom));z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;color:var(--text-muted);font-size:10px;font-weight:700;letter-spacing:.3px;text-decoration:none;position:relative;transition:all var(--transition)}
+.nav-item.active{color:var(--primary)}
+.nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:30px;height:3px;background:linear-gradient(90deg,var(--primary),var(--primary-dark));border-radius:0 0 4px 4px}
+.nav-item i{font-size:23px;transition:transform var(--transition)}
+.nav-item.active i{transform:scale(1.15)}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-top">
-    <div class="brand">
-      <div class="brand-dot"></div>
-      JEF HRIS
+    <div class="brand-row">
+      <span>JEF HRIS</span>
+      <span class="live-badge">LIVE</span>
     </div>
-    <button class="logout-btn" onclick="logout()">Keluar</button>
+    <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
   </div>
-  <div class="profile-section">
-    <div class="avatar" id="avatarEl">B</div>
+  <div class="profile-row">
+    <div class="avatar-emp" id="avatarEl">U</div>
     <div class="profile-info">
       <h3 id="userName">—</h3>
       <p id="userPosition">—</p>
@@ -331,76 +120,76 @@
       <div class="day" id="dayName">—</div>
       <div class="date-full" id="dateStr">—</div>
     </div>
-    <div class="time-live" id="liveClock">—:—:—</div>
+    <div class="live-clock" id="liveClock">--:--:--</div>
   </div>
 
   <!-- STATS -->
   <div class="section-label">Ringkasan Bulan Ini</div>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-value green" id="statHadir">—</div>
-      <div class="stat-label">Hadir</div>
+  <div class="stats-grid stagger fade-in">
+    <div class="stat-card-emp">
+      <div class="stat-val val-green" id="statHadir">—</div>
+      <div class="stat-lbl">Hadir</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value orange" id="statTerlambat">—</div>
-      <div class="stat-label">Terlambat</div>
+    <div class="stat-card-emp">
+      <div class="stat-val val-warn" id="statTerlambat">—</div>
+      <div class="stat-lbl">Terlambat</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value purple" id="statCuti">—</div>
-      <div class="stat-label">Sisa Cuti</div>
+    <div class="stat-card-emp">
+      <div class="stat-val val-primary" id="statCuti">—</div>
+      <div class="stat-lbl">Sisa Cuti</div>
     </div>
   </div>
 
   <!-- TODAY -->
   <div class="section-label">Kehadiran Hari Ini</div>
-  <div class="today-card">
-    <div class="card-title">Log Absensi</div>
+  <div class="today-card fade-in">
+    <div class="today-header"><i class="bi bi-clock-history"></i> &nbsp;Log Absensi</div>
     <div class="time-row">
       <div class="time-item">
-        <div class="time-label">Masuk</div>
+        <div class="time-lbl">Masuk</div>
         <div class="time-val" id="clockInTime">--:--</div>
-        <div><span class="status-badge empty" id="statusIn">Belum absen</span></div>
+        <div><span class="status-chip chip-empty" id="statusIn">Belum absen</span></div>
       </div>
       <div class="time-divider"></div>
       <div class="time-item">
-        <div class="time-label">Pulang</div>
-        <div class="time-val muted" id="clockOutTime">--:--</div>
-        <div><span class="status-badge empty" id="statusOut">—</span></div>
+        <div class="time-lbl">Pulang</div>
+        <div class="time-val empty" id="clockOutTime">--:--</div>
+        <div><span class="status-chip chip-empty" id="statusOut">—</span></div>
       </div>
     </div>
   </div>
 
-  <!-- MAIN MENU -->
+  <!-- MENU -->
   <div class="section-label">Menu Utama</div>
-  <div class="menu-grid">
+  <div class="menu-grid stagger fade-in">
     <a href="attendance.html" class="menu-card">
-      <div class="menu-icon purple">📍</div>
+      <div class="menu-icon icon-yellow"><i class="bi bi-geo-alt-fill"></i></div>
       <h4>Absensi</h4>
-      <p>Clock In & Clock Out harian</p>
+      <p>Clock In &amp; Clock Out harian</p>
     </a>
-    <a href="leave.html" class="menu-card green">
-      <div class="menu-icon green">📋</div>
+    <a href="leave.html" class="menu-card">
+      <div class="menu-icon icon-success"><i class="bi bi-calendar-check-fill"></i></div>
       <h4>Pengajuan</h4>
-      <p>Cuti, Sakit & Izin</p>
+      <p>Cuti, Sakit &amp; Izin</p>
     </a>
-    <div class="menu-card" onclick="loadHistory()">
-      <div class="menu-icon orange">📊</div>
+    <a href="history.html" class="menu-card">
+      <div class="menu-icon icon-warn"><i class="bi bi-graph-up-arrow"></i></div>
       <h4>Riwayat</h4>
       <p>Histori kehadiran Anda</p>
-    </div>
-    <div class="menu-card" onclick="loadLeaveHistory()">
-      <div class="menu-icon red">📁</div>
+    </a>
+    <a href="leave.html" class="menu-card">
+      <div class="menu-icon icon-danger"><i class="bi bi-folder-fill"></i></div>
       <h4>Status Ajuan</h4>
       <p>Tracking pengajuan</p>
-    </div>
+    </a>
   </div>
 
-  <!-- RECENT ACTIVITY -->
+  <!-- ACTIVITY -->
   <div class="section-label">Aktivitas Terakhir</div>
   <div class="activity-list" id="activityList">
     <div class="activity-item">
-      <div class="activity-dot green"></div>
-      <div class="activity-content">
+      <div class="act-dot act-dot-yellow"><i class="bi bi-arrow-clockwise"></i></div>
+      <div class="act-content">
         <strong>Memuat data...</strong>
         <span>Sinkronisasi aktivitas terbaru</span>
       </div>
@@ -409,122 +198,104 @@
 </div>
 
 <!-- BOTTOM NAV -->
-<div class="bottom-nav">
+<nav class="bottom-nav">
   <a href="employee.html" class="nav-item active">
-    <div class="nav-icon">🏠</div>
-    <div class="nav-label">Beranda</div>
+    <i class="bi bi-house-fill"></i>Beranda
   </a>
   <a href="attendance.html" class="nav-item">
-    <div class="nav-icon">📍</div>
-    <div class="nav-label">Absensi</div>
+    <i class="bi bi-geo-alt-fill"></i>Absensi
   </a>
   <a href="leave.html" class="nav-item">
-    <div class="nav-icon">📋</div>
-    <div class="nav-label">Pengajuan</div>
+    <i class="bi bi-calendar-check"></i>Pengajuan
   </a>
-</div>
+  <a href="history.html" class="nav-item">
+    <i class="bi bi-clock-history"></i>Riwayat
+  </a>
+</nav>
 
 <script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
+if (!userData || userData.role !== 'Employee') window.location.href = 'index.html';
 
-  // Auth Guard
-  const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-  if (!userData || userData.role !== 'Employee') { window.location.href = 'index.html'; }
+document.getElementById('userName').textContent = userData?.name || '—';
+document.getElementById('userPosition').textContent = userData?.position || '—';
+const initials = (userData?.name || 'U').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+const avatarEl = document.getElementById('avatarEl');
+avatarEl.textContent = initials;
+if (userData?.profile_pic_url) {
+  const img = new Image();
+  img.onload = () => { avatarEl.textContent = ''; avatarEl.appendChild(img); };
+  img.onerror = () => {};
+  img.src = userData.profile_pic_url;
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+}
 
-  // Profile
-  document.getElementById('userName').textContent = userData?.name || '—';
-  document.getElementById('userPosition').textContent = userData?.position || '—';
-  const initials = (userData?.name || 'U').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
-  const avatarEl = document.getElementById('avatarEl');
-  avatarEl.textContent = initials;
-  if (userData?.profile_pic_url) {
-    const img = document.createElement('img');
-    img.src = userData.profile_pic_url;
-    img.onerror = () => { avatarEl.textContent = initials; };
-    avatarEl.textContent = '';
-    avatarEl.appendChild(img);
-  }
+const DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function updateClock() {
+  const now = new Date();
+  document.getElementById('dayName').textContent = DAYS[now.getDay()];
+  document.getElementById('dateStr').textContent = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('liveClock').textContent = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
+}
+updateClock(); setInterval(updateClock, 1000);
 
-  // Clock
-  const DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-  const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-  function updateClock() {
-    const now = new Date();
-    document.getElementById('dayName').textContent = DAYS[now.getDay()];
-    document.getElementById('dateStr').textContent = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-    document.getElementById('liveClock').textContent =
-      [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
-  }
-  updateClock();
-  setInterval(updateClock, 1000);
-
-  // Load dashboard data
-  async function loadDashboard() {
-    try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=employeeDashboard&user_id=${userData.user_id}`);
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('statHadir').textContent = data.stats.hadir ?? 0;
-        document.getElementById('statTerlambat').textContent = data.stats.terlambat ?? 0;
-        document.getElementById('statCuti').textContent = data.stats.sisa_cuti ?? 12;
-
-        if (data.today_in) {
-          document.getElementById('clockInTime').textContent = data.today_in;
-          document.getElementById('statusIn').textContent = data.status_in || 'Tepat Waktu';
-          document.getElementById('statusIn').className = 'status-badge ' + (data.status_in === 'Terlambat' ? 'late' : 'on-time');
-        }
-        if (data.today_out) {
-          document.getElementById('clockOutTime').textContent = data.today_out;
-          document.getElementById('clockOutTime').className = 'time-val';
-          document.getElementById('statusOut').textContent = data.status_out || 'Normal';
-          document.getElementById('statusOut').className = 'status-badge on-time';
-        }
-
-        if (data.activities && data.activities.length) {
-          const list = document.getElementById('activityList');
-          list.innerHTML = data.activities.map(a => `
-            <div class="activity-item">
-              <div class="activity-dot ${a.color}"></div>
-              <div class="activity-content">
-                <strong>${a.title}</strong>
-                <span>${a.desc}</span>
-              </div>
-              <div class="activity-time">${a.time}</div>
-            </div>
-          `).join('');
-        }
+async function loadDashboard() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'employeeDashboard', user_id: userData.user_id }) });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('statHadir').textContent = data.stats.hadir ?? 0;
+      document.getElementById('statTerlambat').textContent = data.stats.terlambat ?? 0;
+      document.getElementById('statCuti').textContent = data.stats.sisa_cuti ?? 12;
+      if (data.today_in) {
+        document.getElementById('clockInTime').textContent = data.today_in;
+        document.getElementById('clockInTime').classList.remove('empty');
+        document.getElementById('statusIn').textContent = data.status_in || 'Tepat Waktu';
+        document.getElementById('statusIn').className = 'status-chip ' + (data.status_in === 'Terlambat' ? 'chip-late' : 'chip-ok');
       }
-    } catch (e) {
-      // Demo fallback
-      document.getElementById('statHadir').textContent = 18;
-      document.getElementById('statTerlambat').textContent = 2;
-      document.getElementById('statCuti').textContent = 10;
-      document.getElementById('activityList').innerHTML = `
-        <div class="activity-item">
-          <div class="activity-dot green"></div>
-          <div class="activity-content"><strong>Clock In berhasil</strong><span>Tepat Waktu</span></div>
-          <div class="activity-time">09:58</div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot purple"></div>
-          <div class="activity-content"><strong>Cuti disetujui</strong><span>17–18 Mei 2026</span></div>
-          <div class="activity-time">Kemarin</div>
-        </div>
-      `;
+      if (data.today_out) {
+        document.getElementById('clockOutTime').textContent = data.today_out;
+        document.getElementById('clockOutTime').classList.remove('empty');
+        document.getElementById('statusOut').textContent = 'Selesai';
+        document.getElementById('statusOut').className = 'status-chip chip-ok';
+      }
+      if (data.activities?.length) {
+        document.getElementById('activityList').innerHTML = data.activities.map(a => `
+          <div class="activity-item">
+            <div class="act-dot act-dot-${a.color}"><i class="bi bi-${a.icon || 'circle-fill'}"></i></div>
+            <div class="act-content"><strong>${a.title}</strong><span>${a.desc}</span></div>
+            <div class="act-time">${a.time}</div>
+          </div>`).join('');
+      }
     }
+  } catch(e) {
+    document.getElementById('statHadir').textContent = 18;
+    document.getElementById('statTerlambat').textContent = 2;
+    document.getElementById('statCuti').textContent = 10;
+    document.getElementById('activityList').innerHTML = `
+      <div class="activity-item">
+        <div class="act-dot act-dot-green"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="act-content"><strong>Clock In berhasil</strong><span>Tepat Waktu · Hari ini</span></div>
+        <div class="act-time">09:58</div>
+      </div>
+      <div class="activity-item">
+        <div class="act-dot act-dot-yellow"><i class="bi bi-calendar-check-fill"></i></div>
+        <div class="act-content"><strong>Cuti disetujui</strong><span>17–18 Mei 2026</span></div>
+        <div class="act-time">Kemarin</div>
+      </div>`;
   }
+}
 
-  function logout() {
-    if (confirm('Yakin ingin keluar?')) {
-      sessionStorage.removeItem('hris_user');
-      window.location.href = 'index.html';
-    }
+function logout() {
+  if (confirm('Yakin ingin keluar?')) {
+    sessionStorage.removeItem('hris_user');
+    window.location.href = 'index.html';
   }
+}
 
-  function loadHistory() { window.location.href = 'history.html'; }
-  function loadLeaveHistory() { window.location.href = 'leave.html'; }
-
-  loadDashboard();
+loadDashboard();
 </script>
 </body>
 </html>
