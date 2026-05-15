@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JEF HRIS — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --text: #f0f0f8;
+    --muted: #6b6b80;
+    --danger: #ff4d6d;
+    --success: #00d4aa;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    pointer-events: none;
+  }
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,170,0.1) 0%, transparent 70%);
+    bottom: 50px; right: -50px;
+    pointer-events: none;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 80px;
+    position: relative;
+    z-index: 1;
+  }
+  .brand-logo {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: #fff;
+  }
+  .brand-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+  }
+  .brand-name span { color: var(--accent2); }
+
+  .hero-text { position: relative; z-index: 1; }
+  .hero-text h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+  .hero-text h1 .gradient {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-text p {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 400px;
+    margin-bottom: 50px;
+  }
+  .feature-list { display: flex; flex-direction: column; gap: 14px; }
+  .feature-item {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: var(--muted);
+  }
+  .feature-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    flex-shrink: 0;
+  }
+
+  /* GRID DECORATION */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* RIGHT PANEL - LOGIN FORM */
+  .right-panel {
+    width: 480px;
+    min-height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 50px;
+    position: relative;
+  }
+  .form-header { margin-bottom: 40px; }
+  .form-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .form-header p { color: var(--muted); font-size: 14px; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .input-wrapper { position: relative; }
+  .input-wrapper .icon {
+    position: absolute;
+    left: 16px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .form-group input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px 14px 44px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-group input::placeholder { color: var(--muted); }
+  .form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
+  }
+  .toggle-pin {
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--muted);
+    background: none; border: none;
+    font-size: 16px;
+    transition: color 0.2s;
+  }
+  .toggle-pin:hover { color: var(--text); }
+
+  .btn-login {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-login::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(108,99,255,0.4); }
+  .btn-login:hover::before { opacity: 1; }
+  .btn-login:active { transform: translateY(0); }
+  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .alert.error { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3); color: #ff4d6d; display: flex; }
+  .alert.success { background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.3); color: var(--success); display: flex; }
+
+  .footer-note {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .loading-dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  @media (max-width: 900px) {
+    .left-panel { display: none; }
+    .right-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="left-panel">
+  <div class="grid-bg"></div>
+  <div class="brand">
+    <div class="brand-logo">JG</div>
+    <div class="brand-name">JEF <span>GROUP</span></div>
+  </div>
+  <div class="hero-text">
+    <h1>Human Resource<br>Information<br><span class="gradient">System</span></h1>
+    <p>Platform manajemen kehadiran dan SDM terpadu berbasis Google Workspace untuk tim JEF Group.</p>
+    <div class="feature-list">
+      <div class="feature-item"><div class="feature-dot"></div>Absensi dengan Geofencing & Selfie</div>
+      <div class="feature-item"><div class="feature-dot"></div>Manajemen Cuti, Sakit & Izin</div>
+      <div class="feature-item"><div class="feature-dot"></div>HR Dashboard & Laporan Real-time</div>
+      <div class="feature-item"><div class="feature-dot"></div>Konfigurasi Dinamis Tanpa Coding</div>
+    </div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="form-header">
+    <h2>Selamat Datang 👋</h2>
+    <p>Masuk dengan email & PIN karyawan Anda</p>
+  </div>
+
+  <div class="alert" id="alertBox">
+    <span id="alertIcon">⚠️</span>
+    <span id="alertMsg">Error message</span>
+  </div>
+
+  <div class="form-group">
+    <label>Email Karyawan</label>
+    <div class="input-wrapper">
+      <span class="icon">✉</span>
+      <input type="email" id="emailInput" placeholder="nama@jefgroup.com" autocomplete="email">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>PIN / Password</label>
+    <div class="input-wrapper">
+      <span class="icon">🔒</span>
+      <input type="password" id="pinInput" placeholder="Masukkan PIN Anda" autocomplete="current-password" maxlength="20">
+      <button class="toggle-pin" onclick="togglePin()" id="toggleBtn">👁</button>
+    </div>
+  </div>
+
+  <button class="btn-login" id="loginBtn" onclick="doLogin()">
+    <span id="btnText">MASUK</span>
+  </button>
+
+  <div class="footer-note">
+    JEF GROUP HRIS v2.0 · © 2026 · Powered by Google Workspace
+  </div>
+</div>
+
+<script>
+  // CONFIG — Ganti dengan URL Apps Script Anda
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+
+  function togglePin() {
+    const inp = document.getElementById('pinInput');
+    const btn = document.getElementById('toggleBtn');
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
+  function showAlert(msg, type = 'error') {
+    const box = document.getElementById('alertBox');
+    box.className = 'alert ' + type;
+    document.getElementById('alertIcon').textContent = type === 'error' ? '⚠️' : '✅';
+    document.getElementById('alertMsg').textContent = msg;
+  }
+  function hideAlert() {
+    document.getElementById('alertBox').className = 'alert';
+  }
+
+  function setLoading(state) {
+    const btn = document.getElementById('loginBtn');
+    const txt = document.getElementById('btnText');
+    btn.disabled = state;
+    txt.innerHTML = state
+      ? '<div class="loading-dots"><span></span><span></span><span></span></div>'
+      : 'MASUK';
+  }
+
+  async function doLogin() {
+    hideAlert();
+    const email = document.getElementById('emailInput').value.trim();
+    const pin = document.getElementById('pinInput').value.trim();
+
+    if (!email || !pin) { showAlert('Email dan PIN wajib diisi.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Format email tidak valid.'); return; }
+
+    setLoading(true);
+
+    // DEMO MODE — hapus blok ini setelah integrasi Apps Script
+    if (email === 'admin@jefgroup.com' && pin === '1234') {
+      sessionStorage.setItem('hris_user', JSON.stringify({ name: 'Admin HR', role: 'Admin', position: 'HR Manager', user_id: 'USR001', email }));
+      showAlert('Login berhasil! Mengarahkan ke dashboard...', 'success');
+      setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
+      setLoading(false); return;
+    }
+    if (email === 'karyawan@jefgroup.com' && pin === '5678') {
+      sessionStorage.setItem('hris_user', JSON.stringify({ name: 'Budi Santoso', role: 'Employee', position: 'Content Creator', user_id: 'USR002', email }));
+      showAlert('Login berhasil! Mengarahkan ke portal...', 'success');
+      setTimeout(() => { window.location.href = 'employee.html'; }, 1200);
+      setLoading(false); return;
+    }
+    // END DEMO MODE
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'login', email, password_pin: pin })
+      });
+      const data = await res.json();
+      if (data.success) {
+        sessionStorage.setItem('hris_user', JSON.stringify(data.user));
+        showAlert('Login berhasil! Mengarahkan...', 'success');
+        setTimeout(() => {
+          window.location.href = data.user.role === 'Admin' ? 'admin.html' : 'employee.html';
+        }, 1000);
+      } else {
+        showAlert(data.message || 'Email atau PIN salah.');
+      }
+    } catch (e) {
+      showAlert('Gagal terhubung ke server. Cek koneksi Anda.');
+    }
+    setLoading(false);
+  }
+
+  // Enter key trigger
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JEF HRIS — HR Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --surface: #12121a; --card: #1a1a26;
+    --border: rgba(255,255,255,0.07); --accent: #6c63ff;
+    --accent2: #00d4aa; --text: #f0f0f8; --muted: #6b6b80;
+    --danger: #ff4d6d; --success: #00d4aa; --warn: #f59e0b;
+    --sidebar-w: 240px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+  .sidebar-brand {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand-logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .b-logo {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: #fff;
+  }
+  .b-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+  .b-role { font-size: 11px; color: var(--muted); }
+
+  .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+  .nav-section { margin-bottom: 24px; }
+  .nav-section-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+    padding: 0 8px; margin-bottom: 6px;
+  }
+  .nav-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    margin-bottom: 2px;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav-link.active { background: rgba(108,99,255,0.12); color: var(--accent); }
+  .nav-link .nav-icon { font-size: 16px; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto; background: var(--danger);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 20px; min-width: 20px; text-align: center;
+  }
+
+  .sidebar-footer {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .user-mini {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 8px; border-radius: 10px;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .user-mini:hover { background: rgba(255,77,109,0.08); }
+  .user-avatar-sm {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+  }
+  .user-info-sm .name { font-size: 12px; font-weight: 600; }
+  .user-info-sm .role { font-size: 10px; color: var(--muted); }
+  .logout-icon { margin-left: auto; font-size: 14px; color: var(--danger); }
+
+  /* MAIN */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1; display: flex; flex-direction: column;
+  }
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 30px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .page-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; }
+  .page-sub { font-size: 12px; color: var(--muted); }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .date-chip {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 12px; color: var(--muted);
+  }
+  #liveTopClock { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--accent2); margin-left: 4px; }
+
+  .page-content { padding: 28px 30px; display: none; }
+  .page-content.active { display: block; }
+
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px;
+  }
+  .stat-card .s-label { font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .stat-card .s-val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; margin-bottom: 4px; }
+  .stat-card .s-val.green { color: var(--success); }
+  .stat-card .s-val.orange { color: var(--warn); }
+  .stat-card .s-val.purple { color: var(--accent); }
+  .stat-card .s-val.red { color: var(--danger); }
+  .stat-card .s-sub { font-size: 11px; color: var(--muted); }
+
+  /* TABLE */
+  .section-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; margin-bottom: 24px;
+  }
+  .section-head {
+    padding: 18px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-head h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+  .btn-sm {
+    padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-sm.primary { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
+  .btn-sm.primary:hover { background: rgba(108,99,255,0.25); }
+  .btn-sm.success { background: rgba(0,212,170,0.15); color: var(--success); border: 1px solid rgba(0,212,170,0.3); }
+  .btn-sm.danger { background: rgba(255,77,109,0.15); color: var(--danger); border: 1px solid rgba(255,77,109,0.3); }
+  .btn-sm.warn { background: rgba(245,158,11,0.15); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    text-align: left; padding: 12px 16px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--muted);
+    background: var(--surface);
+  }
+  .data-table td { padding: 14px 16px; font-size: 13px; border-top: 1px solid var(--border); }
+  .data-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; overflow: hidden; }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.active { background: rgba(0,212,170,0.12); color: var(--success); border: 1px solid rgba(0,212,170,0.3); }
+  .badge.inactive { background: rgba(107,107,128,0.12); color: var(--muted); border: 1px solid var(--border); }
+  .badge.pending { background: rgba(245,158,11,0.12); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+  .badge.approved { background: rgba(0,212,170,0.12); color: var(--success); border: 1px solid rgba(0,212,170,0.3); }
+  .badge.rejected { background: rgba(255,77,109,0.12); color: var(--danger); border: 1px solid rgba(255,77,109,0.3); }
+  .badge.on-time { background: rgba(0,212,170,0.12); color: var(--success); border: 1px solid rgba(0,212,170,0.3); }
+  .badge.late { background: rgba(245,158,11,0.12); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+
+  .action-btns { display: flex; gap: 6px; }
+
+  /* FILTERS */
+  .filter-bar {
+    display: flex; gap: 10px; padding: 16px 20px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .filter-input, .filter-select {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
+  .filter-select { cursor: pointer; }
+
+  /* CONFIG FORM */
+  .config-section { margin-bottom: 28px; }
+  .config-section h4 {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .config-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .config-field label {
+    display: block; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .config-field input {
+    width: 100%;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 14px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .config-field input:focus { border-color: var(--accent); }
+
+  .btn-save {
+    padding: 11px 24px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    border: none; border-radius: 10px;
+    color: #fff; font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
+    cursor: pointer; transition: all 0.2s; margin-top: 16px;
+  }
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(108,99,255,0.35); }
+
+  /* HOLIDAY LIST */
+  .holiday-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .holiday-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .holiday-info { font-size: 13px; }
+  .holiday-date { font-size: 11px; color: var(--muted); }
+  .del-btn { color: var(--danger); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; transition: background 0.2s; }
+  .del-btn:hover { background: rgba(255,77,109,0.1); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 999;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px;
+    width: 90%; max-width: 480px;
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .btn-modal {
+    padding: 10px 20px; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-modal.cancel { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+  .btn-modal.confirm { background: var(--accent); color: #fff; }
+  .btn-modal.danger { background: var(--danger); color: #fff; }
+  .modal .form-group { margin-bottom: 16px; }
+  .modal .form-group label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .modal .form-group input, .modal .form-group select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+  }
+  .modal .form-group input:focus { border-color: var(--accent); }
+
+  /* TOAST */
+  .toast { position: fixed; top: 20px; right: 20px; transform: translateY(-80px); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; font-size: 13px; z-index: 9999; transition: transform 0.3s; }
+  .toast.show { transform: translateY(0); }
+  .toast.success { border-color: rgba(0,212,170,0.4); color: var(--success); }
+  .toast.error { border-color: rgba(255,77,109,0.4); color: var(--danger); }
+  .toast.warn { border-color: rgba(245,158,11,0.4); color: var(--warn); }
+
+  /* PHOTO MODAL */
+  .photo-modal img { width: 100%; border-radius: 12px; }
+
+  /* LIVE DOT */
+  .live-dot { display: inline-block; width: 8px; height: 8px; background: var(--success); border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .config-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo-row">
+      <div class="b-logo">JG</div>
+      <div class="b-name">JEF HRIS</div>
+    </div>
+    <div class="b-role">HR Admin Panel</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-link active" onclick="showPage('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Manajemen</div>
+      <div class="nav-link" onclick="showPage('users')">
+        <span class="nav-icon">👥</span> Karyawan
+      </div>
+      <div class="nav-link" onclick="showPage('approval')">
+        <span class="nav-icon">📋</span> Approval
+        <span class="nav-badge" id="pendingBadge">0</span>
+      </div>
+      <div class="nav-link" onclick="showPage('attendance')">
+        <span class="nav-icon">📍</span> Riwayat Absensi
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Sistem</div>
+      <div class="nav-link" onclick="showPage('config')">
+        <span class="nav-icon">⚙️</span> Konfigurasi
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini" onclick="logout()">
+      <div class="user-avatar-sm" id="sidebarInitials">HR</div>
+      <div class="user-info-sm">
+        <div class="name" id="sidebarName">—</div>
+        <div class="role">Administrator</div>
+      </div>
+      <div class="logout-icon">→</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="topbarTitle">Dashboard</div>
+      <div class="page-sub" id="topbarSub">Selamat datang di HR Admin Panel</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="date-chip">
+        <span class="live-dot"></span>Live <span id="liveTopClock">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD PAGE ===== -->
+  <div class="page-content active" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="s-label">Hadir Hari Ini</div>
+        <div class="s-val green" id="s-hadir">—</div>
+        <div class="s-sub">dari <span id="s-total">—</span> karyawan aktif</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Terlambat</div>
+        <div class="s-val orange" id="s-late">—</div>
+        <div class="s-sub">hari ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Cuti/Izin</div>
+        <div class="s-val purple" id="s-leave">—</div>
+        <div class="s-sub">hari ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Tanpa Keterangan</div>
+        <div class="s-val red" id="s-absent">—</div>
+        <div class="s-sub">belum absen</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3><span class="live-dot"></span>Live Log Absensi</h3>
+        <button class="btn-sm primary" onclick="loadDashboard()">↻ Refresh</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Karyawan</th>
+            <th>Waktu Masuk</th>
+            <th>Waktu Pulang</th>
+            <th>Jarak (m)</th>
+            <th>Status</th>
+            <th>Foto</th>
+          </tr>
+        </thead>
+        <tbody id="liveLogBody">
+          <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== USERS PAGE ===== -->
+  <div class="page-content" id="page-users">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Data Karyawan</h3>
+        <button class="btn-sm primary" onclick="openAddUser()">+ Tambah Karyawan</button>
+      </div>
+      <div class="filter-bar">
+        <input class="filter-input" id="userSearch" placeholder="Cari nama / email..." oninput="filterUsers()" style="flex:1;min-width:180px">
+        <select class="filter-select" id="userStatusFilter" onchange="filterUsers()">
+          <option value="">Semua Status</option>
+          <option value="Active">Aktif</option>
+          <option value="Inactive">Nonaktif</option>
+        </select>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Karyawan</th>
+            <th>Email</th>
+            <th>Jabatan</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Memuat data karyawan...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== APPROVAL PAGE ===== -->
+  <div class="page-content" id="page-approval">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Approval Pengajuan</h3>
+        <button class="btn-sm primary" onclick="loadApprovals()">↻ Refresh</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Karyawan</th>
+            <th>Jenis</th>
+            <th>Tanggal</th>
+            <th>Alasan</th>
+            <th>Dokumen</th>
+            <th>Status</th>
+            <th>Keputusan</th>
+          </tr>
+        </thead>
+        <tbody id="approvalBody">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Memuat pengajuan...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== ATTENDANCE PAGE ===== -->
+  <div class="page-content" id="page-attendance">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Riwayat Absensi</h3>
+        <button class="btn-sm success" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="filter-bar">
+        <input class="filter-input" type="date" id="attFilterStart">
+        <input class="filter-input" type="date" id="attFilterEnd">
+        <input class="filter-input" id="attFilterName" placeholder="Nama karyawan..." style="flex:1">
+        <select class="filter-select" id="attFilterStatus">
+          <option value="">Semua Status</option>
+          <option value="Tepat Waktu">Tepat Waktu</option>
+          <option value="Terlambat">Terlambat</option>
+        </select>
+        <button class="btn-sm primary" onclick="loadAttendance()">Cari</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Karyawan</th>
+            <th>Tanggal</th>
+            <th>Masuk</th>
+            <th>Pulang</th>
+            <th>Jarak (m)</th>
+            <th>Status Masuk</th>
+            <th>Foto</th>
+          </tr>
+        </thead>
+        <tbody id="attBody">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Gunakan filter di atas untuk mencari data</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== CONFIG PAGE ===== -->
+  <div class="page-content" id="page-config">
+    <!-- Geofence -->
+    <div class="section-card" style="padding:24px">
+      <div class="config-section">
+        <h4>📍 Pengaturan Geofence</h4>
+        <div class="config-grid">
+          <div class="config-field">
+            <label>Latitude Kantor</label>
+            <input type="text" id="cfg_lat" placeholder="-6.2088">
+          </div>
+          <div class="config-field">
+            <label>Longitude Kantor</label>
+            <input type="text" id="cfg_lng" placeholder="106.8456">
+          </div>
+          <div class="config-field">
+            <label>Radius Maksimal (meter)</label>
+            <input type="number" id="cfg_radius" value="50">
+          </div>
+        </div>
+      </div>
+      <div class="config-section">
+        <h4>⏰ Pengaturan Jam Kerja</h4>
+        <div class="config-grid">
+          <div class="config-field">
+            <label>Masuk Senin–Jumat</label>
+            <input type="time" id="cfg_wday_start" value="10:00">
+          </div>
+          <div class="config-field">
+            <label>Pulang Senin–Jumat</label>
+            <input type="time" id="cfg_wday_end" value="19:00">
+          </div>
+          <div class="config-field">
+            <label>Toleransi (menit)</label>
+            <input type="number" id="cfg_tolerance" value="15">
+          </div>
+          <div class="config-field">
+            <label>Masuk Sabtu</label>
+            <input type="time" id="cfg_sat_start" value="09:00">
+          </div>
+          <div class="config-field">
+            <label>Pulang Sabtu</label>
+            <input type="time" id="cfg_sat_end" value="17:00">
+          </div>
+        </div>
+      </div>
+      <button class="btn-save" onclick="saveConfig()">💾 Simpan Konfigurasi</button>
+    </div>
+
+    <!-- Holiday -->
+    <div class="section-card" style="padding:24px;margin-top:20px">
+      <div class="config-section">
+        <h4>🎉 Kelola Hari Libur</h4>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div class="config-field" style="flex:1;min-width:160px">
+            <label>Tanggal</label>
+            <input type="date" id="holiday_date">
+          </div>
+          <div class="config-field" style="flex:2;min-width:200px">
+            <label>Keterangan</label>
+            <input type="text" id="holiday_desc" placeholder="Contoh: Hari Raya Idul Fitri">
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="btn-save" style="margin-top:0" onclick="addHoliday()">+ Tambah</button>
+          </div>
+        </div>
+        <div class="holiday-list" id="holidayList">
+          <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Memuat hari libur...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Add/Edit User Modal -->
+<div class="modal-overlay" id="modalUser">
+  <div class="modal">
+    <h3 id="modalUserTitle">Tambah Karyawan</h3>
+    <input type="hidden" id="modalUserId">
+    <div class="form-group">
+      <label>Nama Lengkap</label>
+      <input type="text" id="mu_name" placeholder="Nama karyawan">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="mu_email" placeholder="email@jefgroup.com">
+    </div>
+    <div class="form-group">
+      <label>PIN / Password</label>
+      <input type="text" id="mu_pin" placeholder="PIN baru (kosongkan jika tidak diubah)">
+    </div>
+    <div class="form-group">
+      <label>Jabatan</label>
+      <input type="text" id="mu_position" placeholder="Content Creator, Manager, dll">
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="mu_role">
+        <option value="Employee">Employee</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal cancel" onclick="closeModal('modalUser')">Batal</button>
+      <button class="btn-modal confirm" onclick="saveUser()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Photo Modal -->
+<div class="modal-overlay photo-modal" id="modalPhoto">
+  <div class="modal" style="max-width:400px">
+    <h3>📸 Foto Selfie</h3>
+    <img id="modalPhotoImg" src="" alt="Foto absensi" style="border-radius:12px;width:100%;margin-bottom:16px">
+    <div class="modal-footer">
+      <button class="btn-modal cancel" onclick="closeModal('modalPhoto')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Document Modal -->
+<div class="modal-overlay" id="modalDoc">
+  <div class="modal" style="max-width:500px">
+    <h3>📄 Dokumen Pengajuan</h3>
+    <img id="modalDocImg" src="" alt="Dokumen" style="border-radius:12px;width:100%;margin-bottom:16px">
+    <div class="modal-footer">
+      <button class="btn-modal cancel" onclick="closeModal('modalDoc')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+  const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
+  if (!userData || userData.role !== 'Admin') window.location.href = 'index.html';
+
+  document.getElementById('sidebarName').textContent = userData?.name || 'Admin';
+  document.getElementById('sidebarInitials').textContent = (userData?.name||'HR').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+
+  // CLOCK
+  setInterval(() => {
+    const n = new Date();
+    document.getElementById('liveTopClock').textContent =
+      [n.getHours(), n.getMinutes(), n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+  }, 1000);
+
+  // TOAST
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toastEl');
+    t.textContent = msg; t.className = `toast ${type} show`;
+    setTimeout(() => t.className = `toast ${type}`, 3500);
+  }
+
+  // NAV
+  function showPage(page) {
+    document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(`page-${page}`).classList.add('active');
+
+    const titles = {
+      dashboard: ['Dashboard', 'Overview kehadiran real-time'],
+      users: ['Manajemen Karyawan', 'CRUD data karyawan'],
+      approval: ['Approval Pengajuan', 'Cuti, Sakit & Izin pending'],
+      attendance: ['Riwayat Absensi', 'Log kehadiran lengkap'],
+      config: ['Konfigurasi Sistem', 'Pengaturan dinamis aplikasi']
+    };
+    document.getElementById('topbarTitle').textContent = titles[page][0];
+    document.getElementById('topbarSub').textContent = titles[page][1];
+
+    if (page === 'dashboard') loadDashboard();
+    else if (page === 'users') loadUsers();
+    else if (page === 'approval') loadApprovals();
+    else if (page === 'attendance') loadAttendance();
+    else if (page === 'config') loadConfig();
+  }
+
+  // ===== DASHBOARD =====
+  async function loadDashboard() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=adminDashboard`);
+      const data = await res.json();
+      document.getElementById('s-hadir').textContent = data.stats.hadir ?? 0;
+      document.getElementById('s-total').textContent = data.stats.total ?? 0;
+      document.getElementById('s-late').textContent = data.stats.terlambat ?? 0;
+      document.getElementById('s-leave').textContent = data.stats.cuti ?? 0;
+      document.getElementById('s-absent').textContent = data.stats.absen ?? 0;
+      document.getElementById('pendingBadge').textContent = data.pending_count ?? 0;
+      renderLiveLog(data.live_log || []);
+    } catch(e) {
+      // DEMO
+      document.getElementById('s-hadir').textContent = 12;
+      document.getElementById('s-total').textContent = 15;
+      document.getElementById('s-late').textContent = 2;
+      document.getElementById('s-leave').textContent = 1;
+      document.getElementById('s-absent').textContent = 2;
+      document.getElementById('pendingBadge').textContent = 3;
+      renderLiveLog(DEMO_LOG);
+    }
+  }
+
+  const DEMO_LOG = [
+    { name:'Budi Santoso', position:'Content Creator', clock_in:'09:57', clock_out:'19:05', distance:12, status_in:'Tepat Waktu', photo_in:'', initials:'BS' },
+    { name:'Rina Wulandari', position:'Livestream Host', clock_in:'10:14', clock_out:'—', distance:8, status_in:'Tepat Waktu', photo_in:'', initials:'RW' },
+    { name:'Agus Permana', position:'Editor', clock_in:'10:18', clock_out:'—', distance:23, status_in:'Terlambat', photo_in:'', initials:'AP' },
+  ];
+
+  function renderLiveLog(logs) {
+    const body = document.getElementById('liveLogBody');
+    if (!logs.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Belum ada data hari ini</td></tr>'; return; }
+    body.innerHTML = logs.map(l => `
+      <tr>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar">${l.initials || l.name?.substring(0,2).toUpperCase()}</div>
+            <div>
+              <strong style="font-size:13px">${l.name}</strong>
+              <div style="font-size:11px;color:var(--muted)">${l.position}</div>
+            </div>
+          </div>
+        </td>
+        <td>${l.clock_in || '—'}</td>
+        <td>${l.clock_out || '—'}</td>
+        <td>${l.distance ? l.distance + 'm' : '—'}</td>
+        <td><span class="badge ${l.status_in === 'Terlambat' ? 'late' : 'on-time'}">${l.status_in || '—'}</span></td>
+        <td>${l.photo_in ? `<button class="btn-sm primary" onclick="viewPhoto('${l.photo_in}')">📷</button>` : '<span style="color:var(--muted)">—</span>'}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ===== USERS =====
+  let allUsers = [];
+  async function loadUsers() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getUsers`);
+      const data = await res.json();
+      allUsers = data.users || [];
+    } catch(e) {
+      allUsers = [
+        { user_id:'USR001', name:'Admin HR', email:'admin@jefgroup.com', position:'HR Manager', role:'Admin', status:'Active' },
+        { user_id:'USR002', name:'Budi Santoso', email:'karyawan@jefgroup.com', position:'Content Creator', role:'Employee', status:'Active' },
+        { user_id:'USR003', name:'Rina Wulandari', email:'rina@jefgroup.com', position:'Livestream Host', role:'Employee', status:'Active' },
+      ];
+    }
+    renderUsers(allUsers);
+  }
+
+  function renderUsers(users) {
+    const body = document.getElementById('userTableBody');
+    if (!users.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Tidak ada data</td></tr>'; return; }
+    body.innerHTML = users.map(u => `
+      <tr>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar">${u.name?.substring(0,2).toUpperCase()}</div>
+            <strong>${u.name}</strong>
+          </div>
+        </td>
+        <td style="color:var(--muted)">${u.email}</td>
+        <td>${u.position}</td>
+        <td><span style="color:${u.role==='Admin'?'var(--accent)':'var(--muted)'}">${u.role}</span></td>
+        <td><span class="badge ${u.status === 'Active' ? 'active' : 'inactive'}">${u.status}</span></td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-sm primary" onclick='openEditUser(${JSON.stringify(u)})'>Edit</button>
+            <button class="btn-sm ${u.status==='Active'?'danger':'warn'}" onclick="toggleUser('${u.user_id}','${u.status}')">
+              ${u.status==='Active'?'Nonaktifkan':'Aktifkan'}
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterUsers() {
+    const q = document.getElementById('userSearch').value.toLowerCase();
+    const st = document.getElementById('userStatusFilter').value;
+    renderUsers(allUsers.filter(u =>
+      (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
+      (!st || u.status === st)
+    ));
+  }
+
+  function openAddUser() {
+    document.getElementById('modalUserTitle').textContent = 'Tambah Karyawan';
+    document.getElementById('modalUserId').value = '';
+    ['mu_name','mu_email','mu_pin','mu_position'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('mu_role').value = 'Employee';
+    document.getElementById('modalUser').classList.add('show');
+  }
+
+  function openEditUser(u) {
+    document.getElementById('modalUserTitle').textContent = 'Edit Karyawan';
+    document.getElementById('modalUserId').value = u.user_id;
+    document.getElementById('mu_name').value = u.name;
+    document.getElementById('mu_email').value = u.email;
+    document.getElementById('mu_pin').value = '';
+    document.getElementById('mu_position').value = u.position;
+    document.getElementById('mu_role').value = u.role;
+    document.getElementById('modalUser').classList.add('show');
+  }
+
+  async function saveUser() {
+    const id = document.getElementById('modalUserId').value;
+    const payload = {
+      action: id ? 'updateUser' : 'addUser',
+      user_id: id,
+      name: document.getElementById('mu_name').value.trim(),
+      email: document.getElementById('mu_email').value.trim(),
+      password_pin: document.getElementById('mu_pin').value.trim(),
+      position: document.getElementById('mu_position').value.trim(),
+      role: document.getElementById('mu_role').value
+    };
+    if (!payload.name || !payload.email) { showToast('Nama & email wajib diisi', 'warn'); return; }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.success) { showToast('Data berhasil disimpan', 'success'); closeModal('modalUser'); loadUsers(); }
+      else showToast(data.message || 'Gagal menyimpan', 'error');
+    } catch(e) { showToast('[DEMO] User berhasil disimpan', 'success'); closeModal('modalUser'); }
+  }
+
+  async function toggleUser(user_id, status) {
+    const newStatus = status === 'Active' ? 'Inactive' : 'Active';
+    if (!confirm(`${newStatus === 'Inactive' ? 'Nonaktifkan' : 'Aktifkan kembali'} karyawan ini?`)) return;
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'updateUserStatus', user_id, status: newStatus }) });
+      const data = await res.json();
+      if (data.success) { showToast('Status berhasil diperbarui', 'success'); loadUsers(); }
+    } catch(e) { showToast('[DEMO] Status diperbarui', 'success'); loadUsers(); }
+  }
+
+  // ===== APPROVAL =====
+  async function loadApprovals() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getPendingLeaves`);
+      const data = await res.json();
+      renderApprovals(data.requests || []);
+    } catch(e) {
+      renderApprovals([
+        { request_id:'REQ001', user_name:'Budi Santoso', type:'Cuti', start_date:'2026-05-20', end_date:'2026-05-21', reason:'Liburan', attachment_url:'', status:'Pending' },
+        { request_id:'REQ002', user_name:'Rina Wulandari', type:'Sakit', start_date:'2026-05-16', end_date:'2026-05-16', reason:'Demam', attachment_url:'https://via.placeholder.com/400x300', status:'Pending' },
+        { request_id:'REQ003', user_name:'Agus Permana', type:'Izin', start_date:'2026-05-18', end_date:'2026-05-18', reason:'Urusan keluarga', attachment_url:'', status:'Approved' },
+      ]);
+    }
+  }
+
+  function renderApprovals(reqs) {
+    const body = document.getElementById('approvalBody');
+    if (!reqs.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Tidak ada pengajuan</td></tr>'; return; }
+    body.innerHTML = reqs.map(r => `
+      <tr>
+        <td><strong>${r.user_name}</strong></td>
+        <td>${r.type === 'Cuti' ? '🌴' : r.type === 'Sakit' ? '🏥' : '📝'} ${r.type}</td>
+        <td style="font-size:12px">${r.start_date}<br><span style="color:var(--muted)">s.d ${r.end_date}</span></td>
+        <td style="max-width:180px;font-size:12px">${r.reason}</td>
+        <td>${r.attachment_url ? `<button class="btn-sm warn" onclick="viewDoc('${r.attachment_url}')">📄 Lihat</button>` : '<span style="color:var(--muted);font-size:12px">—</span>'}</td>
+        <td><span class="badge ${r.status.toLowerCase()}">${r.status}</span></td>
+        <td>
+          ${r.status === 'Pending' ? `
+            <div class="action-btns">
+              <button class="btn-sm success" onclick="decideLeave('${r.request_id}','Approved')">✓ Approve</button>
+              <button class="btn-sm danger" onclick="decideLeave('${r.request_id}','Rejected')">✗ Reject</button>
+            </div>
+          ` : '<span style="color:var(--muted);font-size:12px">Selesai</span>'}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function decideLeave(request_id, decision) {
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'decideLeave', request_id, status: decision, approved_by: userData.user_id }) });
+      const data = await res.json();
+      if (data.success) { showToast(`Pengajuan di-${decision === 'Approved' ? 'approve' : 'reject'}`, decision === 'Approved' ? 'success' : 'warn'); loadApprovals(); }
+    } catch(e) { showToast(`[DEMO] ${decision}`, decision === 'Approved' ? 'success' : 'warn'); loadApprovals(); }
+  }
+
+  // ===== ATTENDANCE =====
+  async function loadAttendance() {
+    const start = document.getElementById('attFilterStart').value;
+    const end = document.getElementById('attFilterEnd').value;
+    const name = document.getElementById('attFilterName').value;
+    const status = document.getElementById('attFilterStatus').value;
+    try {
+      const params = new URLSearchParams({ action:'getAttendance', start_date:start, end_date:end, name, status });
+      const res = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      renderAttendance(data.records || []);
+    } catch(e) {
+      renderAttendance([
+        { name:'Budi Santoso', date:'2026-05-15', clock_in:'09:57', clock_out:'19:05', distance:12, status_in:'Tepat Waktu', photo_in:'' },
+        { name:'Rina Wulandari', date:'2026-05-15', clock_in:'10:14', clock_out:'', distance:8, status_in:'Tepat Waktu', photo_in:'' },
+        { name:'Agus Permana', date:'2026-05-15', clock_in:'10:18', clock_out:'', distance:23, status_in:'Terlambat', photo_in:'' },
+      ]);
+    }
+  }
+
+  function renderAttendance(records) {
+    const body = document.getElementById('attBody');
+    if (!records.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Tidak ada data</td></tr>'; return; }
+    body.innerHTML = records.map(r => `
+      <tr>
+        <td><strong>${r.name}</strong></td>
+        <td style="font-size:12px">${r.date}</td>
+        <td>${r.clock_in || '—'}</td>
+        <td>${r.clock_out || '—'}</td>
+        <td>${r.distance ? r.distance + 'm' : '—'}</td>
+        <td><span class="badge ${r.status_in === 'Terlambat' ? 'late' : 'on-time'}">${r.status_in || '—'}</span></td>
+        <td>${r.photo_in ? `<button class="btn-sm primary" onclick="viewPhoto('${r.photo_in}')">📷</button>` : '—'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function exportCSV() {
+    const rows = [];
+    document.querySelectorAll('#attBody tr').forEach(tr => {
+      rows.push(Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText.trim()}"`).join(','));
+    });
+    const csv = 'Karyawan,Tanggal,Masuk,Pulang,Jarak,Status,Foto\n' + rows.join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = `absensi_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    showToast('File CSV berhasil diunduh', 'success');
+  }
+
+  // ===== CONFIG =====
+  async function loadConfig() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getConfig`);
+      const data = await res.json();
+      if (data.config) {
+        const c = data.config;
+        document.getElementById('cfg_lat').value = c.office_latitude || '';
+        document.getElementById('cfg_lng').value = c.office_longitude || '';
+        document.getElementById('cfg_radius').value = c.max_radius_meters || 50;
+        document.getElementById('cfg_wday_start').value = c.weekday_start || '10:00';
+        document.getElementById('cfg_wday_end').value = c.weekday_end || '19:00';
+        document.getElementById('cfg_sat_start').value = c.saturday_start || '09:00';
+        document.getElementById('cfg_sat_end').value = c.saturday_end || '17:00';
+        document.getElementById('cfg_tolerance').value = c.tolerance_minutes || 15;
+      }
+    } catch(e) {}
+    loadHolidays();
+  }
+
+  async function saveConfig() {
+    const payload = {
+      action: 'saveConfig',
+      office_latitude: document.getElementById('cfg_lat').value,
+      office_longitude: document.getElementById('cfg_lng').value,
+      max_radius_meters: document.getElementById('cfg_radius').value,
+      weekday_start: document.getElementById('cfg_wday_start').value,
+      weekday_end: document.getElementById('cfg_wday_end').value,
+      saturday_start: document.getElementById('cfg_sat_start').value,
+      saturday_end: document.getElementById('cfg_sat_end').value,
+      tolerance_minutes: document.getElementById('cfg_tolerance').value,
+    };
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      showToast(data.success ? 'Konfigurasi disimpan ✓' : 'Gagal menyimpan', data.success ? 'success' : 'error');
+    } catch(e) { showToast('[DEMO] Konfigurasi disimpan', 'success'); }
+  }
+
+  let holidays = [];
+  async function loadHolidays() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getHolidays`);
+      const data = await res.json();
+      holidays = data.holidays || [];
+    } catch(e) {
+      holidays = [
+        { holiday_id:'H001', date:'2026-05-25', description:'Hari Raya Waisak' },
+        { holiday_id:'H002', date:'2026-06-01', description:'Hari Lahir Pancasila' },
+      ];
+    }
+    renderHolidays();
+  }
+
+  function renderHolidays() {
+    const list = document.getElementById('holidayList');
+    if (!holidays.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Belum ada hari libur</div>'; return; }
+    list.innerHTML = holidays.map(h => `
+      <div class="holiday-item">
+        <div>
+          <div class="holiday-info"><strong>🎉 ${h.description}</strong></div>
+          <div class="holiday-date">${h.date}</div>
+        </div>
+        <span class="del-btn" onclick="deleteHoliday('${h.holiday_id}')">🗑</span>
+      </div>
+    `).join('');
+  }
+
+  async function addHoliday() {
+    const date = document.getElementById('holiday_date').value;
+    const desc = document.getElementById('holiday_desc').value.trim();
+    if (!date || !desc) { showToast('Tanggal & keterangan wajib diisi', 'warn'); return; }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'addHoliday', date, description: desc, created_by: userData.user_id }) });
+      const data = await res.json();
+      if (data.success) { showToast('Hari libur ditambahkan ✓', 'success'); document.getElementById('holiday_date').value=''; document.getElementById('holiday_desc').value=''; loadHolidays(); }
+    } catch(e) {
+      holidays.unshift({ holiday_id:'H'+Date.now(), date, description: desc });
+      renderHolidays();
+      showToast('[DEMO] Hari libur ditambahkan', 'success');
+      document.getElementById('holiday_date').value='';
+      document.getElementById('holiday_desc').value='';
+    }
+  }
+
+  async function deleteHoliday(holiday_id) {
+    if (!confirm('Hapus hari libur ini?')) return;
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'deleteHoliday', holiday_id }) });
+      const data = await res.json();
+      if (data.success) { showToast('Hari libur dihapus', 'warn'); loadHolidays(); }
+    } catch(e) { holidays = holidays.filter(h => h.holiday_id !== holiday_id); renderHolidays(); showToast('[DEMO] Dihapus', 'warn'); }
+  }
+
+  // MODAL HELPERS
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  function viewPhoto(url) { document.getElementById('modalPhotoImg').src = url; document.getElementById('modalPhoto').classList.add('show'); }
+  function viewDoc(url) { document.getElementById('modalDocImg').src = url; document.getElementById('modalDoc').classList.add('show'); }
+
+  // Click outside to close modal
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
+  });
+
+  function logout() {
+    if (confirm('Yakin ingin keluar?')) { sessionStorage.removeItem('hris_user'); window.location.href = 'index.html'; }
+  }
+
+  // INIT
+  loadDashboard();
+</script>
+</body>
+</html>
