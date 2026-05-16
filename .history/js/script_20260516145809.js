@@ -412,7 +412,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     document.getElementById('cfg_radius').value = data.config.max_radius_meters || 50;
                     document.getElementById('cfg_wday_start').value = data.config.workday_start || '';
                     document.getElementById('cfg_wday_end').value = data.config.workday_end || '';
-                    document.getElementById('cfg_tolerance').value = data.config.late_tolerance_minutes || 15;
+                    document.getElementById('cfg_tolerance').value = data.config.tolerance_minutes || 15;
                     document.getElementById('cfg_sat_start').value = data.config.saturday_start || '';
                     document.getElementById('cfg_sat_end').value = data.config.saturday_end || '';
                 }
@@ -423,14 +423,30 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.saveConfig = async function () {
             const payload = {
                 action: 'saveConfig',
-                office_latitude: document.getElementById('cfg_lat').value,
-                office_longitude: document.getElementById('cfg_lng').value,
-                max_radius_meters: document.getElementById('cfg_radius').value,
-                workday_start: document.getElementById('cfg_wday_start').value,
-                workday_end: document.getElementById('cfg_wday_end').value,
-                late_tolerance_minutes: document.getElementById('cfg_tolerance').value,
-                saturday_start: document.getElementById('cfg_sat_start').value,
-                saturday_end: document.getElementById('cfg_sat_end').value,
+
+                office_latitude:
+                    document.getElementById('cfg_lat').value,
+
+                office_longitude:
+                    document.getElementById('cfg_lng').value,
+
+                max_radius_meters:
+                    document.getElementById('cfg_radius').value,
+
+                weekday_start:
+                    document.getElementById('cfg_wday_start').value,
+
+                weekday_end:
+                    document.getElementById('cfg_wday_end').value,
+
+                tolerance_minutes:
+                    document.getElementById('cfg_tolerance').value,
+
+                saturday_start:
+                    document.getElementById('cfg_sat_start').value,
+
+                saturday_end:
+                    document.getElementById('cfg_sat_end').value,
             };
             try {
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
@@ -484,10 +500,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' === 'index.js')) {
     (function () {
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
-        let MAX_RADIUS = 50;// meters - overridden by config
-        // Demo coordinates (override dengan koordinat kantor dari config)
-        let OFFICE_LAT = -6.2088; // Jakarta default
-        let OFFICE_LNG = 106.8456;
+        let MAX_RADIUS = 100;
+        let OFFICE_LAT = 0;
+        let OFFICE_LNG = 0;
 
         const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
         if (!userData) window.location.href = 'index.html';
@@ -548,26 +563,83 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         }
 
         window.startGeo = function () {
+
             if (!navigator.geolocation) {
-                showToast('Browser tidak mendukung GPS', 'error'); return;
+                showToast(
+                    'Browser tidak mendukung GPS',
+                    'error'
+                );
+                return;
             }
+
             navigator.geolocation.watchPosition(
+
                 pos => {
-                    const dist = haversine(pos.coords.latitude, pos.coords.longitude, OFFICE_LAT, OFFICE_LNG);
+
+                    if (pos.coords.accuracy > 100) {
+
+                        showToast(
+                            'GPS belum akurat, tunggu sebentar...',
+                            'warn'
+                        );
+
+                        return;
+                    }
+
+                    const dist = haversine(
+                        pos.coords.latitude,
+                        pos.coords.longitude,
+                        OFFICE_LAT,
+                        OFFICE_LNG
+                    );
+
+                    console.log('USER GPS', {
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy: pos.coords.accuracy
+                    });
+
+                    console.log('OFFICE GPS', {
+                        lat: OFFICE_LAT,
+                        lng: OFFICE_LNG
+                    });
+
+                    console.log('DISTANCE', dist);
+
                     currentDist = dist;
+
                     geoOk = dist <= MAX_RADIUS;
+
                     updateGeoUI(dist, geoOk);
+
                     checkReady();
                 },
+
                 err => {
-                    document.getElementById('geoTitle').textContent = 'Gagal mendapatkan lokasi';
-                    document.getElementById('geoDistance').textContent = 'Izinkan akses GPS di browser Anda';
-                    showToast('Izinkan akses lokasi untuk absen', 'warn');
+
+                    document.getElementById(
+                        'geoTitle'
+                    ).textContent =
+                        'Gagal mendapatkan lokasi';
+
+                    document.getElementById(
+                        'geoDistance'
+                    ).textContent =
+                        'Izinkan akses GPS';
+
+                    showToast(
+                        'Izinkan akses lokasi',
+                        'warn'
+                    );
                 },
-                { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 5000,
+                    timeout: 10000
+                }
             );
         }
-
         // ---- CAMERA ----
         window.startCamera = async function () {
             try {
@@ -654,19 +726,22 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 // Get config
                 if (data.config) {
 
-                    OFFICE_LAT =
-                        parseFloat(data.config.office_latitude) || OFFICE_LAT;
+                    OFFICE_LAT = Number(
+                        data.config.office_latitude
+                    );
 
-                    OFFICE_LNG =
-                        parseFloat(data.config.office_longitude) || OFFICE_LNG;
+                    OFFICE_LNG = Number(
+                        data.config.office_longitude
+                    );
 
-                    MAX_RADIUS =
-                        parseFloat(data.config.max_radius_meters) || MAX_RADIUS;
+                    MAX_RADIUS = Number(
+                        data.config.max_radius_meters
+                    );
 
                     console.log('OFFICE CONFIG', {
-                        lat: OFFICE_LAT,
-                        lng: OFFICE_LNG,
-                        radius: MAX_RADIUS
+                        OFFICE_LAT,
+                        OFFICE_LNG,
+                        MAX_RADIUS
                     });
                 }
 
