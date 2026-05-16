@@ -559,84 +559,123 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
             title.textContent = safe
                 ? 'Anda di area kantor'
                 : 'Anda di luar area kantor';
-            distEl.innerHTML = `Jarak: <strong>${Math.round(dist)} meter</strong> (maks. ${MAX_RADIUS}m)`;
+            distEl.innerHTML =
+                `Jarak dari kantor:
+    <strong>${Math.round(dist)} meter</strong>
+    <br>Maksimal radius:
+    <strong>${MAX_RADIUS} meter</strong>`;
         }
 
         window.startGeo = function () {
 
             if (!navigator.geolocation) {
+
                 showToast(
                     'Browser tidak mendukung GPS',
                     'error'
                 );
+
                 return;
             }
 
-            navigator.geolocation.watchPosition(
+            // stop watch lama
+            if (geoWatchId) {
+                navigator.geolocation.clearWatch(geoWatchId);
+            }
+
+            geoWatchId = navigator.geolocation.watchPosition(
 
                 pos => {
 
-                    if (pos.coords.accuracy > 100) {
+                    const accuracy = Number(pos.coords.accuracy || 999);
 
-                        showToast(
-                            'GPS belum akurat, tunggu sebentar...',
-                            'warn'
+                    currentLat = Number(pos.coords.latitude);
+                    currentLng = Number(pos.coords.longitude);
+
+                    // wajib akurat
+                    if (accuracy > 50) {
+
+                        geoOk = false;
+
+                        updateGeoUI(
+                            9999,
+                            false
                         );
+
+                        document.getElementById(
+                            'geoTitle'
+                        ).textContent =
+                            'Menunggu GPS Akurat';
+
+                        document.getElementById(
+                            'geoDistance'
+                        ).innerHTML =
+                            `Akurasi GPS: <strong>${Math.round(accuracy)}m</strong><br>Mohon tunggu...`;
+
+                        checkReady();
 
                         return;
                     }
 
                     const dist = haversine(
-                        pos.coords.latitude,
-                        pos.coords.longitude,
+                        currentLat,
+                        currentLng,
                         OFFICE_LAT,
                         OFFICE_LNG
                     );
 
+                    currentDist = Number(dist);
+
+                    geoOk = currentDist <= Number(MAX_RADIUS);
+
                     console.log('USER GPS', {
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude,
-                        accuracy: pos.coords.accuracy
+                        lat: currentLat,
+                        lng: currentLng,
+                        accuracy
                     });
 
                     console.log('OFFICE GPS', {
                         lat: OFFICE_LAT,
-                        lng: OFFICE_LNG
+                        lng: OFFICE_LNG,
+                        radius: MAX_RADIUS
                     });
 
-                    console.log('DISTANCE', dist);
+                    console.log('DISTANCE', currentDist);
 
-                    currentDist = dist;
-
-                    geoOk = dist <= MAX_RADIUS;
-
-                    updateGeoUI(dist, geoOk);
+                    updateGeoUI(
+                        currentDist,
+                        geoOk
+                    );
 
                     checkReady();
                 },
 
                 err => {
 
+                    geoOk = false;
+
                     document.getElementById(
                         'geoTitle'
                     ).textContent =
-                        'Gagal mendapatkan lokasi';
+                        'GPS Tidak Aktif';
 
                     document.getElementById(
                         'geoDistance'
                     ).textContent =
-                        'Izinkan akses GPS';
+                        'Izinkan akses lokasi';
 
                     showToast(
-                        'Izinkan akses lokasi',
-                        'warn'
+                        'Aktifkan GPS dan izinkan akses lokasi',
+                        'error'
                     );
+
+                    checkReady();
                 },
 
                 {
                     enableHighAccuracy: true,
-                    maximumAge: 5000,
-                    timeout: 10000
+                    maximumAge: 0,
+                    timeout: 15000
                 }
             );
         }
@@ -726,17 +765,21 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 // Get config
                 if (data.config) {
 
-                    OFFICE_LAT = Number(
-                        data.config.office_latitude
+                    OFFICE_LAT = parseFloat(
+                        data.config.office_latitude || 0
                     );
 
-                    OFFICE_LNG = Number(
-                        data.config.office_longitude
+                    OFFICE_LNG = parseFloat(
+                        data.config.office_longitude || 0
                     );
 
-                    MAX_RADIUS = Number(
-                        data.config.max_radius_meters
+                    MAX_RADIUS = parseFloat(
+                        data.config.max_radius_meters || 100
                     );
+
+                    if (isNaN(OFFICE_LAT)) OFFICE_LAT = 0;
+                    if (isNaN(OFFICE_LNG)) OFFICE_LNG = 0;
+                    if (isNaN(MAX_RADIUS)) MAX_RADIUS = 100;
 
                     console.log('OFFICE CONFIG', {
                         OFFICE_LAT,
@@ -770,6 +813,26 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         window.submitAttendance = async function () {
             if (!geoOk || !photoOk) { showToast('Pastikan lokasi & foto selfie sudah siap', 'warn'); return; }
 
+            if (!currentLat || !currentLng) {
+
+                showToast(
+                    'GPS belum valid',
+                    'error'
+                );
+
+                return;
+            }
+
+            if (currentDist > MAX_RADIUS) {
+
+                showToast(
+                    'Anda berada di luar radius kantor',
+                    'error'
+                );
+
+                return;
+            }
+
             const btn = document.getElementById('mainBtn');
             const origText = btn.textContent;
             btn.disabled = true;
@@ -778,21 +841,22 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
             try {
                 const payload = {
                     action: attendanceMode === 'in' ? 'clockIn' : 'clockOut',
+
                     user_id: userData.user_id,
-                    lat: OFFICE_LAT, // replaced by real GPS in prod
-                    lng: OFFICE_LNG,
+
+                    lat: currentLat,
+
+                    lng: currentLng,
+
+                    office_lat: OFFICE_LAT,
+
+                    office_lng: OFFICE_LNG,
+
                     distance_meters: Math.round(currentDist),
+
                     photo_base64: photoBase64
                 };
 
-                // Get real coords
-                await new Promise(res => {
-                    navigator.geolocation.getCurrentPosition(pos => {
-                        payload.lat = pos.coords.latitude;
-                        payload.lng = pos.coords.longitude;
-                        res();
-                    }, res, { enableHighAccuracy: true });
-                });
 
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
