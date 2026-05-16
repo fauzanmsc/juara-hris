@@ -7,7 +7,7 @@
   <title>JEF HRIS — Login</title>
   <meta name="description" content="Platform manajemen kehadiran dan SDM terpadu untuk tim JEF Group">
   <meta name="theme-color" content="#FFB703">
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="/js/manifest.json">
   <link rel="apple-touch-icon" href="images/icon-192.png">
   <meta property="og:title" content="JEF HRIS">
   <meta property="og:description" content="HR Information System — JEF Group">
@@ -638,7 +638,7 @@
     document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => { });
+      navigator.serviceWorker.register('js/sw.js').catch(() => { });
     }
   </script>
 </body>
