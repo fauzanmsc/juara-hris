@@ -119,18 +119,25 @@ function formatDate(d) {
 
 function uploadBase64ToDrive(base64Data, filename, folder) {
   try {
-    const decoded = Utilities.base64Decode(base64Data);
+    const cleanBase64 = base64Data.split(',').length > 1 ? base64Data.split(',')[1] : base64Data;
+    const decoded = Utilities.base64Decode(cleanBase64);
     const blob = Utilities.newBlob(decoded, 'image/jpeg', filename);
     const driveFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
     const subFolder = driveFolder.getFoldersByName(folder).hasNext()
       ? driveFolder.getFoldersByName(folder).next()
       : driveFolder.createFolder(folder);
     const file = subFolder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return `https://drive.google.com/uc?id=${file.getId()}`;
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareErr) {
+      Logger.log('Sharing restricted: ' + shareErr.message);
+    }
+    return {
+      url: `https://drive.google.com/uc?id=${file.getId()}`,
+      id: file.getId()
+    };
   } catch(e) {
-    Logger.log('Upload error: ' + e.message);
-    return '';
+    return { url: 'ERROR: ' + e.message, id: null };
   }
 }
 
@@ -299,39 +306,32 @@ function clockIn(body) {
   const statusIn = clockMinutes <= deadlineMin ? 'Tepat Waktu' : 'Terlambat';
 
   // Upload foto
-  let photoUrl = '';
+  let photoData = { url: 'NO_PHOTO_PROVIDED_BY_FRONTEND', id: null };
   if (photo_base64) {
-    photoUrl = uploadBase64ToDrive(photo_base64, `in_${user_id}_${today}.jpg`, 'foto_absensi');
+    photoData = uploadBase64ToDrive(photo_base64, `in_${user_id}_${today}.jpg`, 'foto_absensi');
   }
 
   // Simpan ke sheet
   const sheet = getSheet(SHEET.ATTENDANCE);
   const newId = generateId('ATT');
- sheet.appendRow([
-  newId,
-  user_id,
-  today,
+  const lastRow = sheet.getLastRow() + 1;
+  
+  sheet.appendRow([
+    newId, user_id, today,
+    timeStr, '',
+    lat, lng,
+    '', '',
+    distance_meters, '',
+    photoData.url, '',
+    statusIn, '', ''
+  ]);
 
-  timeStr,
-  '',
-
-  lat,
-  lng,
-
-  '',
-  '',
-
-  distance_meters,
-  '',
-
-  photoUrl,
-  '',
-
-  statusIn,
-  '',
-
-  ''
-]);
+  // Insert Smart Chip jika upload berhasil
+  if (photoData.id) {
+    try {
+      sheet.getRange(lastRow, 12).insertFileChip(photoData.id); // Kolom L (12)
+    } catch (e) { Logger.log('Chip error: ' + e.message); }
+  }
 
   return { success: true, attendance_id: newId, status: statusIn, time: timeStr };
 }
@@ -386,17 +386,24 @@ function clockOut(body) {
   const statusOut = clockMinutes >= endMinutes ? 'Normal' : 'Pulang Cepat';
 
   // Upload foto
-  let photoUrl = '';
+  let photoData = { url: 'NO_PHOTO_PROVIDED_BY_FRONTEND', id: null };
   if (photo_base64) {
-    photoUrl = uploadBase64ToDrive(photo_base64, `out_${user_id}_${today}.jpg`, 'foto_absensi');
+    photoData = uploadBase64ToDrive(photo_base64, `out_${user_id}_${today}.jpg`, 'foto_absensi');
   }
 
   // Update baris
   sheet.getRange(rowIndex, idx.clock_out_time + 1).setValue(timeStr);
   sheet.getRange(rowIndex, idx.lat_out + 1).setValue(lat);
   sheet.getRange(rowIndex, idx.lng_out + 1).setValue(lng);
-  sheet.getRange(rowIndex, idx.photo_out_url + 1).setValue(photoUrl);
+  sheet.getRange(rowIndex, idx.photo_out_url + 1).setValue(photoData.url);
   sheet.getRange(rowIndex, idx.status_out + 1).setValue(statusOut);
+
+  // Insert Smart Chip jika upload berhasil
+  if (photoData.id) {
+    try {
+      sheet.getRange(rowIndex, idx.photo_out_url + 1).insertFileChip(photoData.id);
+    } catch (e) { Logger.log('Chip error: ' + e.message); }
+  }
 
   return { success: true, status: statusOut, time: timeStr };
 }
@@ -410,21 +417,28 @@ function submitLeave(body) {
     return { success: false, message: 'Data pengajuan tidak lengkap' };
   }
 
-  let attachUrl = '';
+  let photoData = { url: '', id: null };
   if (attachment_base64) {
     const ext = (attachment_name || 'doc').split('.').pop();
     const fname = `leave_${user_id}_${Date.now()}.${ext}`;
-    attachUrl = uploadBase64ToDrive(attachment_base64, fname, 'dokumen_cuti');
+    photoData = uploadBase64ToDrive(attachment_base64, fname, 'dokumen_cuti');
   }
 
   const sheet = getSheet(SHEET.LEAVE);
   const newId = generateId('LVR');
+  const lastRow = sheet.getLastRow() + 1;
+  
   sheet.appendRow([
     newId, user_id, type,
     start_date, end_date, reason,
-    attachUrl, 'Pending', '', // attachment, status, approved_by
+    photoData.url, 'Pending', '', // attachment, status, approved_by
     new Date().toISOString() // created_at
   ]);
+
+  // Auto Chip Lampiran Cuti
+  if (photoData.id) {
+    try { sheet.getRange(lastRow, 7).insertFileChip(photoData.id); } catch(e) {}
+  }
 
   return { success: true, request_id: newId };
 }
@@ -869,4 +883,70 @@ function setupSheets() {
   ]);
 
   Logger.log('✅ Setup selesai');
+}
+
+// Jalankan fungsi ini secara manual di editor Google Apps Script 
+// untuk memicu munculnya jendela otorisasi (Izin Google Drive)
+function authorizeDrive() {
+  // Mencoba akses baca
+  const root = DriveApp.getRootFolder();
+  // Mencoba akses tulis (PENTING untuk memicu izin Write)
+  const testFile = DriveApp.createFile('AUTH_TEST_JEF_HRIS.txt', 'Otorisasi Berhasil');
+  testFile.setTrashed(true); // Langsung hapus file tesnya
+  Logger.log('✅ Otorisasi Menulis Drive Berhasil!');
+}
+
+// Jalankan ini sekali untuk merapikan semua data lama di Spreadsheet
+// Mengubah link teks Drive menjadi Smart Chips
+function convertExistingLinksToChips() {
+  const sheet = getSheet(SHEET.ATTENDANCE);
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return;
+  
+  const headers = data[0].map(h => String(h).trim());
+  const idxIn = headers.indexOf('photo_in_url');
+  const idxOut = headers.indexOf('photo_out_url');
+  
+  let count = 0;
+  for (let i = 1; i < data.length; i++) {
+    const row = i + 1;
+    
+    // Proses Photo In
+    const valIn = String(data[i][idxIn]);
+    if (valIn.includes('id=')) {
+      const id = valIn.split('id=')[1].split('&')[0];
+      try { sheet.getRange(row, idxIn + 1).insertFileChip(id); count++; } catch(e) {}
+    }
+    
+    // Proses Photo Out
+    const valOut = String(data[i][idxOut]);
+    if (valOut.includes('id=')) {
+      const id = valOut.split('id=')[1].split('&')[0];
+      try { sheet.getRange(row, idxOut + 1).insertFileChip(id); count++; } catch(e) {}
+    }
+  }
+  Logger.log('✅ Selesai! Berhasil mengonversi ' + count + ' link menjadi Chips.');
+}
+
+/**
+ * TRIGGER OTOMATIS:
+ * Gunakan fungsi ini untuk Trigger "On Edit" (Installable)
+ * Agar saat Anda paste link manual di Sheet, dia langsung jadi Chip.
+ */
+function handleManualEditToChip(e) {
+  // Cegah error jika dijalankan manual dari editor
+  if (!e || !e.range) {
+    Logger.log('INFO: Fungsi ini berjalan otomatis saat Anda mengedit Sheet. Jangan dijalankan manual via tombol Run.');
+    return;
+  }
+
+  const range = e.range;
+  const val = String(e.value || '');
+  
+  if (val.includes('drive.google.com') && val.includes('id=')) {
+    try {
+      const id = val.split('id=')[1].split('&')[0];
+      range.insertFileChip(id);
+    } catch(err) {}
+  }
 }
