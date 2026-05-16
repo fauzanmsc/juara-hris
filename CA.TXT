@@ -26,7 +26,7 @@ function doGet(e) {
     switch(action) {
       case 'preflight':      result = preflightCheck(e.parameter); break;
       case 'employeeDashboard': result = getEmployeeDashboard(e.parameter); break;
-      case 'adminDashboard': result = getAdminDashboard(e.parameter); break;
+      case 'adminDashboard': result = getAdminDashboard(); break;
       case 'getUsers':       result = getUsers(); break;
       case 'getPendingLeaves': result = getPendingLeaves(); break;
       case 'getAttendance':  result = getAttendanceLog(e.parameter); break;
@@ -576,7 +576,6 @@ function getAttendanceLog(params) {
       ...a,
       name: user ? user.name : 'Unknown',
       position: user ? user.position : '',
-      profile_pic: user ? (user.profile_pic_url || '') : '',
       date: formatDate(a.date)
     };
   });
@@ -629,11 +628,9 @@ function getEmployeeDashboard(params) {
   };
 }
 
-function getAdminDashboard(params) {
-  const { user_id } = params;
+function getAdminDashboard() {
   const today = getTodayString();
   const users = sheetToObjects(getSheet(SHEET.USERS)).filter(u => u.status === 'Active');
-  const admin = users.find(u => u.user_id === user_id);
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
 
@@ -663,14 +660,12 @@ function getAdminDashboard(params) {
       clock_out: String(a.clock_out_time || '').substring(0,5) || null,
       distance: a.distance_meters,
       status_in: a.status_in,
-      photo_in: a.photo_in_url || '',
-      profile_pic: user ? (user.profile_pic_url || '') : ''
+      photo_in: a.photo_in_url || ''
     };
   });
 
   return {
     success: true,
-    profile_pic_url: admin ? (admin.profile_pic_url || '') : '',
     stats: {
       hadir: todayAtt.length,
       total: users.length,

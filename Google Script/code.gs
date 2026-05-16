@@ -26,7 +26,7 @@ function doGet(e) {
     switch(action) {
       case 'preflight':      result = preflightCheck(e.parameter); break;
       case 'employeeDashboard': result = getEmployeeDashboard(e.parameter); break;
-      case 'adminDashboard': result = getAdminDashboard(); break;
+      case 'adminDashboard': result = getAdminDashboard(e.parameter); break;
       case 'getUsers':       result = getUsers(); break;
       case 'getPendingLeaves': result = getPendingLeaves(); break;
       case 'getAttendance':  result = getAttendanceLog(e.parameter); break;
@@ -576,6 +576,7 @@ function getAttendanceLog(params) {
       ...a,
       name: user ? user.name : 'Unknown',
       position: user ? user.position : '',
+      profile_pic: user ? (user.profile_pic_url || '') : '',
       date: formatDate(a.date)
     };
   });
@@ -614,8 +615,11 @@ function getEmployeeDashboard(params) {
     color: a.status_in === 'Terlambat' ? 'orange' : 'green'
   }));
 
+  const user = sheetToObjects(getSheet(SHEET.USERS)).find(u => u.user_id === user_id);
+
   return {
     success: true,
+    profile_pic_url: user ? (user.profile_pic_url || '') : '',
     stats: { hadir, terlambat, sisa_cuti: 12 }, // sisa cuti bisa dikonfigurasi
     today_in: todayAtt ? String(todayAtt.clock_in_time || '').substring(0,5) : null,
     today_out: todayAtt ? String(todayAtt.clock_out_time || '').substring(0,5) : null,
@@ -625,9 +629,11 @@ function getEmployeeDashboard(params) {
   };
 }
 
-function getAdminDashboard() {
+function getAdminDashboard(params) {
+  const { user_id } = params;
   const today = getTodayString();
   const users = sheetToObjects(getSheet(SHEET.USERS)).filter(u => u.status === 'Active');
+  const admin = users.find(u => u.user_id === user_id);
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
 
@@ -657,12 +663,14 @@ function getAdminDashboard() {
       clock_out: String(a.clock_out_time || '').substring(0,5) || null,
       distance: a.distance_meters,
       status_in: a.status_in,
-      photo_in: a.photo_in_url || ''
+      photo_in: a.photo_in_url || '',
+      profile_pic: user ? (user.profile_pic_url || '') : ''
     };
   });
 
   return {
     success: true,
+    profile_pic_url: admin ? (admin.profile_pic_url || '') : '',
     stats: {
       hadir: todayAtt.length,
       total: users.length,

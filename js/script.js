@@ -2,6 +2,28 @@
 
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
+// Helper Global: Mengubah link Drive biasa menjadi Direct Link Gambar
+window.getDirectDriveUrl = function(url) {
+    if (!url) return '';
+    if (typeof url !== 'string') return '';
+    
+    // Jika formatnya link Drive (file/d/ID atau ?id=ID)
+    if (url.includes('drive.google.com')) {
+        let id = '';
+        if (url.includes('id=')) {
+            id = url.split('id=')[1].split('&')[0];
+        } else if (url.includes('/file/d/')) {
+            id = url.split('/file/d/')[1].split('/')[0];
+        }
+        
+        if (id) {
+            // Gunakan format lh3 yang lebih stabil untuk preview gambar
+            return `https://lh3.googleusercontent.com/d/${id}`;
+        }
+    }
+    return url;
+};
+
 if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index.js')) {
     (function () {
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
@@ -79,7 +101,29 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         if (!userData || userData.role !== 'Admin') window.location.href = 'index.html';
 
         document.getElementById('sidebarName').textContent = userData?.name || 'Admin';
-        document.getElementById('sidebarInitials').textContent = (userData?.name || 'HR').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        const sidebarInitials = document.getElementById('sidebarInitials');
+        const initials = (userData?.name || 'HR').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        
+        window.updateAdminAvatar = function(url) {
+            if (!sidebarInitials) return;
+            const finalUrl = getDirectDriveUrl(url);
+            if (finalUrl) {
+                const img = document.createElement('img');
+                img.src = finalUrl;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.borderRadius = '50%';
+                img.style.objectFit = 'cover';
+                img.onerror = () => { sidebarInitials.textContent = initials; };
+                sidebarInitials.textContent = '';
+                sidebarInitials.appendChild(img);
+            } else {
+                sidebarInitials.textContent = initials;
+            }
+        };
+
+        // Init avatar
+        updateAdminAvatar(userData?.profile_pic_url);
 
         // UI Functions
         window.showToast = function (msg, type = 'success') {
@@ -136,8 +180,17 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         // ==== DASHBOARD ====
         window.loadDashboard = async function () {
             try {
-                const res = await fetch(`${APPS_SCRIPT_URL}?action=adminDashboard`);
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=adminDashboard&user_id=${userData.user_id}`);
                 const data = await res.json();
+                
+                // Update profile pic if changed
+                if (data.profile_pic_url) {
+                    updateAdminAvatar(data.profile_pic_url);
+                    // Sync to session
+                    userData.profile_pic_url = data.profile_pic_url;
+                    sessionStorage.setItem('hris_user', JSON.stringify(userData));
+                }
+
                 document.getElementById('s-hadir').textContent = data.stats?.hadir ?? 0;
                 document.getElementById('s-total').textContent = data.stats?.total ?? 0;
                 document.getElementById('s-late').textContent = data.stats?.terlambat ?? 0;
@@ -159,7 +212,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
     <tr>
       <td>
         <div class="user-cell">
-          <div class="avatar avatar-sm">${l.initials || l.name?.substring(0, 2).toUpperCase()}</div>
+          ${l.profile_pic ? 
+            `<img src="${getDirectDriveUrl(l.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${l.initials}</div>'">` : 
+            `<div class="avatar avatar-sm">${l.initials}</div>`
+          }
           <div class="user-cell-info">
             <span class="user-cell-name">${l.name}</span>
             <span class="user-cell-role">${l.position}</span>
@@ -201,7 +257,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
     <tr>
       <td>
         <div class="user-cell">
-          <div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>
+          ${u.profile_pic_url ? 
+            `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` : 
+            `<div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>`
+          }
           <span class="user-cell-name">${u.name}</span>
         </div>
       </td>
@@ -388,7 +447,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             if (!records.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px">Data tidak ditemukan</td></tr>'; return; }
             body.innerHTML = records.map(r => `
     <tr>
-      <td><strong>${r.name}</strong></td>
+      <td>
+        <div class="user-cell">
+          ${r.profile_pic ? 
+            `<img src="${getDirectDriveUrl(r.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${r.name?.substring(0, 2).toUpperCase()}</div>'">` : 
+            `<div class="avatar avatar-sm">${r.name?.substring(0, 2).toUpperCase()}</div>`
+          }
+          <strong>${r.name}</strong>
+        </div>
+      </td>
       <td style="white-space:nowrap">${r.date}</td>
       <td>${r.clock_in_time || '--:--'}</td>
       <td>${r.clock_out_time || '--:--'}</td>
@@ -902,14 +969,23 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         document.getElementById('userPosition').textContent = userData?.position || '—';
         const initials = (userData?.name || 'U').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
         const avatarEl = document.getElementById('avatarEl');
-        avatarEl.textContent = initials;
-        if (userData?.profile_pic_url) {
-            const img = document.createElement('img');
-            img.src = userData.profile_pic_url;
-            img.onerror = () => { avatarEl.textContent = initials; };
-            avatarEl.textContent = '';
-            avatarEl.appendChild(img);
-        }
+        
+        window.updateAvatar = function(url) {
+            if (!avatarEl) return;
+            const finalUrl = getDirectDriveUrl(url);
+            if (finalUrl) {
+                const img = document.createElement('img');
+                img.src = finalUrl;
+                img.onerror = () => { avatarEl.textContent = initials; };
+                avatarEl.textContent = '';
+                avatarEl.appendChild(img);
+            } else {
+                avatarEl.textContent = initials;
+            }
+        };
+
+        // Load awal dari session
+        updateAvatar(userData?.profile_pic_url);
 
         // Clock
         const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -930,6 +1006,14 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=employeeDashboard&user_id=${userData.user_id}`);
                 const data = await res.json();
                 if (data.success) {
+                    // Update profile pic if changed
+                    if (data.profile_pic_url) {
+                        updateAvatar(data.profile_pic_url);
+                        // Sync to session
+                        userData.profile_pic_url = data.profile_pic_url;
+                        sessionStorage.setItem('hris_user', JSON.stringify(userData));
+                    }
+                    
                     document.getElementById('statHadir').textContent = data.stats.hadir ?? 0;
                     document.getElementById('statTerlambat').textContent = data.stats.terlambat ?? 0;
                     document.getElementById('statCuti').textContent = data.stats.sisa_cuti ?? 12;
