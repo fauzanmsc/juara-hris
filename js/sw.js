@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jef-hris-cache-v2';
+const CACHE_NAME = 'jef-hris-cache-v5';
 const urlsToCache = [
   '/',
   '/index.html',

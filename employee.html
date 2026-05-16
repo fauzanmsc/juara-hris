@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>JEF HRIS — Portal Karyawan</title>
   <meta name="theme-color" content="#FFB703">
-  <link rel="manifest" href="/js/manifest.json">
+  <link rel="manifest" href="json/manifest.json">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -649,78 +649,7 @@
     </a>
   </nav>
 
-  <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
-    const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-    if (!userData || userData.role !== 'Employee') window.location.href = 'index.html';
-
-    document.getElementById('userName').textContent = userData?.name || '—';
-    document.getElementById('userPosition').textContent = userData?.position || '—';
-    const initials = (userData?.name || 'U').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-    const avatarEl = document.getElementById('avatarEl');
-    avatarEl.textContent = initials;
-    if (userData?.profile_pic_url) {
-      const img = new Image();
-      img.onload = () => { avatarEl.textContent = ''; avatarEl.appendChild(img); };
-      img.onerror = () => { };
-      img.src = userData.profile_pic_url;
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover';
-    }
-
-    const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('dayName').textContent = DAYS[now.getDay()];
-      document.getElementById('dateStr').textContent = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-      document.getElementById('liveClock').textContent = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
-    }
-    updateClock(); setInterval(updateClock, 1000);
-
-    async function loadDashboard() {
-      try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=employeeDashboard&user_id=${userData.user_id}`);
-        const data = await res.json();
-        if (data.success) {
-          document.getElementById('statHadir').textContent = data.stats.hadir ?? 0;
-          document.getElementById('statTerlambat').textContent = data.stats.terlambat ?? 0;
-          document.getElementById('statCuti').textContent = data.stats.sisa_cuti ?? 12;
-          if (data.today_in) {
-            document.getElementById('clockInTime').textContent = data.today_in;
-            document.getElementById('clockInTime').classList.remove('empty');
-            document.getElementById('statusIn').textContent = data.status_in || 'Tepat Waktu';
-            document.getElementById('statusIn').className = 'status-chip ' + (data.status_in === 'Terlambat' ? 'chip-late' : 'chip-ok');
-          }
-          if (data.today_out) {
-            document.getElementById('clockOutTime').textContent = data.today_out;
-            document.getElementById('clockOutTime').classList.remove('empty');
-            document.getElementById('statusOut').textContent = 'Selesai';
-            document.getElementById('statusOut').className = 'status-chip chip-ok';
-          }
-          if (data.activities?.length) {
-            document.getElementById('activityList').innerHTML = data.activities.map(a => `
-          <div class="activity-item">
-            <div class="act-dot act-dot-${a.color}"><i class="bi bi-${a.icon || 'circle-fill'}"></i></div>
-            <div class="act-content"><strong>${a.title}</strong><span>${a.desc}</span></div>
-            <div class="act-time">${a.time}</div>
-          </div>`).join('');
-          }
-        }
-      } catch (e) {
-        console.error('Error loading dashboard:', e);
-      }
-    }
-}
-
-    function logout() {
-      if (confirm('Yakin ingin keluar?')) {
-        sessionStorage.removeItem('hris_user');
-        window.location.href = 'index.html';
-      }
-    }
-
-    loadDashboard();
-  </script>
+  <script src="js/script.js"></script>
 </body>
 
 </html>
