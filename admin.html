@@ -128,6 +128,56 @@
       background: #000;
     }
 
+    /* Avatar Upload */
+    .avatar-upload-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .avatar-preview-wrapper {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      position: relative;
+      border: 2px solid var(--primary);
+      padding: 2px;
+      background: var(--bg-card);
+    }
+
+    .avatar-preview-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .avatar-edit-btn {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg-card);
+      cursor: pointer;
+      font-size: 14px;
+      transition: all var(--transition);
+    }
+
+    .avatar-edit-btn:hover {
+      transform: scale(1.1);
+    }
+
     @media (max-width: 1024px) {
       .grid-4 {
         grid-template-columns: repeat(2, 1fr);
@@ -528,6 +578,20 @@
         <button class="modal-close" onclick="closeModal('modalUser')"><i class="bi bi-x"></i></button>
       </div>
       <input type="hidden" id="modalUserId">
+
+      <div class="avatar-upload-group">
+        <div class="avatar-preview-wrapper">
+          <img id="mu_preview" class="avatar-preview-img"
+            src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>"
+            alt="Preview">
+          <label for="mu_file" class="avatar-edit-btn">
+            <i class="bi bi-camera-fill"></i>
+          </label>
+        </div>
+        <input type="file" id="mu_file" hidden accept="image/*" onchange="previewAvatar(this)">
+        <p style="font-size:11px; color:var(--text-muted)">Klik ikon kamera untuk ganti foto</p>
+      </div>
+
       <div class="form-group">
         <label class="form-label">Nama Lengkap</label>
         <input type="text" class="form-control" id="mu_name" placeholder="Nama karyawan">
@@ -584,7 +648,7 @@
   <div id="toast-container"></div>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
     const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
     if (!userData || userData.role !== 'Admin') window.location.href = 'index.html';
 
@@ -657,14 +721,8 @@
         document.getElementById('pendingBadge').style.display = data.pending_count > 0 ? 'block' : 'none';
         renderLiveLog(data.live_log || []);
       } catch (e) {
-        // Demo
-        document.getElementById('s-hadir').textContent = 12; document.getElementById('s-total').textContent = 15;
-        document.getElementById('s-late').textContent = 2; document.getElementById('s-leave').textContent = 1; document.getElementById('s-absent').textContent = 2;
-        document.getElementById('pendingBadge').textContent = 3;
-        renderLiveLog([
-          { name: 'Budi Santoso', position: 'Content Creator', clock_in: '09:57', clock_out: '19:05', distance: 12, status_in: 'Tepat Waktu', initials: 'BS' },
-          { name: 'Rina Wulandari', position: 'Livestream Host', clock_in: '10:14', clock_out: '', distance: 8, status_in: 'Terlambat', initials: 'RW' }
-        ]);
+        console.error('Error loading dashboard:', e);
+        showToast('Gagal memuat dashboard', 'error');
       }
     }
 
@@ -704,10 +762,8 @@
         const data = await res.json();
         allUsers = data.users || [];
       } catch (e) {
-        allUsers = [
-          { user_id: 'USR001', name: 'Admin HR', email: 'admin@jefgroup.com', position: 'HR Manager', role: 'Admin', status: 'Active' },
-          { user_id: 'USR002', name: 'Budi Santoso', email: 'karyawan@jefgroup.com', position: 'Content Creator', role: 'Employee', status: 'Active' },
-        ];
+        console.error('Error loading users:', e);
+        showToast('Gagal memuat data karyawan', 'error');
       }
       renderUsers(allUsers);
     }
@@ -745,10 +801,22 @@
       renderUsers(allUsers.filter(u => (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) && (!st || u.status === st)));
     }
 
+    function previewAvatar(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById('mu_preview').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
     function openAddUser() {
       document.getElementById('modalUserTitle').textContent = 'Tambah Karyawan';
       document.getElementById('modalUserId').value = '';
       ['mu_name', 'mu_email', 'mu_pin', 'mu_position'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('mu_preview').src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+      document.getElementById('mu_file').value = '';
       document.getElementById('mu_role').value = 'Employee';
       document.getElementById('modalUser').classList.remove('hidden');
     }
@@ -761,29 +829,59 @@
       document.getElementById('mu_pin').value = '';
       document.getElementById('mu_position').value = u.position;
       document.getElementById('mu_role').value = u.role;
+      document.getElementById('mu_preview').src = u.profile_pic_url || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+      document.getElementById('mu_file').value = '';
       document.getElementById('modalUser').classList.remove('hidden');
     }
 
     async function saveUser() {
       const userId = document.getElementById('modalUserId').value;
+      const fileInput = document.getElementById('mu_file');
+
+      let profile_pic_base64 = null;
+      let profile_pic_name = null;
+
+      if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        profile_pic_base64 = await toBase64(file);
+        profile_pic_name = `profile_${userId || 'new'}_${Date.now()}.jpg`;
+      }
+
       const payload = {
         action: userId ? 'updateUser' : 'addUser',
         user_id: userId,
         name: document.getElementById('mu_name').value,
         email: document.getElementById('mu_email').value,
-        pin: document.getElementById('mu_pin').value,
-        password_pin: document.getElementById('mu_pin').value, // match code.gs key
+        password_pin: document.getElementById('mu_pin').value,
         position: document.getElementById('mu_position').value,
-        role: document.getElementById('mu_role').value
+        role: document.getElementById('mu_role').value,
+        profile_pic_base64,
+        profile_pic_name
       };
+
       if (!payload.name || !payload.email || !payload.position) { showToast('Harap lengkapi semua data wajib', 'warn'); return; }
+
       try {
         const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
         const data = await res.json();
-        if (data.success) { showToast('Data karyawan disimpan', 'success'); closeModal('modalUser'); loadUsers(); }
-        else { showToast(data.message || 'Gagal menyimpan', 'error'); }
-      } catch (e) { showToast('[DEMO] Data disimpan!', 'success'); closeModal('modalUser'); }
+        if (data.success) {
+          showToast('Data karyawan disimpan', 'success');
+          closeModal('modalUser');
+          loadUsers();
+        } else {
+          showToast(data.message || 'Gagal menyimpan', 'error');
+        }
+      } catch (e) {
+        showToast('Terjadi kesalahan koneksi', 'error');
+      }
     }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = error => reject(error);
+    });
 
     async function toggleUser(id, currentStatus) {
       const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
@@ -791,7 +889,7 @@
       try {
         await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateUserStatus', user_id: id, status: newStatus }) });
         showToast('Status diubah', 'success'); loadUsers();
-      } catch (e) { showToast('[DEMO] Status diubah', 'success'); }
+      } catch (e) { showToast('Gagal mengubah status', 'error'); }
     }
 
     // ==== APPROVALS ====
@@ -801,9 +899,8 @@
         const data = await res.json();
         renderApprovals(data.requests || []);
       } catch (e) {
-        renderApprovals([
-          { request_id: 'REQ001', user_name: 'Budi Santoso', type: 'Sakit', start_date: '2026-05-15', end_date: '2026-05-16', reason: 'Demam', status: 'Pending', attachment_url: '#' }
-        ]);
+        console.error('Error loading approvals:', e);
+        showToast('Gagal memuat data pengajuan', 'error');
       }
     }
 
@@ -840,7 +937,7 @@
       try {
         await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'decideLeave', request_id: id, status, approved_by: userData.name }) });
         showToast(`Pengajuan ${status}`, 'success'); loadApprovals(); loadDashboard();
-      } catch (e) { showToast(`[DEMO] Pengajuan ${status}`, 'success'); }
+      } catch (e) { showToast('Gagal memproses pengajuan', 'error'); }
     }
 
     // ==== ATTENDANCE HISTORY ====
@@ -855,9 +952,8 @@
         const data = await res.json();
         renderAtt(data.records || []);
       } catch (e) {
-        renderAtt([
-          { name: 'Budi Santoso', date: '2026-05-15', clock_in_time: '09:58', clock_out_time: '19:02', distance_meters: 12, status_in: 'Tepat Waktu' }
-        ]);
+        console.error('Error loading attendance:', e);
+        showToast('Gagal memuat data absensi', 'error');
       }
     }
 
@@ -913,7 +1009,7 @@
       try {
         await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
         showToast('Konfigurasi disimpan', 'success');
-      } catch (e) { showToast('[DEMO] Konfigurasi disimpan', 'success'); }
+      } catch (e) { showToast('Gagal menyimpan konfigurasi', 'error'); }
     }
 
     function renderHolidays(holidays) {
@@ -939,7 +1035,7 @@
         showToast('Hari libur ditambahkan', 'success');
         document.getElementById('holiday_date').value = ''; document.getElementById('holiday_desc').value = '';
         loadConfig();
-      } catch (e) { showToast('[DEMO] Hari libur ditambahkan', 'success'); }
+      } catch (e) { showToast('Gagal menambah hari libur', 'error'); }
     }
 
     async function delHoliday(id) {
@@ -947,7 +1043,7 @@
       try {
         await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteHoliday', holiday_id: id }) });
         showToast('Hari libur dihapus', 'success'); loadConfig();
-      } catch (e) { showToast('[DEMO] Hari libur dihapus', 'success'); }
+      } catch (e) { showToast('Gagal menghapus hari libur', 'error'); }
     }
 
     function logout() {
