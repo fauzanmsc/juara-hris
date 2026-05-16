@@ -410,8 +410,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     document.getElementById('cfg_lat').value = data.config.office_latitude || '';
                     document.getElementById('cfg_lng').value = data.config.office_longitude || '';
                     document.getElementById('cfg_radius').value = data.config.max_radius_meters || 50;
-                    document.getElementById('cfg_wday_start').value = data.config.workday_start || '';
-                    document.getElementById('cfg_wday_end').value = data.config.workday_end || '';
+                    document.getElementById('cfg_wday_start').value = data.config.weekday_start || '';
+                    document.getElementById('cfg_wday_end').value = data.config.weekday_end || '';
                     document.getElementById('cfg_tolerance').value = data.config.tolerance_minutes || 15;
                     document.getElementById('cfg_sat_start').value = data.config.saturday_start || '';
                     document.getElementById('cfg_sat_end').value = data.config.saturday_end || '';
@@ -499,7 +499,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
 if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' === 'index.js')) {
     (function () {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYHL6Fb1PelIa-yfWjD0u5jXQ0opu-OfBxTcyw4SQXaE60-rJLkU_lnc3RVW1xlETkDg/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
         let MAX_RADIUS = 100;
         let OFFICE_LAT = 0;
         let OFFICE_LNG = 0;
@@ -514,6 +514,10 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         let stream = null;
         let isLockedOut = false;
         let attendanceMode = 'in'; // 'in' or 'out'
+        
+        let geoWatchId = null;
+        let currentLat = null;
+        let currentLng = null;
 
         // ---- CLOCK ----
         const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -790,10 +794,11 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
 
                 startGeo();
             } catch (e) {
-                // Demo fallback
-                document.getElementById('headerSub').textContent = 'Mode Demo (belum terhubung)';
-                attendanceMode = 'in';
-                startGeo();
+                console.error(e);
+                document.getElementById('headerSub').textContent = 'Koneksi ke Server Terputus';
+                showToast('Gagal memuat konfigurasi absensi dari server', 'error');
+                isLockedOut = true;
+                checkReady();
             }
         }
 
@@ -872,9 +877,10 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                     btn.textContent = origText;
                 }
             } catch (e) {
-                // Demo success
-                showToast(`[DEMO] ${attendanceMode === 'in' ? 'Clock In' : 'Clock Out'} berhasil!`, 'success');
-                setTimeout(() => window.location.href = 'employee.html', 2000);
+                console.error(e);
+                showToast('Gagal terhubung ke server', 'error');
+                btn.disabled = false;
+                btn.textContent = origText;
             }
         }
 

@@ -31,12 +31,7 @@ function doGet(e) {
       case 'getPendingLeaves': result = getPendingLeaves(); break;
       case 'getAttendance':  result = getAttendanceLog(e.parameter); break;
       case 'leaveHistory':   result = getLeaveHistory(e.parameter.user_id); break;
-      case 'getConfig':
-  result = {
-    success: true,
-    config: getAllConfig()
-  };
-break;
+      case 'getConfig':      result = { success: true, config: getAllConfig() }; break;
       case 'getHolidays':    result = getHolidays(); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
@@ -152,14 +147,14 @@ function getConfigVal(key, defaultVal) {
   if (!found || found.value === '' || found.value === null) {
     return defaultVal;
   }
-  let val;
-  if (Object.prototype.toString.call(found.value) === '[object Date]') {
-    val = Utilities.formatDate(found.value, Session.getScriptTimeZone(), 'HH:mm');
-  } else {
-    val = String(found.value).trim();
-  }
+
+  let val = String(found.value).trim();
 
   // FIX GOOGLE SHEETS INDONESIA FORMAT
+  // contoh:
+  // -6.406.332  -> -6.406332
+  // 106.773.285 -> 106.773285
+
   if (
     key === 'office_latitude' ||
     key === 'office_longitude'
@@ -183,6 +178,7 @@ function getConfigVal(key, defaultVal) {
 
   return val;
 }
+
 
 // ============ AUTH ============
 
