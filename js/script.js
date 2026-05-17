@@ -2,12 +2,71 @@
 
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
+// Global Modal Alert (Centered Glassmorphism UI)
+window.showModalAlert = function (title, message, type = 'info') {
+    let overlay = document.getElementById('globalModalOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'globalModalOverlay';
+        overlay.className = 'overlay';
+        overlay.style.zIndex = '99999';
+        document.body.appendChild(overlay);
+    }
+    
+    let iconHTML = '';
+    if (type === 'error' || type === 'warn') {
+        iconHTML = `<div style="width:60px; height:60px; border-radius:50%; background:var(--danger-soft); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-exclamation-triangle-fill"></i></div>`;
+    } else if (type === 'success') {
+        iconHTML = `<div style="width:60px; height:60px; border-radius:50%; background:var(--success-soft); color:var(--success); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-check-circle-fill"></i></div>`;
+    } else {
+        iconHTML = `<div style="width:60px; height:60px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:var(--info); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-info-circle-fill"></i></div>`;
+    }
+
+    overlay.innerHTML = `
+        <div class="modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s ease;">
+            ${iconHTML}
+            <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
+            <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+            <button class="btn btn-primary btn-xl" onclick="document.getElementById('globalModalOverlay').remove()" style="width:100%; border-radius:50px;">Tutup</button>
+        </div>
+    `;
+};
+
+window.showModalConfirm = function (title, message, onConfirm) {
+    let overlay = document.getElementById('globalConfirmOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'globalConfirmOverlay';
+        overlay.className = 'overlay';
+        overlay.style.zIndex = '999999';
+        document.body.appendChild(overlay);
+    }
+    
+    overlay.innerHTML = `
+        <div class="modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s ease;">
+            <div style="width:60px; height:60px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;">
+                <i class="bi bi-box-arrow-right"></i>
+            </div>
+            <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
+            <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-ghost" onclick="document.getElementById('globalConfirmOverlay').remove()" style="flex:1; border-radius:50px;">Batal</button>
+                <button class="btn btn-primary" id="confirmYesBtn" style="flex:1; border-radius:50px; background:linear-gradient(135deg, var(--danger), #dc2626); color:white !important; border:none; cursor:pointer;">Keluar</button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('confirmYesBtn').onclick = function() {
+        overlay.remove();
+        onConfirm();
+    };
+};
+
 // Helper Global: Parse waktu dari berbagai format (ISO full string atau HH:MM) ke format HH:MM 24 jam
 window.parseTime = function(val) {
     if (!val || val === '--:--' || val === '--') return null;
-    // Format ISO penuh: "1899-12-30T09:51:08.000Z" atau "2026-05-16T09:51:08.000Z"
     if (typeof val === 'string' && val.includes('T')) {
-        const timePart = val.split('T')[1]; // "09:51:08.000Z"
+        const timePart = val.split('T')[1]; 
         if (timePart) {
             const [h, m] = timePart.split(':');
             if (h !== undefined && m !== undefined) {
@@ -16,12 +75,30 @@ window.parseTime = function(val) {
         }
         return null;
     }
-    // Format HH:MM atau HH:MM:SS
+    if (typeof val === 'string') {
+        const match = val.match(/(\d{2}):(\d{2}):\d{2}/);
+        if (match) {
+            return String(parseInt(match[1], 10)).padStart(2, '0') + ':' + String(parseInt(match[2], 10)).padStart(2, '0');
+        }
+    }
     if (typeof val === 'string' && val.includes(':')) {
         const parts = val.split(':');
         return String(parseInt(parts[0], 10)).padStart(2, '0') + ':' + String(parseInt(parts[1], 10)).padStart(2, '0');
     }
     return null;
+};
+
+window.formatActivityDate = function(val) {
+    if (!val) return 'Hari ini';
+    if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [y, m, d] = val.split('-');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        return `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]}`;
+    }
+    if (typeof val === 'string' && (val.includes('Sat D') || val.includes('1899'))) {
+        return 'Hari ini';
+    }
+    return val;
 };
 
 // Helper Global: Mengubah link Drive biasa menjadi Direct Link Gambar
@@ -64,10 +141,15 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
 
         window.showAlert = function (msg, type = 'error') {
             const box = document.getElementById('alertBox');
-            const icon = document.getElementById('alertIcon');
-            box.className = 'alert-box ' + type;
-            icon.className = type === 'error' ? 'bi bi-exclamation-triangle-fill' : 'bi bi-check-circle-fill';
-            document.getElementById('alertMsg').textContent = msg;
+            if (box) {
+                const icon = document.getElementById('alertIcon');
+                box.className = 'alert-box ' + type;
+                icon.className = type === 'error' ? 'bi bi-exclamation-triangle-fill' : 'bi bi-check-circle-fill';
+                document.getElementById('alertMsg').textContent = msg;
+            }
+            if (window.showModalAlert) {
+                window.showModalAlert(type === 'error' ? 'Perhatian' : 'Sukses', msg, type);
+            }
         }
         window.hideAlert = function () { document.getElementById('alertBox').className = 'alert-box'; }
 
@@ -221,6 +303,20 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 document.getElementById('pendingBadge').textContent = data.pending_count ?? 0;
                 document.getElementById('pendingBadge').style.display = data.pending_count > 0 ? 'block' : 'none';
                 renderLiveLog(data.live_log || []);
+                
+                if (window.renderChart && data.stats) {
+                    window.renderChart(data.stats);
+                }
+                
+                try {
+                    const resUsers = await fetch(`${APPS_SCRIPT_URL}?action=getUsers`);
+                    const dataUsers = await resUsers.json();
+                    const allU = dataUsers.users || [];
+                    const clockedInNames = (data.live_log || []).map(l => l.name);
+                    const belumAbsen = allU.filter(u => u.role === 'Employee' && !clockedInNames.includes(u.name) && u.status === 'Active');
+                    if (window.renderBelumAbsen) window.renderBelumAbsen(belumAbsen);
+                } catch (eu) {}
+
             } catch (e) {
                 console.error('Error loading dashboard:', e);
                 showToast('Gagal memuat dashboard', 'error');
@@ -336,7 +432,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             document.getElementById('mu_pin').value = '';
             document.getElementById('mu_position').value = u.position;
             document.getElementById('mu_role').value = u.role;
-            document.getElementById('mu_preview').src = u.profile_pic_url || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+            document.getElementById('mu_preview').src = u.profile_pic_url ? getDirectDriveUrl(u.profile_pic_url) : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
             document.getElementById('mu_file').value = '';
             document.getElementById('modalUser').classList.remove('hidden');
         }
@@ -470,6 +566,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             body.innerHTML = records.map(r => {
                 const inTime = parseTime(r.clock_in_time) || '--:--';
                 const outTime = parseTime(r.clock_out_time) || '--:--';
+                const dist = r.distance_meters || r.distance;
+                const photo = r.photo_in_url || r.photo_in;
                 return `
     <tr>
       <td>
@@ -484,9 +582,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
       <td style="white-space:nowrap">${r.date}</td>
       <td><strong style="color:var(--text)">${inTime}</strong></td>
       <td><strong style="color:var(--text)">${outTime}</strong></td>
-      <td>${r.distance_meters ? r.distance_meters + 'm' : '—'}</td>
+      <td>${dist ? dist + 'm' : '—'}</td>
       <td><span class="badge ${r.status_in === 'Terlambat' ? 'badge-warn' : 'badge-success'}">${r.status_in || '—'}</span></td>
-      <td>${r.photo_in ? `<button class="btn btn-sm btn-ghost" onclick="viewPhoto('${r.photo_in}')"><i class="bi bi-camera"></i></button>` : '—'}</td>
+      <td>${photo ? `<button class="btn btn-sm btn-ghost" onclick="viewPhoto('${getDirectDriveUrl(photo)}')"><i class="bi bi-camera"></i></button>` : '—'}</td>
     </tr>
   `;
             }).join('');
@@ -503,11 +601,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     document.getElementById('cfg_lat').value = data.config.office_latitude || '';
                     document.getElementById('cfg_lng').value = data.config.office_longitude || '';
                     document.getElementById('cfg_radius').value = data.config.max_radius_meters || 50;
-                    document.getElementById('cfg_wday_start').value = data.config.weekday_start || '';
-                    document.getElementById('cfg_wday_end').value = data.config.weekday_end || '';
+                    document.getElementById('cfg_wday_start').value = parseTime(data.config.weekday_start) || '';
+                    document.getElementById('cfg_wday_end').value = parseTime(data.config.weekday_end) || '';
                     document.getElementById('cfg_tolerance').value = data.config.tolerance_minutes || 15;
-                    document.getElementById('cfg_sat_start').value = data.config.saturday_start || '';
-                    document.getElementById('cfg_sat_end').value = data.config.saturday_end || '';
+                    document.getElementById('cfg_sat_start').value = parseTime(data.config.saturday_start) || '';
+                    document.getElementById('cfg_sat_end').value = parseTime(data.config.saturday_end) || '';
                 }
                 renderHolidays(data.holidays || []);
             } catch (e) { renderHolidays([]); }
@@ -582,7 +680,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.logout = function () {
-            if (confirm('Yakin ingin keluar?')) { sessionStorage.removeItem('hris_user'); window.location.href = 'index.html'; }
+            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function() {
+                sessionStorage.removeItem('hris_user');
+                window.location.href = 'index.html';
+            });
         }
 
         // Init
@@ -777,18 +878,29 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
             );
         }
         // ---- CAMERA ----
+        let currentFacingMode = 'user';
+        window.flipCamera = async function () {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            await startCamera();
+        };
+
         window.startCamera = async function () {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+                    video: { facingMode: currentFacingMode, width: { ideal: 640 }, height: { ideal: 480 } }
                 });
                 const video = document.getElementById('videoEl');
                 video.srcObject = stream;
+                // Don't mirror environment camera
+                video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
                 document.getElementById('cameraOverlay').classList.add('hidden');
                 document.getElementById('faceGuide').style.display = 'block';
                 document.getElementById('btnCapture').disabled = false;
                 document.getElementById('cameraToggle').textContent = 'Kamera Aktif ✓';
                 document.getElementById('cameraToggle').style.color = 'var(--success)';
+                const flipBtn = document.getElementById('btnFlipCamera');
+                if (flipBtn) flipBtn.style.display = 'inline-flex';
             } catch (e) {
                 showToast('Gagal mengakses kamera. Izinkan akses kamera.', 'error');
             }
@@ -905,6 +1017,15 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
             document.getElementById('lockReason').textContent = reason;
             document.getElementById('mainBtn').disabled = true;
             document.getElementById('headerSub').textContent = 'Tidak tersedia hari ini';
+
+            // Show Popup Centered Modal
+            if (window.showModalAlert) {
+                window.showModalAlert(
+                    type === 'holiday' ? 'Hari Libur Nasional' : 'Absensi Terkunci',
+                    reason,
+                    type === 'holiday' ? 'info' : 'warn'
+                );
+            }
         }
 
         // ---- SUBMIT ----
@@ -1060,12 +1181,12 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                         const list = document.getElementById('activityList');
                         list.innerHTML = data.activities.map(a => `
             <div class="activity-item">
-              <div class="activity-dot ${a.color}"></div>
-              <div class="activity-content">
+              <div class="act-dot act-dot-${a.color || 'yellow'}"><i class="bi bi-check2-circle"></i></div>
+              <div class="act-content">
                 <strong>${a.title}</strong>
                 <span>${a.desc}</span>
               </div>
-              <div class="activity-time">${a.time}</div>
+              <div class="act-time">${formatActivityDate(a.time)}</div>
             </div>
           `).join('');
                     }
@@ -1091,10 +1212,10 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         }
 
         window.logout = function () {
-            if (confirm('Yakin ingin keluar?')) {
+            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function() {
                 sessionStorage.removeItem('hris_user');
                 window.location.href = 'index.html';
-            }
+            });
         }
 
         window.loadHistory = function () { window.location.href = 'history.html'; }
@@ -1186,7 +1307,10 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
 
         window.goBack = function () { window.location.href = 'employee.html'; }
         window.logout = function () {
-            if (confirm('Yakin ingin keluar?')) { sessionStorage.removeItem('hris_user'); window.location.href = 'index.html'; }
+            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function() {
+                sessionStorage.removeItem('hris_user');
+                window.location.href = 'index.html';
+            });
         }
 
         loadHistory();

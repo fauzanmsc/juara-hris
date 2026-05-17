@@ -576,7 +576,10 @@
     <div class="camera-card fade-in">
       <div class="camera-head">
         <span class="camera-label"><i class="bi bi-camera-fill"></i> &nbsp;Foto Selfie</span>
-        <span class="camera-toggle" id="cameraToggle" onclick="startCamera()">Aktifkan Kamera</span>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <span class="camera-toggle" id="cameraToggle" onclick="startCamera()" style="cursor:pointer;">Aktifkan Kamera</span>
+          <span class="camera-toggle" id="btnFlipCamera" onclick="flipCamera()" style="cursor:pointer; display:none;"><i class="bi bi-arrow-repeat"></i> Putar</span>
+        </div>
       </div>
       <div class="camera-container">
         <video id="videoEl" autoplay playsinline muted></video>

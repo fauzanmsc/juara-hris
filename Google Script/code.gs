@@ -114,6 +114,29 @@ function formatDate(d) {
   return Utilities.formatDate(new Date(d), Session.getScriptTimeZone(), 'yyyy-MM-dd');
 }
 
+function formatTimeVal(val) {
+  if (!val) return '';
+  if (Object.prototype.toString.call(val) === '[object Date]') {
+    return Utilities.formatDate(val, Session.getScriptTimeZone(), 'HH:mm');
+  }
+  var str = String(val).trim();
+  var match = str.match(/(\d{2}):(\d{2}):\d{2}/);
+  if (match) {
+    return match[1] + ':' + match[2];
+  }
+  var match2 = str.match(/(\d{2}):(\d{2})/);
+  if (match2) {
+    return match2[1] + ':' + match2[2];
+  }
+  if (str.includes(':')) {
+    return str.substring(0, 5);
+  }
+  if (str.includes('Sat') || str.includes('1899')) {
+    return '';
+  }
+  return str;
+}
+
 
 // ============ HELPER: DRIVE ============
 
@@ -611,7 +634,7 @@ function getEmployeeDashboard(params) {
   const recentAtts = thisMonth.slice(-5).reverse().map(a => ({
     title: a.clock_out_time ? 'Clock In & Out' : 'Clock In',
     desc: a.status_in || '',
-    time: String(a.clock_in_time || '').substring(0,5),
+    time: formatDate(a.date), // Use actual attendance date as requested by the user
     color: a.status_in === 'Terlambat' ? 'orange' : 'green'
   }));
 
@@ -621,8 +644,8 @@ function getEmployeeDashboard(params) {
     success: true,
     profile_pic_url: user ? (user.profile_pic_url || '') : '',
     stats: { hadir, terlambat, sisa_cuti: 12 }, // sisa cuti bisa dikonfigurasi
-    today_in: todayAtt ? String(todayAtt.clock_in_time || '').substring(0,5) : null,
-    today_out: todayAtt ? String(todayAtt.clock_out_time || '').substring(0,5) : null,
+    today_in: todayAtt ? formatTimeVal(todayAtt.clock_in_time) : null,
+    today_out: todayAtt ? formatTimeVal(todayAtt.clock_out_time) : null,
     status_in: todayAtt ? todayAtt.status_in : null,
     status_out: todayAtt ? todayAtt.status_out : null,
     activities: recentAtts
@@ -659,8 +682,8 @@ function getAdminDashboard(params) {
       name: user ? user.name : 'Unknown',
       position: user ? user.position : '',
       initials: user ? user.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() : 'XX',
-      clock_in: String(a.clock_in_time || '').substring(0,5),
-      clock_out: String(a.clock_out_time || '').substring(0,5) || null,
+      clock_in: formatTimeVal(a.clock_in_time),
+      clock_out: formatTimeVal(a.clock_out_time) || null,
       distance: a.distance_meters,
       status_in: a.status_in,
       photo_in: a.photo_in_url || '',
