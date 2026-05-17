@@ -19,13 +19,13 @@
     }
 
     .header {
-      background: rgba(26, 26, 26, 0.95);
+      background: var(--bg-surface);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       padding: 16px 18px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 50
@@ -66,7 +66,7 @@
     /* TABS */
     .tabs {
       display: flex;
-      background: rgba(26, 26, 26, 0.95);
+      background: var(--bg-surface);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       padding: 0 20px
@@ -207,7 +207,7 @@
 
     .form-input {
       width: 100%;
-      background: rgba(34, 40, 49, 0.7);
+      background: var(--bg-input);
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
       padding: 13px 16px;
@@ -222,7 +222,7 @@
     .form-input:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.12);
-      background: rgba(34, 40, 49, 0.9)
+      background: var(--bg-input-focus)
     }
 
     .form-input::placeholder {
@@ -473,11 +473,16 @@
 <body>
 
   <div class="header">
-    <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
-    <div class="header-info">
-      <h2>Pengajuan</h2>
-      <p>Cuti, Sakit &amp; Izin</p>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+      <div class="header-info">
+        <h2>Pengajuan</h2>
+        <p>Cuti, Sakit &amp; Izin</p>
+      </div>
     </div>
+    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+      <i class="bi bi-sun-fill"></i>
+    </button>
   </div>
 
   <div class="tabs">

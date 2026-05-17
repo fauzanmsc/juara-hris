@@ -19,7 +19,7 @@
     }
 
     .header {
-      background: rgba(26, 26, 26, 0.95);
+      background: var(--bg-surface);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       padding: 16px 18px;
@@ -314,7 +314,7 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 480px;
-      background: rgba(26, 26, 26, 0.97);
+      background: var(--bg-surface);
       backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
       display: flex;
@@ -372,7 +372,12 @@
       <button class="back-btn" onclick="goBack()"><i class="bi bi-arrow-left"></i></button>
       <h1>Riwayat Kehadiran</h1>
     </div>
-    <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+        <i class="bi bi-sun-fill"></i>
+      </button>
+      <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
+    </div>
   </div>
 
   <div class="content">

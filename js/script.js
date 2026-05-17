@@ -2,6 +2,34 @@
 
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
+// Global Theme Switcher (Light / Dark Mode)
+window.toggleTheme = function() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('hris_theme', newTheme);
+    updateThemeToggleBtn();
+};
+
+window.updateThemeToggleBtn = function() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) {
+        btn.innerHTML = currentTheme === 'dark' 
+            ? '<i class="bi bi-sun-fill"></i>' 
+            : '<i class="bi bi-moon-stars-fill"></i>';
+        btn.title = currentTheme === 'dark' ? 'Mode Terang' : 'Mode Gelap';
+    }
+};
+
+// Auto-run on script load
+(function() {
+    const savedTheme = localStorage.getItem('hris_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    // Wait for DOM to load to sync button icon
+    document.addEventListener('DOMContentLoaded', updateThemeToggleBtn);
+})();
+
 // Global Modal Alert (Centered Glassmorphism UI)
 window.showModalAlert = function (title, message, type = 'info') {
     let overlay = document.getElementById('globalModalOverlay');
@@ -607,7 +635,17 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     document.getElementById('cfg_sat_start').value = parseTime(data.config.saturday_start) || '';
                     document.getElementById('cfg_sat_end').value = parseTime(data.config.saturday_end) || '';
                 }
-                renderHolidays(data.holidays || []);
+                let holidays = data.holidays;
+                if (!holidays) {
+                    try {
+                        const hRes = await fetch(`${APPS_SCRIPT_URL}?action=getHolidays`);
+                        const hData = await hRes.json();
+                        holidays = hData.holidays || [];
+                    } catch (err) {
+                        holidays = [];
+                    }
+                }
+                renderHolidays(holidays);
             } catch (e) { renderHolidays([]); }
         }
 
@@ -1164,6 +1202,43 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                     document.getElementById('statHadir').textContent = data.stats.hadir ?? 0;
                     document.getElementById('statTerlambat').textContent = data.stats.terlambat ?? 0;
                     document.getElementById('statCuti').textContent = data.stats.sisa_cuti ?? 12;
+
+                    // Check for active holiday or approved leave today
+                    const alertEl = document.getElementById('holidayLeaveAlert');
+                    if (alertEl) {
+                        if (data.today_holiday || data.today_leave) {
+                            let alertHTML = '';
+                            if (data.today_holiday) {
+                                alertHTML = `
+                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.18) 100%); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.05);">
+                                        <div style="width:38px; height:38px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
+                                            <i class="bi bi-calendar-x-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size:13px; font-weight:800; color:#ef4444; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">HARI LIBUR NASIONAL</h4>
+                                            <p style="font-size:12px; color:var(--text); opacity:0.85; margin:0;">Hari ini kantor libur: <strong>${data.today_holiday}</strong></p>
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (data.today_leave) {
+                                alertHTML = `
+                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.18) 100%); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.05);">
+                                        <div style="width:38px; height:38px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
+                                            <i class="bi bi-briefcase-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size:13px; font-weight:800; color:#3b82f6; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">SEDANG MENJALANI CUTI</h4>
+                                            <p style="font-size:12px; color:var(--text); opacity:0.85; margin:0;">Status Anda hari ini: <strong>${data.today_leave}</strong></p>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            alertEl.innerHTML = alertHTML;
+                            alertEl.style.display = 'block';
+                        } else {
+                            alertEl.style.display = 'none';
+                        }
+                    }
 
                     if (data.today_in) {
                         document.getElementById('clockInTime').textContent = data.today_in;

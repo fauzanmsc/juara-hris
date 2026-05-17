@@ -32,11 +32,12 @@ function doGet(e) {
       case 'getAttendance':  result = getAttendanceLog(e.parameter); break;
       case 'leaveHistory':   result = getLeaveHistory(e.parameter.user_id); break;
       case 'getConfig':
-  result = {
-    success: true,
-    config: getAllConfig()
-  };
-break;
+        result = {
+          success: true,
+          config: getAllConfig(),
+          holidays: getHolidays().holidays
+        };
+        break;
       case 'getHolidays':    result = getHolidays(); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
@@ -640,6 +641,19 @@ function getEmployeeDashboard(params) {
 
   const user = sheetToObjects(getSheet(SHEET.USERS)).find(u => u.user_id === user_id);
 
+  // Check today's holiday
+  const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
+  const todayHoliday = holidays.find(h => formatDate(h.date) === today);
+
+  // Check today's active leave
+  const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
+  const todayLeave = leaves.find(l => 
+    l.user_id === user_id &&
+    l.status === 'Approved' &&
+    formatDate(l.start_date) <= today &&
+    formatDate(l.end_date) >= today
+  );
+
   return {
     success: true,
     profile_pic_url: user ? (user.profile_pic_url || '') : '',
@@ -648,7 +662,9 @@ function getEmployeeDashboard(params) {
     today_out: todayAtt ? formatTimeVal(todayAtt.clock_out_time) : null,
     status_in: todayAtt ? todayAtt.status_in : null,
     status_out: todayAtt ? todayAtt.status_out : null,
-    activities: recentAtts
+    activities: recentAtts,
+    today_holiday: todayHoliday ? todayHoliday.description : null,
+    today_leave: todayLeave ? todayLeave.leave_type + (todayLeave.reason ? ' - ' + todayLeave.reason : '') : null
   };
 }
 
