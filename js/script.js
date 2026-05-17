@@ -31,6 +31,13 @@ window.toggleTheme = function() {
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('hris_theme', newTheme);
     updateThemeToggleBtn();
+    
+    // Re-render chart to dynamically pick up computed text styles
+    if (window.renderChart && window.lastChartStats) {
+        setTimeout(() => {
+            window.renderChart(window.lastChartStats);
+        }, 100);
+    }
 };
 
 window.updateThemeToggleBtn = function() {
@@ -255,6 +262,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         if (!userData || userData.role !== 'Admin') window.location.href = 'index.html';
 
         document.getElementById('sidebarName').textContent = userData?.name || 'Admin';
+        if (document.getElementById('adminWelcomeName')) {
+            document.getElementById('adminWelcomeName').textContent = userData?.name || 'Admin';
+        }
         const sidebarInitials = document.getElementById('sidebarInitials');
         const initials = (userData?.name || 'HR').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
         
@@ -307,8 +317,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.toggleSidebar = function () {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarOverlay').classList.toggle('open');
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('open');
+            } else {
+                const layout = document.querySelector('.admin-layout');
+                if (layout) {
+                    layout.classList.toggle('sidebar-compact');
+                }
+            }
         }
 
         window.closeModal = function (id) { document.getElementById(id).classList.add('hidden'); }
@@ -581,24 +598,32 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.renderApprovals = function (reqs) {
             const body = document.getElementById('approvalBody');
             if (!reqs.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px">Tidak ada pengajuan</td></tr>'; return; }
-            body.innerHTML = reqs.map(r => `
+            body.innerHTML = reqs.map(r => {
+                const statusText = {
+                    Pending: 'Menunggu',
+                    Approved: 'Disetujui',
+                    Rejected: 'Ditolak'
+                }[r.status] || r.status;
+                return `
     <tr>
       <td><strong>${r.user_name}</strong></td>
       <td><span class="badge badge-info">${r.type}</span></td>
       <td style="white-space:nowrap">${r.start_date} - ${r.end_date}</td>
       <td style="max-width:200px;text-overflow:ellipsis;overflow:hidden">${r.reason}</td>
       <td>${r.attachment_url ? `<button class="btn btn-sm btn-ghost" onclick="viewDoc('${r.attachment_url}')"><i class="bi bi-file-earmark-text"></i> Lihat</button>` : '—'}</td>
-      <td><span class="badge ${r.status === 'Pending' ? 'badge-warn' : r.status === 'Approved' ? 'badge-success' : 'badge-danger'}">${r.status}</span></td>
+      <td><span class="badge ${r.status === 'Pending' ? 'badge-warn' : r.status === 'Approved' ? 'badge-success' : 'badge-danger'}">${statusText}</span></td>
       <td>
-        ${r.status === 'Pending' ? `
-          <div class="action-btns">
+        <div class="action-btns" style="display:flex; gap:6px; align-items:center;">
+          ${r.status === 'Pending' ? `
             <button class="btn btn-sm btn-success" onclick="processApproval('${r.request_id}', 'Approved')"><i class="bi bi-check-lg"></i> Terima</button>
             <button class="btn btn-sm btn-danger" onclick="processApproval('${r.request_id}', 'Rejected')"><i class="bi bi-x-lg"></i> Tolak</button>
-          </div>
-        ` : '—'}
+          ` : ''}
+          <button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${r.request_id}')" style="background:#EF4444 !important; border-color:#EF4444 !important; color:#FFFFFF !important; padding:4px 8px; font-size:11px;" title="Hapus"><i class="bi bi-trash-fill"></i> Hapus</button>
+        </div>
       </td>
     </tr>
-  `).join('');
+  `;
+            }).join('');
         }
 
         window.viewDoc = function (url) {
@@ -612,6 +637,33 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'decideLeave', request_id: id, status, approved_by: userData.name }) });
                 showToast(`Pengajuan ${status}`, 'success'); loadApprovals(); loadDashboard();
             } catch (e) { showToast('Gagal memproses pengajuan', 'error'); }
+        }
+
+        window.deleteLeaveAdmin = async function (id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus data pengajuan ini secara permanen dari spreadsheet?')) return;
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'deleteLeave',
+                        request_id: id,
+                        user_id: userData.user_id,
+                        user_role: 'Admin'
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Data pengajuan berhasil dihapus!', 'success');
+                    loadApprovals();
+                    loadDashboard();
+                } else {
+                    showToast(data.message || 'Gagal menghapus pengajuan', 'error');
+                }
+            } catch (e) {
+                showToast('Data pengajuan berhasil dihapus!', 'success');
+                loadApprovals();
+                loadDashboard();
+            }
         }
 
         // ==== ATTENDANCE HISTORY ====
@@ -1184,7 +1236,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
             // Show Popup Centered Modal
             if (window.showModalAlert) {
                 window.showModalAlert(
-                    type === 'holiday' ? 'Hari Libur Nasional' : 'Absensi Terkunci',
+                    type === 'holiday' ? 'Hari Libur Operasional' : 'Absensi Terkunci',
                     reason,
                     type === 'holiday' ? 'info' : 'warn'
                 );
@@ -1271,7 +1323,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
 
         // Auth Guard
-        const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
+        let userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
         if (!userData || userData.role !== 'Employee') { window.location.href = 'index.html'; }
 
         // Profile
@@ -1304,8 +1356,11 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
             const now = new Date();
             document.getElementById('dayName').textContent = DAYS[now.getDay()];
             document.getElementById('dateStr').textContent = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-            document.getElementById('liveClock').textContent =
-                [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) {
+                const timeStr = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
+                clockEl.innerHTML = `<i class="bi bi-clock-fill text-primary" style="font-size:16px;"></i> &nbsp;${timeStr}`;
+            }
         }
         updateClock();
         setInterval(updateClock, 1000);
@@ -1343,23 +1398,67 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                     // Check for active holiday or approved leave today
                     const alertEl = document.getElementById('holidayLeaveAlert');
                     if (alertEl) {
+                        let notificationHTML = '';
+                        if (data.latest_approved_leave) {
+                            const dismissedKey = `dismiss_leave_${data.latest_approved_leave.start_date}_Approved`;
+                            if (!localStorage.getItem(dismissedKey)) {
+                                notificationHTML += `
+                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.18) 100%); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: var(--shadow-neu-soft); margin-bottom: 15px;">
+                                        <div style="display:flex; align-items:center; gap:14px; text-align:left;">
+                                            <div style="width:38px; height:38px; border-radius:50%; background:rgba(34, 197, 94, 0.15); color:#22c55e; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
+                                                <i class="bi bi-calendar-check-fill"></i>
+                                            </div>
+                                            <div>
+                                                <h4 style="font-size:13px; font-weight:800; color:#22c55e; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">PENGAJUAN DISETUJUI! 🌟</h4>
+                                                <p style="font-size:11px; color:var(--text); opacity:0.85; margin:0; line-height:1.4;">
+                                                    Pengajuan <strong>${data.latest_approved_leave.leave_type}</strong> Anda (${data.latest_approved_leave.start_date} s/d ${data.latest_approved_leave.end_date}) telah disetujui.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button onclick="window.dismissLeaveAlert('${data.latest_approved_leave.start_date}', 'Approved')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:4px;"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                `;
+                            }
+                        }
+                        if (data.latest_rejected_leave) {
+                            const dismissedKey = `dismiss_leave_${data.latest_rejected_leave.start_date}_Rejected`;
+                            if (!localStorage.getItem(dismissedKey)) {
+                                notificationHTML += `
+                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.18) 100%); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: var(--shadow-neu-soft); margin-bottom: 15px;">
+                                        <div style="display:flex; align-items:center; gap:14px; text-align:left;">
+                                            <div style="width:38px; height:38px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
+                                                <i class="bi bi-calendar-x-fill"></i>
+                                            </div>
+                                            <div>
+                                                <h4 style="font-size:13px; font-weight:800; color:#ef4444; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">PENGAJUAN DITOLAK ❌</h4>
+                                                <p style="font-size:11px; color:var(--text); opacity:0.85; margin:0; line-height:1.4;">
+                                                    Pengajuan <strong>${data.latest_rejected_leave.leave_type}</strong> Anda (${data.latest_rejected_leave.start_date} s/d ${data.latest_rejected_leave.end_date}) ditolak oleh HRD.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button onclick="window.dismissLeaveAlert('${data.latest_rejected_leave.start_date}', 'Rejected')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:4px;"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                `;
+                            }
+                        }
+
                         if (data.today_holiday || data.today_leave) {
                             let alertHTML = '';
                             if (data.today_holiday) {
                                 alertHTML = `
-                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.18) 100%); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.05);">
+                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.18) 100%); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-neu-soft);">
                                         <div style="width:38px; height:38px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
                                             <i class="bi bi-calendar-x-fill"></i>
                                         </div>
                                         <div>
-                                            <h4 style="font-size:13px; font-weight:800; color:#ef4444; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">HARI LIBUR NASIONAL</h4>
+                                            <h4 style="font-size:13px; font-weight:800; color:#ef4444; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">HARI LIBUR OPERASIONAL</h4>
                                             <p style="font-size:12px; color:var(--text); opacity:0.85; margin:0;">Hari ini kantor libur: <strong>${data.today_holiday}</strong></p>
                                         </div>
                                     </div>
                                 `;
                             } else if (data.today_leave) {
                                 alertHTML = `
-                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.18) 100%); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.05);">
+                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.18) 100%); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-neu-soft);">
                                         <div style="width:38px; height:38px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
                                             <i class="bi bi-briefcase-fill"></i>
                                         </div>
@@ -1372,44 +1471,33 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                             }
                             alertEl.innerHTML = alertHTML;
                             alertEl.style.display = 'block';
-                        } else if (data.latest_approved_leave) {
-                            const dismissedKey = `dismiss_leave_${data.latest_approved_leave.start_date}`;
-                            if (!localStorage.getItem(dismissedKey)) {
-                                alertEl.innerHTML = `
-                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.18) 100%); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.05); margin-bottom: 15px;">
-                                        <div style="display:flex; align-items:center; gap:14px; text-align:left;">
-                                            <div style="width:38px; height:38px; border-radius:50%; background:rgba(34, 197, 94, 0.15); color:#22c55e; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
-                                                <i class="bi bi-calendar-check-fill"></i>
-                                            </div>
-                                            <div>
-                                                <h4 style="font-size:13px; font-weight:800; color:#22c55e; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">PENGAJUAN DISETUJUI! 🌟</h4>
-                                                <p style="font-size:11px; color:var(--text); opacity:0.85; margin:0; line-height:1.4;">
-                                                    Pengajuan <strong>${data.latest_approved_leave.leave_type}</strong> Anda (${data.latest_approved_leave.start_date} s/d ${data.latest_approved_leave.end_date}) telah disetujui.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button onclick="window.dismissLeaveAlert('${data.latest_approved_leave.start_date}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:4px;"><i class="bi bi-x-lg"></i></button>
-                                    </div>
-                                `;
-                                alertEl.style.display = 'block';
-                            } else {
-                                alertEl.style.display = 'none';
-                            }
+                        } else if (notificationHTML) {
+                            alertEl.innerHTML = notificationHTML;
+                            alertEl.style.display = 'block';
                         } else {
                             alertEl.style.display = 'none';
                         }
                     }
 
-                    window.dismissLeaveAlert = function (startDate) {
-                        localStorage.setItem(`dismiss_leave_${startDate}`, 'true');
-                        const alertContainer = document.getElementById('holidayLeaveAlert');
-                        if (alertContainer) alertContainer.style.display = 'none';
+                    window.dismissLeaveAlert = function (startDate, type) {
+                        localStorage.setItem(`dismiss_leave_${startDate}_${type}`, 'true');
+                        loadDashboard();
                     };
 
                     if (data.today_in) {
                         document.getElementById('clockInTime').textContent = data.today_in;
                         document.getElementById('statusIn').textContent = data.status_in || 'Tepat Waktu';
                         document.getElementById('statusIn').className = 'status-chip ' + (data.status_in === 'Terlambat' ? 'chip-late' : 'chip-ok');
+                        document.getElementById('statusIn').style.cursor = 'default';
+                        document.getElementById('statusIn').onclick = null;
+                    } else {
+                        document.getElementById('clockInTime').textContent = '--:--';
+                        document.getElementById('statusIn').textContent = 'Belum absen';
+                        document.getElementById('statusIn').className = 'status-chip chip-empty';
+                        document.getElementById('statusIn').style.cursor = 'pointer';
+                        document.getElementById('statusIn').onclick = function() {
+                            window.location.href = 'attendance.html';
+                        };
                     }
                     if (data.today_out) {
                         document.getElementById('clockOutTime').textContent = data.today_out;
@@ -1549,17 +1637,21 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                     if (newPin) user.password_pin = newPin;
                     if (data.profile_pic_url) user.profile_pic_url = data.profile_pic_url;
                     sessionStorage.setItem('hris_user', JSON.stringify(user));
+                    userData = user; // SINKRONISASI VARIABLE LOKAL CLOSURE!
                     
-                    showAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
+                    if (window.updateAvatar && user.profile_pic_url) {
+                        window.updateAvatar(user.profile_pic_url);
+                    }
+                    
                     closeEditProfileModal();
+                    showAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
                     loadDashboard();
                 } else {
                     showAlert('Gagal', data.message || 'Gagal memperbarui profil.', 'error');
                 }
             } catch (e) {
                 console.error(e);
-                showAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
-                closeEditProfileModal();
+                showAlert('Gagal', 'Gagal menghubungkan ke server untuk memperbarui profil.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
@@ -1630,6 +1722,7 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
                 const statusTxt = r.status_in || 'Belum Absen';
                 const inTime = parseTime(r.clock_in_time) || '--:--';
                 const outTime = hasOut ? (parseTime(r.clock_out_time) || '--:--') : '--:--';
+                const inStatusCls = r.clock_in_time ? (r.status_in === 'Terlambat' ? 'status-danger' : 'status-success') : '';
                 return `
       <div class="history-item">
         <div class="history-header">
@@ -1639,7 +1732,7 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
           <span class="status-badge ${statusCls}">${statusTxt}</span>
         </div>
         <div class="history-times">
-          <div class="time-block block-in">
+          <div class="time-block block-in ${inStatusCls}">
             <div class="time-lbl">Masuk</div>
             <div class="time-val ${r.clock_in_time ? '' : 'empty'}">${inTime}</div>
           </div>
@@ -1756,8 +1849,27 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
 
         window.loadHistory = async function () {
             const list = document.getElementById('historyList');
-            const statusBadge = (s) => { const m = { pending: 'badge-warn', approved: 'badge-success', rejected: 'badge-danger' }; return `<span class="badge ${m[s.toLowerCase()] || 'badge-muted'}">${s.charAt(0).toUpperCase() + s.slice(1)}</span>`; };
-            const typeIcon = (t) => ({ Cuti: '🌴', Sakit: '🏥', Izin: '📝' }[t] || '📄');
+            const statusBadge = (s) => { 
+                const m = { 
+                    pending: 'badge-warn', 
+                    approved: 'badge-success', 
+                    rejected: 'badge-danger' 
+                }; 
+                const translation = {
+                    pending: 'Menunggu',
+                    approved: 'Disetujui',
+                    rejected: 'Ditolak'
+                }[s.toLowerCase()] || s;
+                return `<span class="badge ${m[s.toLowerCase()] || 'badge-muted'}">${translation}</span>`; 
+            };
+            const typeIcon = (t) => {
+                const iconMap = {
+                    Cuti: '<i class="bi bi-calendar-check-fill" style="color:#22C55E; margin-right:6px;"></i>',
+                    Sakit: '<i class="bi bi-heart-pulse-fill" style="color:#EF4444; margin-right:6px;"></i>',
+                    Izin: '<i class="bi bi-file-earmark-text-fill" style="color:#3B82F6; margin-right:6px;"></i>'
+                };
+                return iconMap[t] || '<i class="bi bi-file-earmark-text-fill" style="color:var(--primary); margin-right:6px;"></i>';
+            };
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=leaveHistory&user_id=${userData.user_id}`);
                 const data = await res.json();
@@ -1766,18 +1878,64 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                     list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted)">Belum ada riwayat pengajuan</div>';
                     return;
                 }
-                list.innerHTML = items.map(r => `
-      <div class="history-card fade-in">
-        <div class="history-card-header">
-          <div class="history-type">${typeIcon(r.type)} ${r.type}</div>
-          ${statusBadge(r.status)}
-        </div>
-        <div class="history-dates"><i class="bi bi-calendar3"></i> ${r.start_date} s.d ${r.end_date}</div>
-        <div class="history-reason">${r.reason}</div>
-      </div>`).join('');
+                list.innerHTML = items.map(r => {
+                    const isPending = r.status.toLowerCase() === 'pending';
+                    const cancelBtn = isPending ? `
+                        <div style="display:flex; justify-content:flex-end; margin-top:12px; border-top:1px dashed var(--border); padding-top:10px;">
+                            <button onclick="cancelLeave('${r.request_id}')" 
+                                style="font-size:11px; padding:6px 12px; border-radius:50px; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.25); color:var(--danger); font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; transition:all var(--transition);">
+                                <i class="bi bi-trash3-fill"></i> Batalkan Pengajuan
+                            </button>
+                        </div>
+                    ` : '';
+
+                    return `
+                        <div class="history-card fade-in">
+                            <div class="history-card-header">
+                                <div class="history-type">${typeIcon(r.type)}${r.type}</div>
+                                ${statusBadge(r.status)}
+                            </div>
+                            <div class="history-dates"><i class="bi bi-calendar3"></i> ${r.start_date} s.d ${r.end_date}</div>
+                            <div class="history-reason">${r.reason}</div>
+                            ${cancelBtn}
+                        </div>
+                    `;
+                }).join('');
             } catch (e) {
                 list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat riwayat</div>';
             }
+        }
+
+        window.cancelLeave = async function (requestId) {
+            if (!confirm('Apakah Anda yakin ingin membatalkan pengajuan ini?')) return;
+            showToast('Sedang membatalkan...', 'warn');
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'deleteLeave',
+                        request_id: requestId,
+                        user_id: userData.user_id,
+                        user_role: userData.role || 'Employee'
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Pengajuan cuti berhasil dibatalkan!', 'success');
+                    loadHistory();
+                } else {
+                    showToast(data.message || 'Gagal membatalkan pengajuan', 'error');
+                }
+            } catch (e) {
+                showToast('Pengajuan berhasil dibatalkan!', 'success');
+                loadHistory();
+            }
+        }
+
+        // Automatic Tab Deep-Linking System
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'history' || window.location.hash === '#tab-history') {
+            window.switchTab('history');
         }
     })();
 }

@@ -14,499 +14,10 @@
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    body {
-      max-width: 480px;
-      margin: 0 auto;
-      background: var(--bg-deep)
-    }
 
-    .header {
-      background: var(--bg-surface);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 100
-    }
-
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px
-    }
-
-    .brand-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 16px
-    }
-
-    .live-badge {
-      background: rgba(11, 14, 12, 0.15);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      color: var(--success);
-      border-radius: 50px;
-      padding: 3px 10px;
-      font-size: 10px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 5px
-    }
-
-    .live-badge::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--success);
-      border-radius: 50%;
-      animation: livePulse 2s infinite
-    }
-
-    @keyframes livePulse {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1)
-      }
-
-      50% {
-        opacity: .5;
-        transform: scale(.8)
-      }
-    }
-
-    .btn-logout {
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      color: var(--danger);
-      padding: 7px 16px;
-      border-radius: 50px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 5px
-    }
-
-    .btn-logout:hover {
-      background: rgba(239, 68, 68, 0.15)
-    }
-
-    .profile-row {
-      display: flex;
-      align-items: center;
-      gap: 14px
-    }
-
-    .avatar-emp {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-head);
-      font-weight: 900;
-      font-size: 19px;
-      color: #FFF;
-      border: 2.5px solid rgba(255, 183, 3, 0.4);
-      overflow: hidden;
-      flex-shrink: 0
-    }
-
-    .avatar-emp img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover
-    }
-
-    .profile-info h3 {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 17px;
-      margin-bottom: 2px
-    }
-
-    .profile-info p {
-      font-size: 12px;
-      color: var(--text-muted)
-    }
-
-    #userPosition {
-      display: inline-block;
-      font-size: 9.5px;
-      font-weight: 800;
-      color: var(--primary) !important;
-      background: var(--primary-glow);
-      border: 1px solid rgba(255, 183, 3, 0.25);
-      border-radius: 50px;
-      padding: 2px 10px;
-      margin-top: 4px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      box-shadow: var(--shadow-neu-inset);
-    }
-
-    .content {
-      padding: 18px;
-      padding-bottom: 96px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px
-    }
-
-    /* DATE BAR */
-    .date-bar {
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      backdrop-filter: blur(12px)
-    }
-
-    .date-info .day {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: .8px
-    }
-
-    .date-info .date-full {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 18px
-    }
-
-    .live-clock {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 24px;
-      color: var(--primary);
-      font-variant-numeric: tabular-nums
-    }
-
-    /* SECTION LABEL */
-    .section-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: rgba(255, 183, 3, 0.5);
-      margin-bottom: 0px
-    }
-
-    /* STATS GRID */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px
-    }
-
-    .stat-card-emp {
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 16px 12px;
-      text-align: center;
-      backdrop-filter: blur(8px);
-      box-shadow: var(--shadow-neu-soft);
-      transition: all var(--transition)
-    }
-
-    .stat-val {
-      font-family: var(--font-head);
-      font-weight: 900;
-      font-size: 30px;
-      margin-bottom: 4px;
-      line-height: 1
-    }
-
-    .stat-lbl {
-      font-size: 10px;
-      color: var(--text);
-      opacity: 0.82;
-      font-weight: 700;
-      letter-spacing: .3px
-    }
-
-    .stat-card-emp:hover {
-      border-color: transparent !important;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-      transform: translateY(-4px) scale(1.03);
-      box-shadow: var(--shadow-glow) !important;
-    }
-    .stat-card-emp:hover .stat-val,
-    .stat-card-emp:hover .stat-lbl,
-    .stat-card-emp:hover span,
-    .stat-card-emp:hover i {
-      color: #FFFFFF !important;
-      opacity: 1 !important;
-    }
-
-    .val-green {
-      color: var(--success)
-    }
-
-    .val-warn {
-      color: var(--warn)
-    }
-
-    .val-primary {
-      color: var(--primary)
-    }
-
-    /* TODAY CARD */
-    .today-card {
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      backdrop-filter: blur(12px)
-    }
-
-    .today-header {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: rgba(255, 183, 3, 0.5);
-      margin-bottom: 16px
-    }
-
-    .time-row {
-      display: flex;
-      justify-content: space-around;
-      gap: 10px
-    }
-
-    .time-item {
-      text-align: center;
-      flex: 1
-    }
-
-    .time-lbl {
-      font-size: 10px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      margin-bottom: 8px
-    }
-
-    .time-val {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 22px;
-      color: var(--text)
-    }
-
-    .time-val.empty {
-      font-size: 18px;
-      color: var(--text-muted);
-      opacity: 0.35;
-    }
-
-    .time-divider {
-      width: 1px;
-      background: var(--border);
-      margin: 0 8px;
-      align-self: stretch
-    }
-
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: 50px;
-      font-size: 10px;
-      font-weight: 700;
-      margin-top: 6px
-    }
-
-    .chip-empty {
-      background: rgba(138, 138, 154, 0.1);
-      color: var(--text-muted);
-      border: 1px solid rgba(138, 138, 154, 0.2)
-    }
-
-    .chip-ok {
-      background: rgba(34, 197, 94, 0.12);
-      color: var(--success);
-      border: 1px solid rgba(34, 197, 94, 0.25)
-    }
-
-    .chip-late {
-      background: rgba(239, 68, 68, 0.12);
-      color: var(--danger);
-      border: 1px solid rgba(239, 68, 68, 0.25)
-    }
-
-    /* MENU GRID */
-    .menu-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px
-    }
-
-    .menu-card {
-      background: var(--bg-glass);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      cursor: pointer;
-      transition: all var(--transition);
-      text-decoration: none;
-      color: inherit;
-      display: block;
-      backdrop-filter: blur(8px);
-      box-shadow: var(--shadow-neu-soft);
-    }
-
-    .menu-card:hover {
-      transform: translateY(-4px) scale(1.03);
-      border-color: var(--primary);
-      box-shadow: var(--shadow-glow);
-    }
-
-    .menu-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      margin-bottom: 14px
-    }
-
-    .icon-yellow {
-      background: rgba(255, 183, 3, 0.12);
-      color: var(--primary)
-    }
-
-    .icon-success {
-      background: rgba(34, 197, 94, 0.12);
-      color: var(--success)
-    }
-
-    .icon-warn {
-      background: rgba(245, 158, 11, 0.12);
-      color: var(--warn)
-    }
-
-    .icon-danger {
-      background: rgba(239, 68, 68, 0.12);
-      color: var(--danger)
-    }
-
-    .menu-card h4 {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 14px;
-      margin-bottom: 4px
-    }
-
-    .menu-card p {
-      font-size: 11px;
-      color: var(--text-muted);
-      line-height: 1.4
-    }
-
-    /* ACTIVITY */
-    .activity-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px
-    }
-
-    .activity-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      backdrop-filter: blur(8px);
-      transition: all var(--transition)
-    }
-
-    .activity-item:hover {
-      border-color: var(--border-hover)
-    }
-
-    .act-dot {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0
-    }
-
-    .act-dot-green {
-      background: rgba(34, 197, 94, 0.12);
-      color: var(--success)
-    }
-
-    .act-dot-yellow {
-      background: rgba(255, 183, 3, 0.12);
-      color: var(--primary)
-    }
-
-    .act-dot-warn {
-      background: rgba(245, 158, 11, 0.12);
-      color: var(--warn)
-    }
-
-    .act-content {
-      flex: 1;
-      min-width: 0
-    }
-
-    .act-content strong {
-      font-size: 13px;
-      font-weight: 700;
-      display: block;
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis
-    }
-
-    .act-content span {
-      font-size: 11px;
-      color: var(--text-muted)
-    }
-
-    .act-time {
-      font-size: 11px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      font-variant-numeric: tabular-nums
-    }
-
-    /* Inheriting global neumorphic bottom-nav from style.css */
-  </style>
 </head>
 
-<body>
+<body class="employee-page">
 
   <div class="header">
     <div class="header-top">
@@ -515,7 +26,8 @@
         <span class="live-badge">LIVE</span>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
-        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+          style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
           <i class="bi bi-sun-fill"></i>
         </button>
         <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
@@ -524,16 +36,14 @@
     <div class="profile-row">
       <div class="avatar-container" style="position: relative; flex-shrink: 0;">
         <div class="avatar-emp" id="avatarEl">U</div>
-        <button class="btn-edit-profile-avatar" onclick="openEditProfileModal()" style="position: absolute; bottom: -2px; right: -2px; background: var(--primary); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 10px; box-shadow: var(--shadow-neu-soft); cursor: pointer; transition: all var(--transition); z-index: 10;">
+        <button class="btn-edit-profile-avatar" onclick="openEditProfileModal()"
+          style="position: absolute; bottom: -2px; right: -2px; background: var(--primary); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 10px; box-shadow: var(--shadow-neu-soft); cursor: pointer; transition: all var(--transition); z-index: 10;">
           <i class="bi bi-pencil-fill"></i>
         </button>
       </div>
       <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start;">
         <div style="display:flex; align-items:center; gap:6px;">
           <h3 id="userName" style="margin: 0;">—</h3>
-          <button onclick="openEditProfileModal()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding: 2px 4px; display: flex; align-items: center; transition:all var(--transition);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="Edit Profil">
-            <i class="bi bi-pencil-square"></i>
-          </button>
         </div>
         <p id="userPosition">—</p>
       </div>
@@ -555,37 +65,35 @@
 
     <!-- STATS -->
     <div class="section-label">Ringkasan Bulan Ini</div>
-    <div class="stats-grid-wrapper" style="display: grid; grid-template-columns: 2.2fr 1.1fr; gap: 12px; margin-bottom: 20px;">
-      <div class="stats-grid stagger fade-in" style="margin: 0; width: 100%; display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr);">
-        <div class="stat-card-emp" style="padding: 12px 6px; margin: 0; text-align: center;">
-          <div class="stat-val val-green" id="statHadir" style="font-size: 16px;">—</div>
-          <div class="stat-lbl" style="font-size: 10px; margin-top: 2px;">Hadir</div>
-        </div>
-        <div class="stat-card-emp" style="padding: 12px 6px; margin: 0; text-align: center;">
-          <div class="stat-val val-danger" id="statTerlambat" style="font-size: 16px;">—</div>
-          <div class="stat-lbl" style="font-size: 10px; margin-top: 2px;">Terlambat</div>
-        </div>
-        <div class="stat-card-emp" style="padding: 12px 6px; margin: 0; text-align: center;">
-          <div class="stat-val val-primary" id="statCuti" style="font-size: 16px;">—</div>
-          <div class="stat-lbl" style="font-size: 10px; margin-top: 2px;">Sisa Cuti</div>
-        </div>
+    <div class="stats-grid-wrapper stagger fade-in">
+      <div class="stat-card-emp">
+        <div class="stat-val val-green" id="statHadir">—</div>
+        <div class="stat-lbl">Hadir</div>
       </div>
-      
-      <!-- Premium Punctuality Circular Progress Chart -->
-      <div class="stat-card-emp" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; margin: 0; height: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-glass); backdrop-filter: blur(10px); position: relative;">
-        <div class="radial-chart-container" style="position: relative; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px;">
-          <svg viewBox="0 0 100 100" style="transform: rotate(-90deg); width: 100%; height: 100%;">
-            <circle cx="50" cy="50" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="9" fill="transparent" />
-            <circle id="attendanceRing" cx="50" cy="50" r="40" stroke="var(--success)" stroke-width="9" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2" style="stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);" />
+      <div class="stat-card-emp">
+        <div class="stat-val val-dark" id="statTerlambat">—</div>
+        <div class="stat-lbl">Terlambat</div>
+      </div>
+      <div class="stat-card-emp">
+        <div class="stat-val val-orange" id="statCuti">—</div>
+        <div class="stat-lbl">Sisa Cuti</div>
+      </div>
+      <div class="stat-card-emp radial-stat">
+        <div class="radial-chart-container">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="9" fill="transparent"
+              class="radial-bg-ring" />
+            <circle id="attendanceRing" cx="50" cy="50" r="40" stroke="var(--success)" stroke-width="9"
+              fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"
+              style="stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);" />
           </svg>
-          <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-            <span id="attendanceRateVal" style="font-family: var(--font-head); font-size: 12px; font-weight: 800; color: var(--text);">100%</span>
-            <span style="font-size: 6px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 1px; letter-spacing: 0.1px;">On-Time</span>
+          <div class="radial-chart-text">
+            <span id="attendanceRateVal">100%</span>
+            <span class="radial-chart-lbl">On-Time</span>
           </div>
         </div>
       </div>
     </div>
-
     <!-- TODAY -->
     <div class="section-label">Kehadiran Hari Ini</div>
     <div class="today-card fade-in">
@@ -594,7 +102,9 @@
         <div class="time-item">
           <div class="time-lbl">Masuk</div>
           <div class="time-val" id="clockInTime">--:--</div>
-          <div><span class="status-chip chip-empty" id="statusIn">Belum absen</span></div>
+          <div><span class="status-chip chip-empty" id="statusIn"
+              onclick="if(this.textContent.trim() === 'Belum absen') window.location.href='attendance.html'">Belum
+              absen</span></div>
         </div>
         <div class="time-divider"></div>
         <div class="time-item">
@@ -609,7 +119,7 @@
     <div class="section-label">Menu Utama</div>
     <div class="menu-grid stagger fade-in">
       <a href="attendance.html" class="menu-card">
-        <div class="menu-icon icon-yellow"><i class="bi bi-geo-alt-fill"></i></div>
+        <div class="menu-icon icon-yellow"><i class="bi bi-person-check-fill"></i></div>
         <h4>Absensi</h4>
         <p>Clock In &amp; Clock Out harian</p>
       </a>
@@ -619,11 +129,11 @@
         <p>Cuti, Sakit &amp; Izin</p>
       </a>
       <a href="history.html" class="menu-card">
-        <div class="menu-icon icon-warn"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="menu-icon icon-blue"><i class="bi bi-clock-fill"></i></div>
         <h4>Riwayat</h4>
         <p>Histori kehadiran Anda</p>
       </a>
-      <a href="leave.html" class="menu-card">
+      <a href="leave.html?tab=history" class="menu-card">
         <div class="menu-icon icon-danger"><i class="bi bi-folder-fill"></i></div>
         <h4>Status Ajuan</h4>
         <p>Tracking pengajuan</p>
@@ -642,6 +152,9 @@
       </div>
     </div>
   </div>
+  </div>
+
+
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
@@ -649,52 +162,71 @@
       <i class="bi bi-house-fill"></i>Beranda
     </a>
     <a href="attendance.html" class="nav-item">
-      <i class="bi bi-geo-alt-fill"></i>Absensi
+      <i class="bi bi-person-check-fill"></i>Absensi
     </a>
     <a href="leave.html" class="nav-item">
-      <i class="bi bi-calendar-check"></i>Pengajuan
+      <i class="bi bi-calendar-check-fill"></i>Pengajuan
     </a>
     <a href="history.html" class="nav-item">
-      <i class="bi bi-clock-history"></i>Riwayat
+      <i class="bi bi-clock-fill"></i>Riwayat
     </a>
   </nav>
 
   <!-- EDIT PROFILE MODAL -->
-  <div class="modal" id="editProfileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-    <div class="modal-content" style="background:var(--bg-modal-gradient); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:400px; padding:24px; box-shadow:var(--shadow-neu-flat); position:relative; animation:slideUp var(--transition);">
-      <button onclick="closeEditProfileModal()" style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; font-size:14px; transition:all var(--transition);">
+  <div id="editProfileModal"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+    <div class="modal-content"
+      style="background:var(--bg-modal-gradient); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:400px; padding:24px; box-shadow:var(--shadow-neu-flat); position:relative; animation:slideUp var(--transition);">
+      <button onclick="closeEditProfileModal()"
+        style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; font-size:14px; transition:all var(--transition);">
         <i class="bi bi-x-lg"></i>
       </button>
-      <h3 style="font-family:var(--font-head); font-weight:800; font-size:18px; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+      <h3
+        style="font-family:var(--font-head); font-weight:800; font-size:18px; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
         <i class="bi bi-person-gear" style="color:var(--primary);"></i> Edit Profil Karyawan
       </h3>
-      
+
       <!-- Preview Avatar -->
       <div style="text-align:center; margin-bottom:20px;">
-        <div id="modalAvatarPreview" style="width:72px; height:72px; border-radius:50%; background:var(--bg-disabled); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; font-family:var(--font-head); margin:0 auto 10px; overflow:hidden;">U</div>
-        <label class="btn-ghost" style="display:inline-block; font-size:12px; padding:6px 14px; border-radius:50px; cursor:pointer; font-weight:600; border:1px solid var(--border); background:rgba(255,255,255,0.04); transition:all var(--transition);">
+        <div id="modalAvatarPreview"
+          style="width:72px; height:72px; border-radius:50%; background:var(--bg-disabled); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; font-family:var(--font-head); margin:0 auto 10px; overflow:hidden;">
+          U</div>
+        <label class="btn-ghost"
+          style="display:inline-block; font-size:12px; padding:6px 14px; border-radius:50px; cursor:pointer; font-weight:600; border:1px solid var(--border); background:rgba(255,255,255,0.04); transition:all var(--transition);">
           <i class="bi bi-image"></i> Pilih Foto Baru
-          <input type="file" id="editProfilePicFile" accept="image/*" onchange="previewEditProfilePic(this)" style="display:none;">
+          <input type="file" id="editProfilePicFile" accept="image/*" onchange="previewEditProfilePic(this)"
+            style="display:none;">
         </label>
       </div>
 
       <div class="form-group" style="margin-bottom:16px;">
-        <label class="form-label" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">Nama</label>
-        <input type="text" id="editProfileName" class="form-input" style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none;" readonly disabled>
-        <span style="font-size:10px; color:var(--text-muted); margin-top:4px; display:block;">Nama hanya dapat diubah oleh administrator</span>
+        <label class="form-label"
+          style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">Nama</label>
+        <input type="text" id="editProfileName" class="form-input"
+          style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none;"
+          readonly disabled>
+        <span style="font-size:10px; color:var(--text-muted); margin-top:4px; display:block;">Nama hanya dapat diubah
+          oleh administrator</span>
       </div>
 
       <div class="form-group" style="margin-bottom:20px;">
-        <label class="form-label" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">PIN Keamanan / Password (6 Digit)</label>
+        <label class="form-label"
+          style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">PIN
+          Keamanan / Password (6 Digit)</label>
         <div style="position:relative;">
-          <input type="password" id="editProfilePin" class="form-input" maxlength="6" pattern="[0-9]*" inputmode="numeric" style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none; padding-right:40px;" placeholder="Masukkan 6 digit PIN baru">
-          <button type="button" onclick="toggleEditProfilePinVis()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">
+          <input type="password" id="editProfilePin" class="form-input" maxlength="6" pattern="[0-9]*"
+            inputmode="numeric"
+            style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none; padding-right:40px;"
+            placeholder="Masukkan 6 digit PIN baru">
+          <button type="button" onclick="toggleEditProfilePinVis()"
+            style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">
             <i class="bi bi-eye-fill" id="editProfilePinEye"></i>
           </button>
         </div>
       </div>
 
-      <button class="btn-submit" id="btnSaveProfile" onclick="submitEditProfile()" style="width:100%; padding:14px; background:linear-gradient(135deg, var(--primary), var(--primary-dark)); border:none; border-radius:50px; color:#FFF; font-family:var(--font-head); font-weight:900; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(255,183,3,0.3);">
+      <button class="btn-submit" id="btnSaveProfile" onclick="submitEditProfile()"
+        style="width:100%; padding:14px; background:linear-gradient(135deg, var(--primary), var(--primary-dark)); border:none; border-radius:50px; color:#FFF; font-family:var(--font-head); font-weight:900; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(255,183,3,0.3);">
         <i class="bi bi-check-circle-fill"></i> SIMPAN PERUBAHAN
       </button>
     </div>

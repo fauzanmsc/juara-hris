@@ -17,189 +17,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    /* Admin-specific layout extensions */
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 28px;
-    }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .user-cell {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .user-cell-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .user-cell-name {
-      font-weight: 700;
-      color: var(--text);
-      font-size: 13px;
-    }
-
-    .user-cell-role {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .action-btns {
-      display: flex;
-      gap: 6px;
-    }
-
-    .config-group {
-      margin-bottom: 24px;
-    }
-
-    .config-group h4 {
-      font-family: var(--font-head);
-      font-weight: 700;
-      font-size: 15px;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--primary);
-    }
-
-    .holiday-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .holiday-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 12px 16px;
-    }
-
-    .holiday-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .holiday-desc {
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .holiday-date {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .del-btn {
-      color: var(--danger);
-      background: rgba(239, 68, 68, 0.1);
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-
-    .del-btn:hover {
-      background: rgba(239, 68, 68, 0.2);
-    }
-
-    .photo-preview {
-      width: 100%;
-      border-radius: var(--radius-md);
-      max-height: 400px;
-      object-fit: contain;
-      background: #000;
-    }
-
-    /* Avatar Upload */
-    .avatar-upload-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .avatar-preview-wrapper {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      position: relative;
-      border: 2px solid var(--primary);
-      padding: 2px;
-      background: var(--bg-card);
-    }
-
-    .avatar-preview-img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .avatar-edit-btn {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid var(--bg-card);
-      cursor: pointer;
-      font-size: 14px;
-      transition: all var(--transition);
-    }
-
-    .avatar-edit-btn:hover {
-      transform: scale(1.1);
-    }
-
-    @media (max-width: 1024px) {
-      .grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 640px) {
-
-      .grid-4,
-      .grid-2 {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
 
-<body>
+<body class="admin-layout">
 
   <div class="bg-animated">
     <div class="bg-orb bg-orb-1"></div>
@@ -253,7 +74,9 @@
         <div class="sidebar-user" onclick="logout()">
           <div class="avatar-wrapper" style="position: relative; width: 38px; height: 38px; flex-shrink: 0;">
             <div class="avatar avatar-sm" id="sidebarInitials" style="width: 100%; height: 100%;">HR</div>
-            <div class="status-indicator-dot online" id="connectionStatusDot" title="Online Jaringan" style="position: absolute; bottom: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--bg-surface); box-shadow: 0 0 8px rgba(0,0,0,0.3); z-index: 10; transition: all var(--transition);"></div>
+            <div class="status-indicator-dot online" id="connectionStatusDot" title="Online Jaringan"
+              style="position: absolute; bottom: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--bg-surface); box-shadow: 0 0 8px rgba(0,0,0,0.3); z-index: 10; transition: all var(--transition);">
+            </div>
           </div>
           <div class="sidebar-user-info">
             <h4 id="sidebarName">—</h4>
@@ -277,7 +100,8 @@
           </div>
         </div>
         <div class="topbar-actions" style="display:flex; align-items:center; gap:12px;">
-          <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+          <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+            style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
             <i class="bi bi-sun-fill"></i>
           </button>
           <div class="clock-chip">
@@ -342,12 +166,15 @@
             <div class="card p-0" style="margin:0;">
               <div class="card-header" style="padding: 24px 24px 0;">
                 <div>
-                  <h3 class="card-title"><i class="bi bi-activity text-primary" style="margin-right:8px"></i>Live Log Absensi</h3>
+                  <h3 class="card-title"><i class="bi bi-activity text-primary" style="margin-right:8px"></i>Live Log
+                    Absensi</h3>
                   <p class="card-subtitle">Aktivitas kehadiran hari ini</p>
                 </div>
-                <button class="btn btn-sm btn-primary" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                <button class="btn btn-sm btn-primary" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i>
+                  Refresh</button>
               </div>
-              <div class="table-wrap" style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
+              <div class="table-wrap"
+                style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
                 <table>
                   <thead>
                     <tr>
@@ -372,7 +199,8 @@
             <div style="display: flex; flex-direction: column; gap: 24px;">
               <!-- PIE CHART -->
               <div class="card" style="margin:0; padding:20px;">
-                <h3 class="card-title"><i class="bi bi-pie-chart-fill text-primary" style="margin-right:8px"></i>Statistik Kehadiran</h3>
+                <h3 class="card-title"><i class="bi bi-pie-chart-fill text-primary"
+                    style="margin-right:8px"></i>Statistik Kehadiran</h3>
                 <div style="height: 200px; width: 100%; margin-top: 16px; position: relative;">
                   <canvas id="dashChart"></canvas>
                 </div>
@@ -382,11 +210,13 @@
               <div class="card p-0" style="margin:0;">
                 <div class="card-header" style="padding: 20px 20px 0;">
                   <div>
-                    <h3 class="card-title text-danger"><i class="bi bi-person-x-fill" style="margin-right:8px"></i>Belum Absen</h3>
+                    <h3 class="card-title text-danger"><i class="bi bi-person-x-fill" style="margin-right:8px"></i>Belum
+                      Absen</h3>
                     <p class="card-subtitle">Karyawan belum Clock In hari ini</p>
                   </div>
                 </div>
-                <div class="table-wrap" style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 16px; max-height: 250px; overflow-y: auto;">
+                <div class="table-wrap"
+                  style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 16px; max-height: 250px; overflow-y: auto;">
                   <table>
                     <tbody id="belumAbsenBody">
                       <tr>
@@ -552,7 +382,9 @@
                   <label class="form-label">Radius Maksimal (meter)</label>
                   <input type="number" class="form-control" id="cfg_radius" value="50">
                 </div>
-                <div id="configMap" style="height: 220px; border-radius: var(--radius-md); margin-top: 15px; border: 1px solid var(--border); box-shadow: var(--shadow-neu-inset); z-index: 1;"></div>
+                <div id="configMap"
+                  style="height: 220px; border-radius: var(--radius-md); margin-top: 15px; border: 1px solid var(--border); box-shadow: var(--shadow-neu-inset); z-index: 1;">
+                </div>
               </div>
 
               <div class="config-group" style="border-top:1px solid var(--border); padding-top:20px">
@@ -697,67 +529,67 @@
   <script src="js/script.js"></script>
   <script>
     // Initialize Dashboard Chart and Belum Absen Table
-    window.renderChart = function(stats) {
+    window.renderChart = function (stats) {
       if (!document.getElementById('dashChart')) return;
       const ctx = document.getElementById('dashChart').getContext('2d');
       if (window.dashPie) window.dashPie.destroy();
       window.dashPie = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-              labels: ['Hadir', 'Terlambat', 'Cuti/Izin', 'Belum Absen'],
-              datasets: [{
-                  data: [stats.hadir || 0, stats.terlambat || 0, stats.cuti || 0, stats.absen || 0],
-                  backgroundColor: [
-                      'rgba(34, 197, 94, 0.85)',
-                      'rgba(239, 68, 68, 0.85)',
-                      'rgba(59, 130, 246, 0.85)',
-                      'rgba(148, 163, 184, 0.75)'
-                  ],
-                  hoverBackgroundColor: [
-                      'rgba(34, 197, 94, 1)',
-                      'rgba(239, 68, 68, 1)',
-                      'rgba(59, 130, 246, 1)',
-                      'rgba(148, 163, 184, 0.95)'
-                  ],
-                  borderColor: 'var(--bg-card)',
-                  borderWidth: 3,
-                  hoverOffset: 6
-              }]
+        type: 'doughnut',
+        data: {
+          labels: ['Hadir', 'Terlambat', 'Cuti/Izin', 'Belum Absen'],
+          datasets: [{
+            data: [stats.hadir || 0, stats.terlambat || 0, stats.cuti || 0, stats.absen || 0],
+            backgroundColor: [
+              'rgba(34, 197, 94, 0.85)',
+              'rgba(239, 68, 68, 0.85)',
+              'rgba(59, 130, 246, 0.85)',
+              'rgba(148, 163, 184, 0.75)'
+            ],
+            hoverBackgroundColor: [
+              'rgba(34, 197, 94, 1)',
+              'rgba(239, 68, 68, 1)',
+              'rgba(59, 130, 246, 1)',
+              'rgba(148, 163, 184, 0.95)'
+            ],
+            borderColor: 'var(--bg-card)',
+            borderWidth: 3,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: 'var(--text)',
+                padding: 16,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(26, 26, 26, 0.9)',
+              titleColor: '#FFFFFF',
+              bodyColor: '#E5E7EB',
+              borderColor: 'rgba(255, 183, 3, 0.15)',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 12,
+              displayColors: true,
+              usePointStyle: true,
+              boxWidth: 8,
+              boxHeight: 8
+            }
           },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { 
-                  legend: { 
-                      position: 'bottom', 
-                      labels: { 
-                          color: 'var(--text)', 
-                          padding: 16,
-                          usePointStyle: true,
-                          pointStyle: 'circle',
-                          font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' } 
-                      } 
-                  },
-                  tooltip: {
-                      backgroundColor: 'rgba(26, 26, 26, 0.9)',
-                      titleColor: '#FFFFFF',
-                      bodyColor: '#E5E7EB',
-                      borderColor: 'rgba(255, 183, 3, 0.15)',
-                      borderWidth: 1,
-                      padding: 10,
-                      cornerRadius: 12,
-                      displayColors: true,
-                      usePointStyle: true,
-                      boxWidth: 8,
-                      boxHeight: 8
-                  }
-              },
-              cutout: '72%'
-          }
+          cutout: '72%'
+        }
       });
     }
 
-    window.renderBelumAbsen = function(users) {
+    window.renderBelumAbsen = function (users) {
       const body = document.getElementById('belumAbsenBody');
       if (!body) return;
       if (!users || !users.length) {
@@ -768,10 +600,10 @@
         <tr>
           <td>
             <div class="user-cell">
-              ${u.profile_pic_url ? 
-                `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` : 
-                `<div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>`
-              }
+              ${u.profile_pic_url ?
+          `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
+          `<div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>`
+        }
               <div>
                 <strong>${u.name}</strong>
                 <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${u.position}</div>

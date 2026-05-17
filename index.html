@@ -18,577 +18,29 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #FFB703;
-      --primary-dark: #FB8500;
-      --bg-deep: #0D0D0D;
-      --bg-card: #222831;
-      --border: rgba(255, 183, 3, 0.12);
-      --text: #F5F5F5;
-      --text-muted: #8A8A9A;
-      --danger: #EF4444;
-      --success: #22C55E;
-      --font-head: 'Outfit', sans-serif;
-      --font-body: 'Plus Jakarta Sans', sans-serif;
-      --radius-md: 16px;
-      --radius-lg: 24px;
-      --transition: 0.22s cubic-bezier(.4, 0, .2, 1)
-    }
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
-
-    html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased
-    }
-
-    body {
-      font-family: var(--font-body);
-      background: var(--bg-deep);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      overflow: hidden
-    }
-
-    /* === BACKGROUND === */
-    .bg-wrap {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none
-    }
-
-    .bg-wrap::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 80% 70% at 15% 5%, rgba(255, 183, 3, 0.1) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 85% 90%, rgba(251, 133, 0, 0.07) 0%, transparent 60%)
-    }
-
-    .bg-orb-1 {
-      position: absolute;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      filter: blur(100px);
-      background: rgba(255, 183, 3, 0.08);
-      top: -200px;
-      left: -150px;
-      animation: orbFloat 9s ease-in-out infinite
-    }
-
-    .bg-orb-2 {
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      border-radius: 50%;
-      filter: blur(100px);
-      background: rgba(251, 133, 0, 0.06);
-      bottom: -150px;
-      right: -100px;
-      animation: orbFloat 11s ease-in-out infinite reverse
-    }
-
-    .bg-grid {
-      position: absolute;
-      inset: 0;
-      background-image: linear-gradient(rgba(255, 183, 3, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 183, 3, 0.025) 1px, transparent 1px);
-      background-size: 64px 64px
-    }
-
-    @keyframes orbFloat {
-
-      0%,
-      100% {
-        transform: translateY(0) scale(1)
-      }
-
-      50% {
-        transform: translateY(-40px) scale(1.06)
-      }
-    }
-
-    /* === LEFT PANEL === */
-    .left-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 60px 72px;
-      position: relative;
-      z-index: 1
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 72px
-    }
-
-    .brand-logo {
-      width: 46px;
-      height: 46px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-head);
-      font-weight: 900;
-      font-size: 18px;
-      color: #000;
-      box-shadow: 0 4px 20px rgba(255, 183, 3, 0.4);
-      animation: logoPulse 3s ease-in-out infinite
-    }
-
-    @keyframes logoPulse {
-
-      0%,
-      100% {
-        box-shadow: 0 4px 20px rgba(255, 183, 3, 0.4)
-      }
-
-      50% {
-        box-shadow: 0 8px 40px rgba(255, 183, 3, 0.7)
-      }
-    }
-
-    .brand-name {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 20px;
-      letter-spacing: .4px
-    }
-
-    .brand-name span {
-      color: var(--primary)
-    }
-
-    .hero h1 {
-      font-family: var(--font-head);
-      font-weight: 900;
-      font-size: clamp(36px, 4vw, 58px);
-      line-height: 1.08;
-      margin-bottom: 20px
-    }
-
-    .hero h1 .grad {
-      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text
-    }
-
-    .hero p {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.75;
-      max-width: 400px;
-      margin-bottom: 48px
-    }
-
-    .feature-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px
-    }
-
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 13px;
-      color: var(--text-muted)
-    }
-
-    .feature-dot {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background: rgba(255, 183, 3, 0.1);
-      border: 1px solid rgba(255, 183, 3, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary);
-      font-size: 13px;
-      flex-shrink: 0
-    }
-
-    /* === RIGHT PANEL === */
-    .right-panel {
-      width: 460px;
-      min-height: 100vh;
-      background: rgba(26, 26, 26, 0.95);
-      backdrop-filter: blur(20px);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 56px 44px;
-      position: relative;
-      z-index: 1
-    }
-
-    .right-panel::before {
-      content: '';
-      position: absolute;
-      top: -1px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-dark))
-    }
-
-    .form-header {
-      margin-bottom: 36px
-    }
-
-    .form-header h2 {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 26px;
-      margin-bottom: 6px
-    }
-
-    .form-header p {
-      color: var(--text-muted);
-      font-size: 13px
-    }
-
-    /* ALERT */
-    .alert-box {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      padding: 13px 16px;
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 18px
-    }
-
-    .alert-box.error {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-      color: var(--danger);
-      display: flex
-    }
-
-    .alert-box.success {
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.25);
-      color: var(--success);
-      display: flex
-    }
-
-    /* FORM GROUP */
-    .form-group {
-      margin-bottom: 18px
-    }
-
-    .form-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .7px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 8px
-    }
-
-    .input-wrap {
-      position: relative
-    }
-
-    .input-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--primary);
-      font-size: 17px;
-      pointer-events: none;
-      z-index: 5
-    }
-
-    .input-wrap input:-webkit-autofill,
-    .input-wrap input:-webkit-autofill:hover, 
-    .input-wrap input:-webkit-autofill:focus {
-      -webkit-text-fill-color: var(--text) !important;
-      -webkit-box-shadow: 0 0 0px 1000px rgba(34, 40, 49, 0.9) inset !important;
-      transition: background-color 5000s ease-in-out 0s !important;
-    }
-
-    .input-wrap input {
-      width: 100%;
-      background: rgba(34, 40, 49, 0.7);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px 44px;
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 14px;
-      outline: none;
-      transition: all var(--transition);
-      backdrop-filter: blur(8px)
-    }
-
-    .input-wrap input::placeholder {
-      color: var(--text-muted)
-    }
-
-    .input-wrap input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.15);
-      background: rgba(34, 40, 49, 0.9)
-    }
-
-    .toggle-pass {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 18px;
-      cursor: pointer;
-      transition: color var(--transition);
-      padding: 4px
-    }
-
-    .toggle-pass:hover {
-      color: var(--primary)
-    }
-
-    .input-wrap input[type=password] {
-      padding-right: 48px
-    }
-
-    /* BUTTON */
-    .btn-login {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      border: none;
-      border-radius: 50px;
-      color: #000;
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 15px;
-      letter-spacing: .5px;
-      cursor: pointer;
-      transition: all var(--transition);
-      margin-top: 6px;
-      box-shadow: 0 4px 24px rgba(255, 183, 3, 0.35)
-    }
-
-    .btn-login:hover {
-      box-shadow: 0 8px 36px rgba(255, 183, 3, 0.55);
-      transform: translateY(-2px)
-    }
-
-    .btn-login:active {
-      transform: translateY(0)
-    }
-
-    .btn-login:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important
-    }
-
-    /* LOADING DOTS */
-    .loading-dots span {
-      display: inline-block;
-      width: 7px;
-      height: 7px;
-      background: #000;
-      border-radius: 50%;
-      margin: 0 3px;
-      animation: ldots 1.2s infinite ease-in-out
-    }
-
-    .loading-dots span:nth-child(2) {
-      animation-delay: .2s
-    }
-
-    .loading-dots span:nth-child(3) {
-      animation-delay: .4s
-    }
-
-    @keyframes ldots {
-
-      0%,
-      80%,
-      100% {
-        transform: scale(.6);
-        opacity: .4
-      }
-
-      40% {
-        transform: scale(1);
-        opacity: 1
-      }
-    }
-
-    /* FOOTER */
-    .form-footer {
-      margin-top: 36px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-      font-size: 11px;
-      color: var(--text-muted);
-      text-align: center;
-      line-height: 1.8
-    }
-
-    /* FADE IN */
-    .right-panel {
-      animation: fadeIn .5s ease
-    }
-
-    .left-panel .brand {
-      animation: slideUp .5s ease .1s both
-    }
-
-    .left-panel .hero {
-      animation: slideUp .5s ease .2s both
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0
-      }
-
-      to {
-        opacity: 1
-      }
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0)
-      }
-    }
-
-    .mobile-brand {
-      display: none !important;
-    }
-
-    @media(max-width:900px) {
-      .left-panel {
-        display: none
-      }
-
-      .right-panel {
-        width: 100%;
-        border-left: none;
-        min-height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 40px 24px;
-      }
-
-      .mobile-brand {
-        display: flex !important;
-        justify-content: center;
-        margin-bottom: 32px !important;
-      }
-
-      .form-group {
-        width: 100%;
-        max-width: 380px;
-        text-align: left;
-      }
-
-      .form-header {
-        margin-bottom: 24px;
-      }
-
-      .btn-login {
-        max-width: 380px;
-      }
-
-      .alert-box {
-        width: 100%;
-        max-width: 380px;
-      }
-    }
-
-    /* === CENTERED GLASS MODAL POPUP === */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      animation: fadeIn 0.25s ease;
-    }
-
-    .modal {
-      background: linear-gradient(135deg, rgba(34, 40, 49, 0.95) 0%, rgba(20, 24, 30, 0.98) 100%);
-      border: 1px solid rgba(255, 183, 3, 0.25);
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
-      border-left: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 183, 3, 0.15);
-      max-width: 400px;
-      width: 100%;
-      padding: 32px 24px;
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      animation: slideUp 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      border: none;
-      color: #000 !important;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all var(--transition);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 24px;
-      font-size: 14px;
-    }
-    
-    .btn-primary:hover {
-      box-shadow: 0 0 20px rgba(255, 183, 3, 0.4);
-      transform: translateY(-2px);
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
+<body class="login-page">
+
+  <!-- Premium Page Loader -->
+  <div id="pageLoader"
+    style="position: fixed; inset: 0; background: var(--bg-deep); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s ease; backdrop-filter: blur(10px);">
+    <div style="text-align: center;">
+      <div class="brand" style="margin-bottom: 24px; justify-content: center;">
+        <div class="brand-logo" style="width: 60px; height: 60px; font-size: 24px; border-radius: 16px; background: var(--primary-grad); color: #000; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: var(--font-head);">JG</div>
+        <div class="brand-name" style="font-size: 22px; font-family: var(--font-head); font-weight: 800; color: var(--text); margin-left: 10px;">JEF <span style="color: var(--primary);">GROUP</span></div>
+      </div>
+      <div style="width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+      <p style="font-family: var(--font-body); font-size: 13px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;">SINKRONISASI SISTEM...</p>
+    </div>
+  </div>
+
+  <!-- Floating Theme Toggle for Login Page -->
+  <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+    style="position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; transition: all var(--transition); cursor: pointer; z-index: 100;">
+    <i class="bi bi-sun-fill"></i>
+  </button>
 
   <div class="bg-wrap">
     <div class="bg-orb-1"></div>
@@ -598,7 +50,7 @@
 
   <!-- LEFT PANEL -->
   <div class="left-panel">
-    <div class="brand">
+    <div class="brand" onclick="window.location.reload()" style="cursor: pointer;">
       <div class="brand-logo">JG</div>
       <div class="brand-name">JEF <span>GROUP</span></div>
     </div>
@@ -625,7 +77,7 @@
   <!-- RIGHT PANEL (LOGIN FORM) -->
   <div class="right-panel">
     <!-- MOBILE BRAND LOGO (Shown only on Mobile) -->
-    <div class="brand mobile-brand">
+    <div class="brand mobile-brand" onclick="window.location.reload()" style="cursor: pointer;">
       <div class="brand-logo">JG</div>
       <div class="brand-name">JEF <span>GROUP</span></div>
     </div>
@@ -665,11 +117,22 @@
     </button>
 
     <div class="form-footer">
-      JEF GROUP HRIS v2.0 &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; Powered by Google Workspace
+      JEF GROUP HRIS v2.0 &nbsp;·&nbsp; © 2026 <span class="powered-by"><span class="footer-dot">&nbsp;·&nbsp;</span>Powered by Google Workspace</span>
     </div>
   </div>
 
   <script src="js/script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('pageLoader');
+      if (loader) {
+        setTimeout(() => {
+          loader.style.opacity = '0';
+          loader.style.visibility = 'hidden';
+        }, 1200);
+      }
+    });
+  </script>
 </body>
 
 </html>

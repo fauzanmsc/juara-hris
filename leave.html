@@ -13,475 +13,9 @@
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    body {
-      max-width: 480px;
-      margin: 0 auto;
-      background: var(--bg-deep)
-    }
-
-    .header {
-      background: var(--bg-surface);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50
-    }
-
-    .back-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: var(--radius-sm);
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      font-size: 20px;
-      text-decoration: none;
-      flex-shrink: 0;
-      transition: all var(--transition)
-    }
-
-    .back-btn:hover {
-      border-color: var(--primary);
-      color: var(--primary)
-    }
-
-    .header-info h2 {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 17px
-    }
-
-    .header-info p {
-      font-size: 11px;
-      color: var(--text-muted)
-    }
-
-    /* TABS */
-    .tabs {
-      display: flex;
-      background: var(--bg-surface);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 20px
-    }
-
-    .tab-item {
-      flex: 1;
-      padding: 14px 8px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-muted);
-      cursor: pointer;
-      border-bottom: 2.5px solid transparent;
-      transition: all var(--transition)
-    }
-
-    .tab-item.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary)
-    }
-
-    .content {
-      padding: 18px;
-      padding-bottom: 96px
-    }
-
-    .form-section {
-      display: none
-    }
-
-    .form-section.active {
-      display: block;
-      animation: fadeIn .3s ease
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0
-      }
-
-      to {
-        opacity: 1
-      }
-    }
-
-    /* INFO NOTE */
-    .info-note {
-      background: rgba(255, 183, 3, 0.06);
-      border: 1px solid rgba(255, 183, 3, 0.15);
-      border-radius: var(--radius-md);
-      padding: 13px 16px;
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 20px;
-      display: flex;
-      gap: 10px;
-      align-items: flex-start
-    }
-
-    .info-note i {
-      color: var(--primary);
-      font-size: 16px;
-      flex-shrink: 0;
-      margin-top: 1px
-    }
-
-    /* TYPE CARDS */
-    .type-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 0
-    }
-
-    .type-card {
-      background: var(--bg-glass);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 16px 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: all var(--transition);
-      backdrop-filter: blur(8px)
-    }
-
-    .type-card:hover {
-      border-color: rgba(255, 183, 3, 0.4)
-    }
-
-    .type-card.sel-cuti {
-      border-color: var(--success);
-      background: rgba(34, 197, 94, 0.08);
-      box-shadow: var(--shadow-neu-flat);
-    }
-
-    .type-card.sel-sakit {
-      border-color: var(--danger);
-      background: rgba(239, 68, 68, 0.06);
-      box-shadow: var(--shadow-neu-flat);
-    }
-
-    .type-card.sel-izin {
-      border-color: var(--info);
-      background: rgba(59, 130, 246, 0.06);
-      box-shadow: var(--shadow-neu-flat);
-    }
-
-    .type-icon-wrap {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      transition: all var(--transition);
-    }
-
-    .type-name {
-      font-size: 12px;
-      font-weight: 700;
-      font-family: var(--font-head)
-    }
-
-    .type-desc {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 2px
-    }
-
-    /* FORM */
-    .form-group {
-      margin-bottom: 18px
-    }
-
-    .form-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .6px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 8px
-    }
-
-    .form-input {
-      width: 100%;
-      background: var(--bg-input);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 13px 16px;
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 14px;
-      outline: none;
-      transition: all var(--transition);
-      backdrop-filter: blur(8px)
-    }
-
-    .form-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.12);
-      background: var(--bg-input-focus)
-    }
-
-    .form-input::placeholder {
-      color: var(--text-muted)
-    }
-
-    select.form-input {
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8A9A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 38px
-    }
-
-    select.form-input option {
-      background: var(--bg-card)
-    }
-
-    textarea.form-input {
-      resize: none;
-      min-height: 90px;
-      line-height: 1.6
-    }
-
-    /* DATE RANGE INFO */
-    .date-range-info {
-      display: none;
-      background: rgba(255, 183, 3, 0.07);
-      border: 1px solid rgba(255, 183, 3, 0.2);
-      border-radius: var(--radius-sm);
-      padding: 11px 14px;
-      font-size: 12px;
-      color: var(--primary);
-      font-weight: 600;
-      margin-top: 8px
-    }
-
-    .date-range-info.show {
-      display: block
-    }
-
-    /* UPLOAD */
-    .upload-area {
-      border: 2px dashed rgba(255, 183, 3, 0.2);
-      border-radius: var(--radius-md);
-      padding: 28px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all var(--transition);
-      position: relative
-    }
-
-    .upload-area:hover {
-      border-color: rgba(255, 183, 3, 0.5);
-      background: rgba(255, 183, 3, 0.03)
-    }
-
-    .upload-area input {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer
-    }
-
-    .upload-area i {
-      font-size: 32px;
-      color: var(--primary);
-      margin-bottom: 8px;
-      display: block
-    }
-
-    .upload-text {
-      font-size: 13px;
-      color: var(--text-muted)
-    }
-
-    .upload-text span {
-      color: var(--primary);
-      font-weight: 700
-    }
-
-    .upload-preview {
-      margin-top: 12px;
-      display: none;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-size: 12px;
-      align-items: center;
-      gap: 10px
-    }
-
-    .upload-preview.show {
-      display: flex
-    }
-
-    .upload-preview img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 8px
-    }
-
-    .del-upload {
-      margin-left: auto;
-      cursor: pointer;
-      color: var(--danger);
-      font-size: 18px;
-      flex-shrink: 0
-    }
-
-    /* SUBMIT */
-    .btn-submit {
-      width: 100%;
-      padding: 17px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      border: none;
-      border-radius: 50px;
-      color: #000;
-      font-family: var(--font-head);
-      font-weight: 900;
-      font-size: 15px;
-      letter-spacing: .5px;
-      cursor: pointer;
-      transition: all var(--transition);
-      margin-top: 6px;
-      box-shadow: 0 4px 24px rgba(255, 183, 3, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px
-    }
-
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 36px rgba(255, 183, 3, 0.5)
-    }
-
-    .btn-submit:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-      transform: none !important
-    }
-
-    /* HISTORY */
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px
-    }
-
-    .history-card {
-      background: var(--bg-glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      backdrop-filter: blur(8px);
-      transition: all var(--transition)
-    }
-
-    .history-card:hover {
-      border-color: var(--border-hover)
-    }
-
-    .history-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px
-    }
-
-    .history-type {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px
-    }
-
-    .history-dates {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px
-    }
-
-    .history-reason {
-      font-size: 13px;
-      color: var(--text)
-    }
-
-    .section-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: rgba(255, 183, 3, 0.5);
-      margin-bottom: 14px
-    }
-
-    /* TOAST */
-    .toast-lv {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-90px);
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px 20px;
-      font-size: 13px;
-      font-weight: 600;
-      z-index: 999;
-      transition: transform .3s;
-      max-width: calc(100% - 32px);
-      text-align: center;
-      display: flex;
-      align-items: center;
-      gap: 8px
-    }
-
-    .toast-lv.show {
-      transform: translateX(-50%) translateY(0)
-    }
-
-    .toast-lv.success {
-      border-color: rgba(34, 197, 94, .4);
-      color: var(--success)
-    }
-
-    .toast-lv.error {
-      border-color: rgba(239, 68, 68, .4);
-      color: var(--danger)
-    }
-
-    .toast-lv.warn {
-      border-color: rgba(245, 158, 11, .4);
-      color: var(--warn)
-    }
-  </style>
 </head>
 
-<body>
+<body class="leave-page">
 
   <div class="header">
     <div style="display:flex; align-items:center; gap:14px;">
@@ -491,9 +25,13 @@
         <p>Cuti, Sakit &amp; Izin</p>
       </div>
     </div>
-    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
-      <i class="bi bi-sun-fill"></i>
-    </button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+        style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+        <i class="bi bi-sun-fill"></i>
+      </button>
+      <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
+    </div>
   </div>
 
   <div class="tabs">
@@ -516,22 +54,25 @@
         <label class="form-label">Jenis Pengajuan</label>
         <div class="type-grid">
           <div class="type-card sel-cuti" id="type-Cuti" onclick="selectType('Cuti')">
-            <div class="type-icon-wrap" style="background: rgba(34, 197, 94, 0.08); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(34, 197, 94, 0.15);">
+            <div class="type-icon-wrap"
+              style="background: rgba(34, 197, 94, 0.08); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(34, 197, 94, 0.15);">
               <i class="bi bi-calendar-check-fill" style="color: #22C55E; font-size: 20px;"></i>
             </div>
             <div class="type-name">Cuti</div>
             <div class="type-desc">Cuti tahunan</div>
           </div>
           <div class="type-card" id="type-Sakit" onclick="selectType('Sakit')">
-            <div class="type-icon-wrap" style="background: rgba(239, 68, 68, 0.06); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(239, 68, 68, 0.12);">
+            <div class="type-icon-wrap"
+              style="background: rgba(239, 68, 68, 0.06); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(239, 68, 68, 0.12);">
               <i class="bi bi-heart-pulse-fill" style="color: #EF4444; font-size: 20px;"></i>
             </div>
             <div class="type-name">Sakit</div>
             <div class="type-desc">Butuh dokumen</div>
           </div>
           <div class="type-card" id="type-Izin" onclick="selectType('Izin')">
-            <div class="type-icon-wrap" style="background: rgba(59, 130, 246, 0.06); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(59, 130, 246, 0.12);">
-              <i class="bi bi-clipboard2-text-fill" style="color: #3B82F6; font-size: 20px;"></i>
+            <div class="type-icon-wrap"
+              style="background: rgba(59, 130, 246, 0.06); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(59, 130, 246, 0.12);">
+              <i class="bi bi-file-earmark-text-fill" style="color: #3B82F6; font-size: 20px;"></i>
             </div>
             <div class="type-name">Izin</div>
             <div class="type-desc">Keperluan lain</div>
@@ -595,13 +136,13 @@
       <i class="bi bi-house-fill"></i>Beranda
     </a>
     <a href="attendance.html" class="nav-item">
-      <i class="bi bi-geo-alt-fill"></i>Absensi
+      <i class="bi bi-person-check-fill"></i>Absensi
     </a>
     <a href="leave.html" class="nav-item active">
-      <i class="bi bi-calendar-check"></i>Pengajuan
+      <i class="bi bi-calendar-check-fill"></i>Pengajuan
     </a>
     <a href="history.html" class="nav-item">
-      <i class="bi bi-clock-history"></i>Riwayat
+      <i class="bi bi-clock-fill"></i>Riwayat
     </a>
   </nav>
 

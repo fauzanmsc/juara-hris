@@ -58,6 +58,7 @@ function doPost(e) {
       case 'clockOut':       result = clockOut(body); break;
       case 'submitLeave':    result = submitLeave(body); break;
       case 'decideLeave':    result = decideLeave(body); break;
+      case 'deleteLeave':    result = deleteLeaveRequest(body); break;
       case 'addUser':        result = addUser(body); break;
       case 'updateUser':     result = updateUser(body); break;
       case 'updateUserStatus': result = updateUserStatus(body); break;
@@ -512,6 +513,33 @@ function getLeaveHistory(user_id) {
   return { success: true, requests: filtered };
 }
 
+function deleteLeaveRequest(body) {
+  const { request_id, user_role, user_id } = body;
+  const sheet = getSheet(SHEET.LEAVE);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim());
+  const idIdx = headers.indexOf('request_id');
+  const statusIdx = headers.indexOf('status');
+  const userIdIdx = headers.indexOf('user_id');
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idIdx]) === String(request_id)) {
+      const currentStatus = String(data[i][statusIdx]).toLowerCase();
+      const ownerId = String(data[i][userIdIdx]);
+
+      // If user is Admin, they can ALWAYS delete
+      // If user is Employee, they can ONLY delete if status is 'pending' AND they are the owner
+      if (user_role === 'Admin' || (user_role === 'Employee' && ownerId === user_id && currentStatus === 'pending')) {
+        sheet.deleteRow(i + 1);
+        return { success: true, message: 'Pengajuan cuti berhasil dibatalkan/dihapus' };
+      } else {
+        return { success: false, message: 'Anda tidak memiliki wewenang untuk menghapus pengajuan ini' };
+      }
+    }
+  }
+  return { success: false, message: 'Pengajuan tidak ditemukan' };
+}
+
 
 // ============ USERS CRUD ============
 
@@ -675,6 +703,15 @@ function getEmployeeDashboard(params) {
     reason: approvedLeaves[approvedLeaves.length - 1].reason || ''
   } : null;
 
+  // Get latest rejected leave for notifications
+  const rejectedLeaves = leaves.filter(l => l.user_id === user_id && l.status === 'Rejected');
+  const latestRejected = rejectedLeaves.length > 0 ? {
+    leave_type: rejectedLeaves[rejectedLeaves.length - 1].leave_type,
+    start_date: formatDate(rejectedLeaves[rejectedLeaves.length - 1].start_date),
+    end_date: formatDate(rejectedLeaves[rejectedLeaves.length - 1].end_date),
+    reason: rejectedLeaves[rejectedLeaves.length - 1].reason || ''
+  } : null;
+
   return {
     success: true,
     profile_pic_url: user ? (user.profile_pic_url || '') : '',
@@ -686,7 +723,8 @@ function getEmployeeDashboard(params) {
     activities: recentAtts,
     today_holiday: todayHoliday ? todayHoliday.description : null,
     today_leave: todayLeave ? todayLeave.leave_type + (todayLeave.reason ? ' - ' + todayLeave.reason : '') : null,
-    latest_approved_leave: latestApproved
+    latest_approved_leave: latestApproved,
+    latest_rejected_leave: latestRejected
   };
 }
 
