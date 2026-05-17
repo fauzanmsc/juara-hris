@@ -322,9 +322,9 @@
     }
 
     .chip-late {
-      background: rgba(245, 158, 11, 0.12);
-      color: var(--warn);
-      border: 1px solid rgba(245, 158, 11, 0.25)
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.25)
     }
 
     /* MENU GRID */
@@ -571,18 +571,34 @@
 
     <!-- STATS -->
     <div class="section-label">Ringkasan Bulan Ini</div>
-    <div class="stats-grid stagger fade-in">
-      <div class="stat-card-emp">
-        <div class="stat-val val-green" id="statHadir">—</div>
-        <div class="stat-lbl">Hadir</div>
+    <div class="stats-grid-wrapper" style="display: grid; grid-template-columns: 2.2fr 1.1fr; gap: 12px; margin-bottom: 20px;">
+      <div class="stats-grid stagger fade-in" style="margin: 0; width: 100%; display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr);">
+        <div class="stat-card-emp" style="padding: 12px 6px; margin: 0; text-align: center;">
+          <div class="stat-val val-green" id="statHadir" style="font-size: 16px;">—</div>
+          <div class="stat-lbl" style="font-size: 10px; margin-top: 2px;">Hadir</div>
+        </div>
+        <div class="stat-card-emp" style="padding: 12px 6px; margin: 0; text-align: center;">
+          <div class="stat-val val-danger" id="statTerlambat" style="font-size: 16px;">—</div>
+          <div class="stat-lbl" style="font-size: 10px; margin-top: 2px;">Terlambat</div>
+        </div>
+        <div class="stat-card-emp" style="padding: 12px 6px; margin: 0; text-align: center;">
+          <div class="stat-val val-primary" id="statCuti" style="font-size: 16px;">—</div>
+          <div class="stat-lbl" style="font-size: 10px; margin-top: 2px;">Sisa Cuti</div>
+        </div>
       </div>
-      <div class="stat-card-emp">
-        <div class="stat-val val-warn" id="statTerlambat">—</div>
-        <div class="stat-lbl">Terlambat</div>
-      </div>
-      <div class="stat-card-emp">
-        <div class="stat-val val-primary" id="statCuti">—</div>
-        <div class="stat-lbl">Sisa Cuti</div>
+      
+      <!-- Premium Punctuality Circular Progress Chart -->
+      <div class="stat-card-emp" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; margin: 0; height: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-glass); backdrop-filter: blur(10px); position: relative;">
+        <div class="radial-chart-container" style="position: relative; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px;">
+          <svg viewBox="0 0 100 100" style="transform: rotate(-90deg); width: 100%; height: 100%;">
+            <circle cx="50" cy="50" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="9" fill="transparent" />
+            <circle id="attendanceRing" cx="50" cy="50" r="40" stroke="var(--success)" stroke-width="9" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2" style="stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);" />
+          </svg>
+          <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+            <span id="attendanceRateVal" style="font-family: var(--font-head); font-size: 12px; font-weight: 800; color: var(--text);">100%</span>
+            <span style="font-size: 6px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 1px; letter-spacing: 0.1px;">On-Time</span>
+          </div>
+        </div>
       </div>
     </div>
 

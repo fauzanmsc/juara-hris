@@ -466,9 +466,9 @@
     }
 
     .btn-clock.clock-out {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: #000;
-      box-shadow: 0 6px 28px rgba(255, 183, 3, .3)
+      background: linear-gradient(135deg, var(--danger), #be123c);
+      color: #fff;
+      box-shadow: 0 6px 28px rgba(239, 68, 68, .3)
     }
 
     .btn-clock:not(:disabled):hover {
@@ -477,14 +477,16 @@
     }
 
     .btn-clock.clock-out:not(:disabled):hover {
-      box-shadow: 0 12px 36px rgba(255, 183, 3, .5)
+      box-shadow: 0 12px 36px rgba(239, 68, 68, .5)
     }
 
     .btn-clock:disabled {
-      background: rgba(255, 255, 255, .06) !important;
+      background: var(--bg-disabled) !important;
+      border: 1px solid var(--border) !important;
       color: var(--text-muted) !important;
       cursor: not-allowed !important;
-      box-shadow: none !important
+      box-shadow: none !important;
+      opacity: 0.6;
     }
 
     /* TOAST */

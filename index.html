@@ -314,9 +314,18 @@
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--text-muted);
+      color: var(--primary);
       font-size: 17px;
-      pointer-events: none
+      pointer-events: none;
+      z-index: 5
+    }
+
+    .input-wrap input:-webkit-autofill,
+    .input-wrap input:-webkit-autofill:hover, 
+    .input-wrap input:-webkit-autofill:focus {
+      -webkit-text-fill-color: var(--text) !important;
+      -webkit-box-shadow: 0 0 0px 1000px rgba(34, 40, 49, 0.9) inset !important;
+      transition: background-color 5000s ease-in-out 0s !important;
     }
 
     .input-wrap input {
@@ -479,6 +488,10 @@
       }
     }
 
+    .mobile-brand {
+      display: none !important;
+    }
+
     @media(max-width:900px) {
       .left-panel {
         display: none
@@ -487,13 +500,38 @@
       .right-panel {
         width: 100%;
         border-left: none;
-        min-height: 100dvh
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px 24px;
       }
-    }
 
-    @media(max-width:480px) {
-      .right-panel {
-        padding: 40px 24px
+      .mobile-brand {
+        display: flex !important;
+        justify-content: center;
+        margin-bottom: 32px !important;
+      }
+
+      .form-group {
+        width: 100%;
+        max-width: 380px;
+        text-align: left;
+      }
+
+      .form-header {
+        margin-bottom: 24px;
+      }
+
+      .btn-login {
+        max-width: 380px;
+      }
+
+      .alert-box {
+        width: 100%;
+        max-width: 380px;
       }
     }
 
@@ -584,6 +622,12 @@
 
   <!-- RIGHT PANEL (LOGIN FORM) -->
   <div class="right-panel">
+    <!-- MOBILE BRAND LOGO (Shown only on Mobile) -->
+    <div class="brand mobile-brand">
+      <div class="brand-logo">JG</div>
+      <div class="brand-name">JEF <span>GROUP</span></div>
+    </div>
+    
     <div class="form-header">
       <h2>Selamat Datang 👋</h2>
       <p>Masuk dengan email &amp; PIN karyawan Anda</p>

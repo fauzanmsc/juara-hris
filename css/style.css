@@ -13,6 +13,7 @@
   --border-hover: rgba(255, 183, 3, 0.35);
   --text: #F5F5F5;
   --text-muted: #8A8A9A;
+  --bg-disabled: rgba(255, 255, 255, 0.05);
   --success: #22C55E;
   --success-soft: rgba(34, 197, 94, 0.12);
   --danger: #EF4444;
@@ -38,6 +39,8 @@
 }
 
 html[data-theme="light"] {
+  --primary: #D97706;
+  --primary-dark: #B45309;
   --bg-deep: #F3F4F6;
   --bg-surface: #FFFFFF;
   --bg-card: #FFFFFF;
@@ -46,8 +49,9 @@ html[data-theme="light"] {
   --border-hover: rgba(251, 133, 0, 0.4);
   --text: #1F2937;
   --text-muted: #4B5563;
+  --bg-disabled: rgba(0, 0, 0, 0.06);
   --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 8px 32px rgba(255, 183, 3, 0.1);
+  --shadow-glow: 0 8px 32px rgba(217, 119, 6, 0.1);
   
   --bg-card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(243, 244, 246, 0.98) 100%);
   --bg-modal-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 244, 246, 0.98) 100%);
@@ -707,8 +711,27 @@ select.form-control option {
 /* === TABLE === */
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-md);
   border: 1px solid var(--border)
+}
+
+.table-wrap::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
 }
 
 table {
@@ -811,6 +834,13 @@ tbody tr:hover td {
   color: var(--text-muted);
   font-weight: 500;
   margin-top: 3px
+}
+
+.dashboard-layout-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
 }
 
 /* === SIDEBAR (Admin) === */
@@ -1369,7 +1399,12 @@ tbody tr:hover td {
 /* === RESPONSIVE === */
 @media(max-width:768px) {
   .sidebar {
-    transform: translateX(-100%)
+    transform: translateX(-100%);
+    height: 100vh;
+    height: 100dvh;
+    position: fixed;
+    top: 0;
+    bottom: 0;
   }
 
   .sidebar.open {
@@ -1377,11 +1412,15 @@ tbody tr:hover td {
   }
 
   .admin-main {
-    margin-left: 0
+    margin-left: 0;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .admin-content {
-    padding: 16px
+    padding: 16px;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .admin-topbar {
@@ -1394,6 +1433,10 @@ tbody tr:hover td {
 
   .filter-row .form-control {
     max-width: 100%
+  }
+
+  .dashboard-layout-grid {
+    grid-template-columns: 1fr !important;
   }
 
   #toast-container {
@@ -1490,4 +1533,47 @@ tbody tr:hover td {
 
 .pb-safe {
   padding-bottom: 32px
+}
+
+/* STATUS INDICATOR DOT */
+.status-indicator-dot.online {
+  background-color: var(--success);
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  animation: pulseGreen 2s infinite;
+}
+
+.status-indicator-dot.offline {
+  background-color: var(--danger);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  animation: pulseRed 2s infinite;
+}
+
+@keyframes pulseGreen {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes pulseRed {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }

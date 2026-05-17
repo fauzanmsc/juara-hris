@@ -120,8 +120,11 @@ window.formatActivityDate = function(val) {
     if (!val) return 'Hari ini';
     if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const [y, m, d] = val.split('-');
+        const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        return `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]}`;
+        const dayName = days[dateObj.getDay()];
+        return `${dayName}, ${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]}`;
     }
     if (typeof val === 'string' && (val.includes('Sat D') || val.includes('1899'))) {
         return 'Hari ini';
@@ -256,6 +259,22 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         // Init avatar
         updateAdminAvatar(userData?.profile_pic_url);
+
+        // Online/Offline Network Status indicator for avatar dot
+        window.updateConnectionStatus = function() {
+            const dot = document.getElementById('connectionStatusDot');
+            if (!dot) return;
+            if (navigator.onLine) {
+                dot.className = 'status-indicator-dot online';
+                dot.title = 'Online Jaringan';
+            } else {
+                dot.className = 'status-indicator-dot offline';
+                dot.title = 'Offline Jaringan';
+            }
+        };
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
 
         // UI Functions
         window.showToast = function (msg, type = 'success') {
@@ -1199,9 +1218,21 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                         sessionStorage.setItem('hris_user', JSON.stringify(userData));
                     }
                     
-                    document.getElementById('statHadir').textContent = data.stats.hadir ?? 0;
-                    document.getElementById('statTerlambat').textContent = data.stats.terlambat ?? 0;
+                    const h = data.stats.hadir ?? 0;
+                    const t = data.stats.terlambat ?? 0;
+                    document.getElementById('statHadir').textContent = h;
+                    document.getElementById('statTerlambat').textContent = t;
                     document.getElementById('statCuti').textContent = data.stats.sisa_cuti ?? 12;
+
+                    const tot = h + t;
+                    const pRate = tot > 0 ? Math.round((h / tot) * 100) : 100;
+                    const ring = document.getElementById('attendanceRing');
+                    const valText = document.getElementById('attendanceRateVal');
+                    if (ring && valText) {
+                        valText.textContent = pRate + '%';
+                        const offset = 251.2 - (251.2 * pRate) / 100;
+                        ring.style.strokeDashoffset = offset;
+                    }
 
                     // Check for active holiday or approved leave today
                     const alertEl = document.getElementById('holidayLeaveAlert');
@@ -1243,13 +1274,13 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                     if (data.today_in) {
                         document.getElementById('clockInTime').textContent = data.today_in;
                         document.getElementById('statusIn').textContent = data.status_in || 'Tepat Waktu';
-                        document.getElementById('statusIn').className = 'status-badge ' + (data.status_in === 'Terlambat' ? 'late' : 'on-time');
+                        document.getElementById('statusIn').className = 'status-chip ' + (data.status_in === 'Terlambat' ? 'chip-late' : 'chip-ok');
                     }
                     if (data.today_out) {
                         document.getElementById('clockOutTime').textContent = data.today_out;
                         document.getElementById('clockOutTime').className = 'time-val';
                         document.getElementById('statusOut').textContent = data.status_out || 'Normal';
-                        document.getElementById('statusOut').className = 'status-badge on-time';
+                        document.getElementById('statusOut').className = 'status-chip chip-ok';
                     }
 
                     if (data.activities && data.activities.length) {
@@ -1271,6 +1302,13 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                 document.getElementById('statHadir').textContent = 18;
                 document.getElementById('statTerlambat').textContent = 2;
                 document.getElementById('statCuti').textContent = 10;
+                
+                const ring = document.getElementById('attendanceRing');
+                const valText = document.getElementById('attendanceRateVal');
+                if (ring && valText) {
+                    valText.textContent = '90%';
+                    ring.style.strokeDashoffset = 251.2 - (251.2 * 90) / 100;
+                }
                 document.getElementById('activityList').innerHTML = `
         <div class="activity-item">
           <div class="activity-dot green"></div>
