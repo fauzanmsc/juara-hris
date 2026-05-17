@@ -2,6 +2,28 @@
 
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
+// Helper Global: Parse waktu dari berbagai format (ISO full string atau HH:MM) ke format HH:MM 24 jam
+window.parseTime = function(val) {
+    if (!val || val === '--:--' || val === '--') return null;
+    // Format ISO penuh: "1899-12-30T09:51:08.000Z" atau "2026-05-16T09:51:08.000Z"
+    if (typeof val === 'string' && val.includes('T')) {
+        const timePart = val.split('T')[1]; // "09:51:08.000Z"
+        if (timePart) {
+            const [h, m] = timePart.split(':');
+            if (h !== undefined && m !== undefined) {
+                return String(parseInt(h, 10)).padStart(2, '0') + ':' + String(parseInt(m, 10)).padStart(2, '0');
+            }
+        }
+        return null;
+    }
+    // Format HH:MM atau HH:MM:SS
+    if (typeof val === 'string' && val.includes(':')) {
+        const parts = val.split(':');
+        return String(parseInt(parts[0], 10)).padStart(2, '0') + ':' + String(parseInt(parts[1], 10)).padStart(2, '0');
+    }
+    return null;
+};
+
 // Helper Global: Mengubah link Drive biasa menjadi Direct Link Gambar
 window.getDirectDriveUrl = function(url) {
     if (!url) return '';
@@ -445,7 +467,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.renderAtt = function (records) {
             const body = document.getElementById('attBody');
             if (!records.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px">Data tidak ditemukan</td></tr>'; return; }
-            body.innerHTML = records.map(r => `
+            body.innerHTML = records.map(r => {
+                const inTime = parseTime(r.clock_in_time) || '--:--';
+                const outTime = parseTime(r.clock_out_time) || '--:--';
+                return `
     <tr>
       <td>
         <div class="user-cell">
@@ -457,13 +482,14 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         </div>
       </td>
       <td style="white-space:nowrap">${r.date}</td>
-      <td>${r.clock_in_time || '--:--'}</td>
-      <td>${r.clock_out_time || '--:--'}</td>
+      <td><strong style="color:var(--text)">${inTime}</strong></td>
+      <td><strong style="color:var(--text)">${outTime}</strong></td>
       <td>${r.distance_meters ? r.distance_meters + 'm' : '—'}</td>
       <td><span class="badge ${r.status_in === 'Terlambat' ? 'badge-warn' : 'badge-success'}">${r.status_in || '—'}</span></td>
       <td>${r.photo_in ? `<button class="btn btn-sm btn-ghost" onclick="viewPhoto('${r.photo_in}')"><i class="bi bi-camera"></i></button>` : '—'}</td>
     </tr>
-  `).join('');
+  `;
+            }).join('');
         }
 
         window.exportCSV = function () { showToast('Fungsi export CSV akan tersedia di versi produksi', 'info'); }
@@ -1133,8 +1159,8 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
                 const hasOut = !!r.clock_out_time;
                 const statusCls = r.status_in === 'Terlambat' ? 's-late' : r.status_in ? 's-ok' : 's-empty';
                 const statusTxt = r.status_in || 'Belum Absen';
-                const inTime = r.clock_in_time ? r.clock_in_time.substring(0, 5) : '--:--';
-                const outTime = hasOut ? r.clock_out_time.substring(0, 5) : '--:--';
+                const inTime = parseTime(r.clock_in_time) || '--:--';
+                const outTime = hasOut ? (parseTime(r.clock_out_time) || '--:--') : '--:--';
                 return `
       <div class="history-item">
         <div class="history-header">
