@@ -530,7 +530,16 @@ function updateUser(body) {
     password_pin: headers.indexOf('password_pin'),
     role: headers.indexOf('role'),
     position: headers.indexOf('position'),
+    profile_pic_url: headers.indexOf('profile_pic_url')
   };
+
+  let profilePicUrl = body.profile_pic_url;
+  if (body.profile_pic_base64) {
+    const photoData = uploadBase64ToDrive(body.profile_pic_base64, `profile_${user_id}_${Date.now()}.jpg`, 'foto_profil');
+    if (photoData.url && !photoData.url.startsWith('ERROR')) {
+      profilePicUrl = photoData.url;
+    }
+  }
 
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][idx.user_id]) === String(user_id)) {
@@ -539,7 +548,10 @@ function updateUser(body) {
       if (password_pin) sheet.getRange(i+1, idx.password_pin+1).setValue(password_pin);
       if (position) sheet.getRange(i+1, idx.position+1).setValue(position);
       if (role) sheet.getRange(i+1, idx.role+1).setValue(role);
-      return { success: true };
+      if (profilePicUrl) sheet.getRange(i+1, idx.profile_pic_url+1).setValue(profilePicUrl);
+      
+      // Also return the updated picture if uploaded
+      return { success: true, profile_pic_url: profilePicUrl };
     }
   }
   return { success: false, message: 'User tidak ditemukan' };

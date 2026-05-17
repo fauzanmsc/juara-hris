@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>JEF e-Attendance — Pengajuan</title>
   <meta name="theme-color" content="#FFB703">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -91,7 +93,7 @@
 
     .content {
       padding: 18px;
-      padding-bottom: 40px
+      padding-bottom: 96px
     }
 
     .form-section {
@@ -159,23 +161,32 @@
     }
 
     .type-card.sel-cuti {
-      border-color: var(--primary);
-      background: rgba(255, 183, 3, 0.08)
+      border-color: var(--success);
+      background: rgba(34, 197, 94, 0.08);
+      box-shadow: var(--shadow-neu-flat);
     }
 
     .type-card.sel-sakit {
       border-color: var(--danger);
-      background: rgba(239, 68, 68, 0.06)
+      background: rgba(239, 68, 68, 0.06);
+      box-shadow: var(--shadow-neu-flat);
     }
 
     .type-card.sel-izin {
-      border-color: var(--warn);
-      background: rgba(245, 158, 11, 0.06)
+      border-color: var(--info);
+      background: rgba(59, 130, 246, 0.06);
+      box-shadow: var(--shadow-neu-flat);
     }
 
     .type-icon-wrap {
-      font-size: 26px;
-      margin-bottom: 8px
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      transition: all var(--transition);
     }
 
     .type-name {
@@ -505,17 +516,23 @@
         <label class="form-label">Jenis Pengajuan</label>
         <div class="type-grid">
           <div class="type-card sel-cuti" id="type-Cuti" onclick="selectType('Cuti')">
-            <div class="type-icon-wrap">🌴</div>
+            <div class="type-icon-wrap" style="background: rgba(34, 197, 94, 0.08); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(34, 197, 94, 0.15);">
+              <i class="bi bi-calendar-check-fill" style="color: #22C55E; font-size: 20px;"></i>
+            </div>
             <div class="type-name">Cuti</div>
             <div class="type-desc">Cuti tahunan</div>
           </div>
           <div class="type-card" id="type-Sakit" onclick="selectType('Sakit')">
-            <div class="type-icon-wrap">🏥</div>
+            <div class="type-icon-wrap" style="background: rgba(239, 68, 68, 0.06); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(239, 68, 68, 0.12);">
+              <i class="bi bi-heart-pulse-fill" style="color: #EF4444; font-size: 20px;"></i>
+            </div>
             <div class="type-name">Sakit</div>
             <div class="type-desc">Butuh dokumen</div>
           </div>
           <div class="type-card" id="type-Izin" onclick="selectType('Izin')">
-            <div class="type-icon-wrap">📝</div>
+            <div class="type-icon-wrap" style="background: rgba(59, 130, 246, 0.06); box-shadow: var(--shadow-neu-inset); border: 1px solid rgba(59, 130, 246, 0.12);">
+              <i class="bi bi-clipboard2-text-fill" style="color: #3B82F6; font-size: 20px;"></i>
+            </div>
             <div class="type-name">Izin</div>
             <div class="type-desc">Keperluan lain</div>
           </div>
@@ -572,7 +589,24 @@
     </div>
   </div>
 
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="employee.html" class="nav-item">
+      <i class="bi bi-house-fill"></i>Beranda
+    </a>
+    <a href="attendance.html" class="nav-item">
+      <i class="bi bi-geo-alt-fill"></i>Absensi
+    </a>
+    <a href="leave.html" class="nav-item active">
+      <i class="bi bi-calendar-check"></i>Pengajuan
+    </a>
+    <a href="history.html" class="nav-item">
+      <i class="bi bi-clock-history"></i>Riwayat
+    </a>
+  </nav>
+
   <script src="js/script.js"></script>
+
 </body>
 
 </html>

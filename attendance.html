@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>JEF e-Attendance — Absensi</title>
   <meta name="theme-color" content="#FFB703">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -69,7 +71,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      padding-bottom: 36px
+      padding-bottom: 96px
     }
 
     /* CLOCK WIDGET */
@@ -613,6 +615,22 @@
   </div>
 
   <canvas id="photoCanvas" style="display:none"></canvas>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="employee.html" class="nav-item">
+      <i class="bi bi-house-fill"></i>Beranda
+    </a>
+    <a href="attendance.html" class="nav-item active">
+      <i class="bi bi-geo-alt-fill"></i>Absensi
+    </a>
+    <a href="leave.html" class="nav-item">
+      <i class="bi bi-calendar-check"></i>Pengajuan
+    </a>
+    <a href="history.html" class="nav-item">
+      <i class="bi bi-clock-history"></i>Riwayat
+    </a>
+  </nav>
 
   <script src="js/script.js"></script>
 

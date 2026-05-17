@@ -2,6 +2,28 @@
 
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
+// Register Service Worker globally for caching and instant performance updates
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('Perubahan tampilan terdeteksi! Mengosongkan cache...');
+                        caches.keys().then(names => {
+                            return Promise.all(names.map(name => caches.delete(name)));
+                        }).then(() => {
+                            console.log('Cache dikosongkan. Memuat ulang halaman...');
+                            window.location.reload();
+                        });
+                    }
+                });
+            }
+        });
+    }).catch(() => { });
+}
+
 // Global Theme Switcher (Light / Dark Mode)
 window.toggleTheme = function() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -221,11 +243,8 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
             setLoading(false);
         }
 
+        // Keys listener
         document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('js/sw.js').catch(() => { });
-        }
     })();
 }
 
@@ -325,7 +344,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             else if (page === 'users') loadUsers();
             else if (page === 'approval') loadApprovals();
             else if (page === 'attendance') loadAttendance();
-            else if (page === 'config') loadConfig();
+            else if (page === 'config') {
+                loadConfig();
+                if (leafletMap) {
+                    setTimeout(() => leafletMap.invalidateSize(), 350);
+                }
+            }
         }
 
         // ==== DASHBOARD ====
@@ -640,19 +664,101 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.exportCSV = function () { showToast('Fungsi export CSV akan tersedia di versi produksi', 'info'); }
 
         // ==== CONFIG ====
+        let leafletMap = null;
+        let configMarker = null;
+        let configCircle = null;
+
+        window.initLiveMap = function (lat, lng, radius) {
+            const defaultLat = parseFloat(lat) || -6.4063219;
+            const defaultLng = parseFloat(lng) || 106.7731088;
+            const defaultRadius = parseFloat(radius) || 50;
+
+            const mapDiv = document.getElementById('configMap');
+            if (!mapDiv) return;
+
+            if (!leafletMap) {
+                leafletMap = L.map('configMap').setView([defaultLat, defaultLng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(leafletMap);
+
+                configMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(leafletMap);
+                configCircle = L.circle([defaultLat, defaultLng], {
+                    radius: defaultRadius,
+                    color: 'var(--primary)',
+                    fillColor: 'var(--primary-glow)',
+                    fillOpacity: 0.4
+                }).addTo(leafletMap);
+
+                // Update inputs when marker is dragged
+                configMarker.on('dragend', function (e) {
+                    const position = configMarker.getLatLng();
+                    document.getElementById('cfg_lat').value = position.lat.toFixed(7);
+                    document.getElementById('cfg_lng').value = position.lng.toFixed(7);
+                    updateMapCircle();
+                });
+
+                // Update inputs when map is clicked
+                leafletMap.on('click', function (e) {
+                    const position = e.latlng;
+                    configMarker.setLatLng(position);
+                    document.getElementById('cfg_lat').value = position.lat.toFixed(7);
+                    document.getElementById('cfg_lng').value = position.lng.toFixed(7);
+                    updateMapCircle();
+                });
+
+                // Attach inputs update listener
+                const inputs = ['cfg_lat', 'cfg_lng', 'cfg_radius'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', updateMapCircle);
+                    }
+                });
+            } else {
+                leafletMap.setView([defaultLat, defaultLng], 16);
+                configMarker.setLatLng([defaultLat, defaultLng]);
+                configCircle.setLatLng([defaultLat, defaultLng]);
+                configCircle.setRadius(defaultRadius);
+            }
+            
+            setTimeout(() => leafletMap.invalidateSize(), 300);
+        }
+
+        window.updateMapCircle = function () {
+            const lat = parseFloat(document.getElementById('cfg_lat').value) || 0;
+            const lng = parseFloat(document.getElementById('cfg_lng').value) || 0;
+            const radius = parseFloat(document.getElementById('cfg_radius').value) || 50;
+
+            if (configMarker && configCircle && leafletMap) {
+                const newPos = [lat, lng];
+                configMarker.setLatLng(newPos);
+                configCircle.setLatLng(newPos);
+                configCircle.setRadius(radius);
+                leafletMap.panTo(newPos);
+            }
+        }
+
         window.loadConfig = async function () {
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getConfig`);
                 const data = await res.json();
                 if (data.config) {
-                    document.getElementById('cfg_lat').value = data.config.office_latitude || '';
-                    document.getElementById('cfg_lng').value = data.config.office_longitude || '';
-                    document.getElementById('cfg_radius').value = data.config.max_radius_meters || 50;
+                    const lat = data.config.office_latitude || '';
+                    const lng = data.config.office_longitude || '';
+                    const radius = data.config.max_radius_meters || 50;
+
+                    document.getElementById('cfg_lat').value = lat;
+                    document.getElementById('cfg_lng').value = lng;
+                    document.getElementById('cfg_radius').value = radius;
                     document.getElementById('cfg_wday_start').value = parseTime(data.config.weekday_start) || '';
                     document.getElementById('cfg_wday_end').value = parseTime(data.config.weekday_end) || '';
                     document.getElementById('cfg_tolerance').value = data.config.tolerance_minutes || 15;
                     document.getElementById('cfg_sat_start').value = parseTime(data.config.saturday_start) || '';
                     document.getElementById('cfg_sat_end').value = parseTime(data.config.saturday_end) || '';
+
+                    initLiveMap(lat, lng, radius);
                 }
                 let holidays = data.holidays;
                 if (!holidays) {
@@ -1266,10 +1372,39 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                             }
                             alertEl.innerHTML = alertHTML;
                             alertEl.style.display = 'block';
+                        } else if (data.latest_approved_leave) {
+                            const dismissedKey = `dismiss_leave_${data.latest_approved_leave.start_date}`;
+                            if (!localStorage.getItem(dismissedKey)) {
+                                alertEl.innerHTML = `
+                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.18) 100%); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.05); margin-bottom: 15px;">
+                                        <div style="display:flex; align-items:center; gap:14px; text-align:left;">
+                                            <div style="width:38px; height:38px; border-radius:50%; background:rgba(34, 197, 94, 0.15); color:#22c55e; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
+                                                <i class="bi bi-calendar-check-fill"></i>
+                                            </div>
+                                            <div>
+                                                <h4 style="font-size:13px; font-weight:800; color:#22c55e; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">PENGAJUAN DISETUJUI! 🌟</h4>
+                                                <p style="font-size:11px; color:var(--text); opacity:0.85; margin:0; line-height:1.4;">
+                                                    Pengajuan <strong>${data.latest_approved_leave.leave_type}</strong> Anda (${data.latest_approved_leave.start_date} s/d ${data.latest_approved_leave.end_date}) telah disetujui.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button onclick="window.dismissLeaveAlert('${data.latest_approved_leave.start_date}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:4px;"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                `;
+                                alertEl.style.display = 'block';
+                            } else {
+                                alertEl.style.display = 'none';
+                            }
                         } else {
                             alertEl.style.display = 'none';
                         }
                     }
+
+                    window.dismissLeaveAlert = function (startDate) {
+                        localStorage.setItem(`dismiss_leave_${startDate}`, 'true');
+                        const alertContainer = document.getElementById('holidayLeaveAlert');
+                        if (alertContainer) alertContainer.style.display = 'none';
+                    };
 
                     if (data.today_in) {
                         document.getElementById('clockInTime').textContent = data.today_in;
@@ -1329,6 +1464,106 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                 sessionStorage.removeItem('hris_user');
                 window.location.href = 'index.html';
             });
+        }
+
+        let editProfilePhotoBase64 = null;
+
+        window.openEditProfileModal = function () {
+            const user = JSON.parse(sessionStorage.getItem('hris_user') || '{}');
+            document.getElementById('editProfileName').value = user.name || '';
+            document.getElementById('editProfilePin').value = '';
+            
+            const previewEl = document.getElementById('modalAvatarPreview');
+            if (user.profile_pic_url) {
+                previewEl.innerHTML = `<img src="${getDirectDriveUrl(user.profile_pic_url)}" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                previewEl.innerHTML = (user.name || 'U').charAt(0).toUpperCase();
+            }
+            
+            editProfilePhotoBase64 = null;
+            document.getElementById('editProfilePicFile').value = '';
+            document.getElementById('editProfileModal').style.display = 'flex';
+        }
+
+        window.closeEditProfileModal = function () {
+            document.getElementById('editProfileModal').style.display = 'none';
+        }
+
+        window.toggleEditProfilePinVis = function () {
+            const pinEl = document.getElementById('editProfilePin');
+            const eyeEl = document.getElementById('editProfilePinEye');
+            if (pinEl.type === 'password') {
+                pinEl.type = 'text';
+                eyeEl.className = 'bi bi-eye-slash-fill';
+            } else {
+                pinEl.type = 'password';
+                eyeEl.className = 'bi bi-eye-fill';
+            }
+        }
+
+        window.previewEditProfilePic = function (input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('File Terlalu Besar', 'Maksimal ukuran file adalah 5MB.', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result;
+                document.getElementById('modalAvatarPreview').innerHTML = `<img src="${base64}" style="width:100%; height:100%; object-fit:cover;">`;
+                editProfilePhotoBase64 = base64.split(',')[1];
+            }
+            reader.readAsDataURL(file);
+        }
+
+        window.submitEditProfile = async function () {
+            const user = JSON.parse(sessionStorage.getItem('hris_user') || '{}');
+            const newPin = document.getElementById('editProfilePin').value.trim();
+            
+            if (newPin && !/^\d{6}$/.test(newPin)) {
+                showAlert('PIN Tidak Valid', 'PIN harus berupa 6 digit angka.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnSaveProfile');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...';
+
+            try {
+                const body = {
+                    action: 'updateUser',
+                    user_id: user.user_id
+                };
+                if (newPin) body.password_pin = newPin;
+                if (editProfilePhotoBase64) body.profile_pic_base64 = editProfilePhotoBase64;
+
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (newPin) user.password_pin = newPin;
+                    if (data.profile_pic_url) user.profile_pic_url = data.profile_pic_url;
+                    sessionStorage.setItem('hris_user', JSON.stringify(user));
+                    
+                    showAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
+                    closeEditProfileModal();
+                    loadDashboard();
+                } else {
+                    showAlert('Gagal', data.message || 'Gagal memperbarui profil.', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
+                closeEditProfileModal();
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
         }
 
         window.loadHistory = function () { window.location.href = 'history.html'; }
@@ -1404,11 +1639,11 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
           <span class="status-badge ${statusCls}">${statusTxt}</span>
         </div>
         <div class="history-times">
-          <div class="time-block">
+          <div class="time-block block-in">
             <div class="time-lbl">Masuk</div>
             <div class="time-val ${r.clock_in_time ? '' : 'empty'}">${inTime}</div>
           </div>
-          <div class="time-block">
+          <div class="time-block block-out">
             <div class="time-lbl">Pulang</div>
             <div class="time-val ${hasOut ? '' : 'empty'}">${outTime}</div>
           </div>

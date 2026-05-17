@@ -7,6 +7,8 @@
   <title>JEF e-Attendance — Portal Karyawan</title>
   <meta name="theme-color" content="#FFB703">
   <link rel="manifest" href="json/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -117,7 +119,7 @@
       font-family: var(--font-head);
       font-weight: 900;
       font-size: 19px;
-      color: #000;
+      color: #FFF;
       border: 2.5px solid rgba(255, 183, 3, 0.4);
       overflow: hidden;
       flex-shrink: 0
@@ -139,6 +141,21 @@
     .profile-info p {
       font-size: 12px;
       color: var(--text-muted)
+    }
+
+    #userPosition {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: var(--primary) !important;
+      background: var(--primary-glow);
+      border: 1px solid rgba(255, 183, 3, 0.25);
+      border-radius: 50px;
+      padding: 2px 10px;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      box-shadow: var(--shadow-neu-inset);
     }
 
     .content {
@@ -206,12 +223,8 @@
       padding: 16px 12px;
       text-align: center;
       backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-neu-soft);
       transition: all var(--transition)
-    }
-
-    .stat-card-emp:hover {
-      border-color: var(--border-hover);
-      transform: translateY(-2px)
     }
 
     .stat-val {
@@ -224,9 +237,24 @@
 
     .stat-lbl {
       font-size: 10px;
-      color: var(--text-muted);
-      font-weight: 600;
+      color: var(--text);
+      opacity: 0.82;
+      font-weight: 700;
       letter-spacing: .3px
+    }
+
+    .stat-card-emp:hover {
+      border-color: transparent !important;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: var(--shadow-glow) !important;
+    }
+    .stat-card-emp:hover .stat-val,
+    .stat-card-emp:hover .stat-lbl,
+    .stat-card-emp:hover span,
+    .stat-card-emp:hover i {
+      color: #FFFFFF !important;
+      opacity: 1 !important;
     }
 
     .val-green {
@@ -344,13 +372,14 @@
       text-decoration: none;
       color: inherit;
       display: block;
-      backdrop-filter: blur(8px)
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-neu-soft);
     }
 
     .menu-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--border-hover);
-      box-shadow: 0 8px 32px rgba(255, 183, 3, 0.15)
+      transform: translateY(-4px) scale(1.03);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow);
     }
 
     .menu-icon {
@@ -473,62 +502,7 @@
       font-variant-numeric: tabular-nums
     }
 
-    /* BOTTOM NAV */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      background: var(--bg-surface);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border);
-      display: flex;
-      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      z-index: 100
-    }
-
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 4px;
-      color: var(--text-muted);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .3px;
-      text-decoration: none;
-      position: relative;
-      transition: all var(--transition)
-    }
-
-    .nav-item.active {
-      color: var(--primary)
-    }
-
-    .nav-item.active::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 30px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-      border-radius: 0 0 4px 4px
-    }
-
-    .nav-item i {
-      font-size: 23px;
-      transition: transform var(--transition)
-    }
-
-    .nav-item.active i {
-      transform: scale(1.15)
-    }
+    /* Inheriting global neumorphic bottom-nav from style.css */
   </style>
 </head>
 
@@ -548,9 +522,19 @@
       </div>
     </div>
     <div class="profile-row">
-      <div class="avatar-emp" id="avatarEl">U</div>
-      <div class="profile-info">
-        <h3 id="userName">—</h3>
+      <div class="avatar-container" style="position: relative; flex-shrink: 0;">
+        <div class="avatar-emp" id="avatarEl">U</div>
+        <button class="btn-edit-profile-avatar" onclick="openEditProfileModal()" style="position: absolute; bottom: -2px; right: -2px; background: var(--primary); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 10px; box-shadow: var(--shadow-neu-soft); cursor: pointer; transition: all var(--transition); z-index: 10;">
+          <i class="bi bi-pencil-fill"></i>
+        </button>
+      </div>
+      <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start;">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <h3 id="userName" style="margin: 0;">—</h3>
+          <button onclick="openEditProfileModal()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding: 2px 4px; display: flex; align-items: center; transition:all var(--transition);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="Edit Profil">
+            <i class="bi bi-pencil-square"></i>
+          </button>
+        </div>
         <p id="userPosition">—</p>
       </div>
     </div>
@@ -674,6 +658,47 @@
       <i class="bi bi-clock-history"></i>Riwayat
     </a>
   </nav>
+
+  <!-- EDIT PROFILE MODAL -->
+  <div class="modal" id="editProfileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+    <div class="modal-content" style="background:var(--bg-modal-gradient); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:400px; padding:24px; box-shadow:var(--shadow-neu-flat); position:relative; animation:slideUp var(--transition);">
+      <button onclick="closeEditProfileModal()" style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; font-size:14px; transition:all var(--transition);">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <h3 style="font-family:var(--font-head); font-weight:800; font-size:18px; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+        <i class="bi bi-person-gear" style="color:var(--primary);"></i> Edit Profil Karyawan
+      </h3>
+      
+      <!-- Preview Avatar -->
+      <div style="text-align:center; margin-bottom:20px;">
+        <div id="modalAvatarPreview" style="width:72px; height:72px; border-radius:50%; background:var(--bg-disabled); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; font-family:var(--font-head); margin:0 auto 10px; overflow:hidden;">U</div>
+        <label class="btn-ghost" style="display:inline-block; font-size:12px; padding:6px 14px; border-radius:50px; cursor:pointer; font-weight:600; border:1px solid var(--border); background:rgba(255,255,255,0.04); transition:all var(--transition);">
+          <i class="bi bi-image"></i> Pilih Foto Baru
+          <input type="file" id="editProfilePicFile" accept="image/*" onchange="previewEditProfilePic(this)" style="display:none;">
+        </label>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">Nama</label>
+        <input type="text" id="editProfileName" class="form-input" style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none;" readonly disabled>
+        <span style="font-size:10px; color:var(--text-muted); margin-top:4px; display:block;">Nama hanya dapat diubah oleh administrator</span>
+      </div>
+
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">PIN Keamanan / Password (6 Digit)</label>
+        <div style="position:relative;">
+          <input type="password" id="editProfilePin" class="form-input" maxlength="6" pattern="[0-9]*" inputmode="numeric" style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none; padding-right:40px;" placeholder="Masukkan 6 digit PIN baru">
+          <button type="button" onclick="toggleEditProfilePinVis()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">
+            <i class="bi bi-eye-fill" id="editProfilePinEye"></i>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btnSaveProfile" onclick="submitEditProfile()" style="width:100%; padding:14px; background:linear-gradient(135deg, var(--primary), var(--primary-dark)); border:none; border-radius:50px; color:#FFF; font-family:var(--font-head); font-weight:900; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(255,183,3,0.3);">
+        <i class="bi bi-check-circle-fill"></i> SIMPAN PERUBAHAN
+      </button>
+    </div>
+  </div>
 
   <script src="js/script.js"></script>
 </body>
