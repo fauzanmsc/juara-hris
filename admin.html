@@ -75,6 +75,9 @@
         <a class="sidebar-link" onclick="showPage('positions', this)">
           <i class="bi bi-briefcase-fill"></i> Posisi &amp; Divisi
         </a>
+        <a class="sidebar-link" onclick="showPage('tasks', this)">
+          <i class="bi bi-list-task"></i> Tugas &amp; Produktivitas
+        </a>
 
         <div class="nav-section-label">Sistem</div>
         <a class="sidebar-link" onclick="showPage('holidays', this)">
@@ -445,6 +448,66 @@
           </div>
         </section>
 
+        <!-- TASKS PAGE -->
+        <section class="page-section fade-in" id="page-tasks">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Manajemen Tugas &amp; Produktivitas</h3>
+                <p class="card-subtitle">Kelola daily task, status pengerjaan, skor produktivitas, dan dokumen pelaporan karyawan</p>
+              </div>
+              <button class="btn btn-sm btn-primary" onclick="openAddTaskModal()"><i class="bi bi-plus-circle-fill"></i> Tambah Tugas</button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-row">
+              <input type="date" class="form-control" id="taskFilterStart" style="max-width:140px;">
+              <input type="date" class="form-control" id="taskFilterEnd" style="max-width:140px;">
+              <input type="text" class="form-control" id="taskFilterName" placeholder="Nama karyawan..." style="flex:1;">
+              <select class="form-control" id="taskFilterCategory" style="max-width:140px;">
+                <option value="">Semua Kategori</option>
+                <option value="Development">Development</option>
+                <option value="Operations">Operations</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Administrative">Administrative</option>
+                <option value="Sales">Sales</option>
+                <option value="Other">Lain-lain</option>
+              </select>
+              <select class="form-control" id="taskFilterStatus" style="max-width:140px;">
+                <option value="">Semua Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+              <button class="btn btn-primary" onclick="loadAdminTasks()"><i class="bi bi-search"></i> Cari</button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Karyawan</th>
+                    <th>Tanggal</th>
+                    <th>Tugas</th>
+                    <th>Kategori</th>
+                    <th>Catatan Laporan</th>
+                    <th>Lampiran</th>
+                    <th>Status</th>
+                    <th>Productivity Score</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="taskAdminBody">
+                  <tr>
+                    <td colspan="9" style="text-align:center;padding:30px">Memuat data tugas...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
         <!-- CONFIG PAGE -->
         <section class="page-section fade-in" id="page-config">
           <div class="card" style="margin-bottom: 24px;">
@@ -783,6 +846,70 @@
         <button class="btn btn-ghost" onclick="closeModal('modalUser')">Batal</button>
         <button class="btn btn-primary" onclick="saveUser()">Simpan</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Task -->
+  <div class="overlay hidden" id="modalTask">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTaskTitle"><i class="bi bi-list-task text-primary" style="margin-right:8px"></i> Tambah Tugas</h3>
+        <button class="modal-close" onclick="closeModal('modalTask')"><i class="bi bi-x"></i></button>
+      </div>
+      <form id="adminTaskForm" onsubmit="saveAdminTask(event)">
+        <input type="hidden" id="modalTaskId">
+        <div class="modal-body" style="padding:20px 0 0;">
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Karyawan</label>
+            <select class="form-control" id="modalTaskUser" required>
+              <!-- Populated dynamically with active employees -->
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Nama / Judul Tugas</label>
+            <input type="text" class="form-control" id="modalTaskName" required placeholder="Nama Tugas">
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Kategori</label>
+            <select class="form-control" id="modalTaskCategory" required>
+              <option value="Development">Development</option>
+              <option value="Operations">Operations</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Administrative">Administrative</option>
+              <option value="Sales">Sales</option>
+              <option value="Other">Lain-lain</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Tanggal</label>
+            <input type="date" class="form-control" id="modalTaskDate" required>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Catatan Laporan</label>
+            <textarea class="form-control" id="modalTaskNotes" rows="2" placeholder="Catatan detail pekerjaan..."></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="modalTaskStatus" required>
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Productivity Score (0 - 100)</label>
+            <input type="number" class="form-control" id="modalTaskScore" min="0" max="100" placeholder="Skor produktivitas (contoh: 85)">
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Ganti Lampiran Dokumen/Gambar (Opsional)</label>
+            <input type="file" class="form-control" id="modalTaskFile" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+          </div>
+        </div>
+        <div class="modal-footer" style="padding-top:14px;">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modalTask')">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveTask">Simpan</button>
+        </div>
+      </form>
     </div>
   </div>
 

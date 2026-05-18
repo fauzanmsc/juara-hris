@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>JEF Productivity — Tugas Daily</title>
+  <meta name="theme-color" content="#FFB703">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="json/manifest.json">
+</head>
+
+<body class="leave-page">
+  <div class="wrap-employee">
+    <div class="header">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <div class="header-info">
+          <h2>Tugas Daily</h2>
+          <p>Productivity Monitoring</p>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+          style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+          <i class="bi bi-sun-fill"></i>
+        </button>
+        <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab-item active" id="tab-form" onclick="switchTab('form')">Lapor Tugas</div>
+      <div class="tab-item" id="tab-history" onclick="switchTab('history')">Daftar Tugas</div>
+    </div>
+
+    <div class="toast-lv" id="toastEl" style="display:none; position:fixed; top:20px; right:20px; z-index:9999; background:var(--primary); color:#000; padding:12px 24px; border-radius:50px; font-weight:700; box-shadow:var(--shadow-lg);"></div>
+
+    <div class="content" style="padding: 20px; overflow-y: auto; height: calc(100vh - 190px);">
+      <!-- TAB FORM -->
+      <div id="section-form">
+        <div class="card" style="background:var(--card-bg, rgba(255,255,255,0.05)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px;">
+          <form id="taskForm" onsubmit="submitTask(event)">
+            <div class="form-group" style="margin-bottom:16px;">
+              <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px; color:var(--text)">Nama / Judul Tugas</label>
+              <input type="text" id="taskName" required class="form-control" placeholder="Contoh: Menyusun Laporan Keuangan Mingguan" style="width:100%; box-sizing:border-box;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+              <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px; color:var(--text)">Kategori Tugas</label>
+              <select id="taskCategory" required class="form-control" style="width:100%; box-sizing:border-box;">
+                <option value="">-- Pilih Kategori --</option>
+                <option value="Development">Development (Teknologi)</option>
+                <option value="Operations">Operations (Operasional)</option>
+                <option value="Marketing">Marketing (Pemasaran)</option>
+                <option value="Administrative">Administrative (Administrasi)</option>
+                <option value="Sales">Sales (Penjualan)</option>
+                <option value="Other">Lain-lain</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+              <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px; color:var(--text)">Tanggal Tugas</label>
+              <input type="date" id="taskDate" required class="form-control" style="width:100%; box-sizing:border-box;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+              <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px; color:var(--text)">Catatan / Detail Laporan</label>
+              <textarea id="taskNotes" class="form-control" rows="3" placeholder="Jelaskan detail apa saja yang sudah dikerjakan..." style="width:100%; box-sizing:border-box; resize:none; font-family:inherit;"></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px;">
+              <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px; color:var(--text)">Dokumen / Gambar Pendukung (Upload)</label>
+              <input type="file" id="taskFile" class="form-control" style="width:100%; box-sizing:border-box; padding:6px 12px;" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Format yang didukung: Gambar, PDF, Word, Excel.</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; gap:8px;">
+              <i class="bi bi-send-fill"></i> Kirim Laporan Tugas
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB HISTORY -->
+      <div id="section-history" style="display:none;">
+        <!-- Filters -->
+        <div class="card" style="background:var(--card-bg, rgba(255,255,255,0.05)); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px; margin-bottom:20px;">
+          <h4 style="margin:0 0 12px 0; font-size:13px; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:0.5px;">Filter Tanggal</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div>
+              <label style="display:block; font-size:10px; color:var(--text-muted); margin-bottom:4px;">Dari</label>
+              <input type="date" id="filterStart" class="form-control" style="width:100%;">
+            </div>
+            <div>
+              <label style="display:block; font-size:10px; color:var(--text-muted); margin-bottom:4px;">Sampai</label>
+              <input type="date" id="filterEnd" class="form-control" style="width:100%;">
+            </div>
+          </div>
+          <button onclick="loadMyTasks()" class="btn btn-primary btn-sm" style="width:100%; justify-content:center;">
+            <i class="bi bi-funnel-fill"></i> Terapkan Filter
+          </button>
+        </div>
+
+        <!-- Task List Container -->
+        <div id="taskListContainer" style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <a href="employee.html" class="nav-item">
+        <i class="bi bi-house-fill"></i>Beranda
+      </a>
+      <a href="attendance.html" class="nav-item">
+        <i class="bi bi-person-check-fill"></i>Absensi
+      </a>
+      <a href="tasks.html" class="nav-item active">
+        <i class="bi bi-list-task"></i>Tugas
+      </a>
+      <a href="leave.html" class="nav-item">
+        <i class="bi bi-calendar-check-fill"></i>Pengajuan
+      </a>
+      <a href="history.html" class="nav-item">
+        <i class="bi bi-clock-fill"></i>Riwayat
+      </a>
+    </nav>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    // Ensure active user is logged in
+    const currentUser = JSON.parse(localStorage.getItem('hris_user'));
+    if (!currentUser || currentUser.role !== 'Employee') {
+      window.location.href = 'index.html';
+    }
+
+    // Set default date to today
+    document.getElementById('taskDate').value = new Date().toISOString().substring(0, 10);
+    
+    // Set default filter range (last 7 days)
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    document.getElementById('filterStart').value = sevenDaysAgo.toISOString().substring(0, 10);
+    document.getElementById('filterEnd').value = today.toISOString().substring(0, 10);
+
+    // Switch Tabs Helper
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+
+      if (tab === 'form') {
+        document.getElementById('section-form').style.display = 'block';
+        document.getElementById('section-history').style.display = 'none';
+      } else {
+        document.getElementById('section-form').style.display = 'none';
+        document.getElementById('section-history').style.display = 'block';
+        loadMyTasks();
+      }
+    }
+
+    // Show Custom Toast Notification
+    function showToastMsg(msg) {
+      const toast = document.getElementById('toastEl');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+
+    // Convert file to base64
+    function getBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    // Submit New Task Reporting
+    async function submitTask(e) {
+      e.preventDefault();
+      const taskName = document.getElementById('taskName').value.trim();
+      const category = document.getElementById('taskCategory').value;
+      const date = document.getElementById('taskDate').value;
+      const notes = document.getElementById('taskNotes').value.trim();
+      const fileInput = document.getElementById('taskFile');
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
+
+      let attachment_base64 = '';
+      let attachment_filename = '';
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        attachment_filename = file.name;
+        try {
+          attachment_base64 = await getBase64(file);
+        } catch (err) {
+          console.error("Failed to read file", err);
+        }
+      }
+
+      const payload = {
+        action: 'createTask',
+        user_id: currentUser.user_id,
+        date: date,
+        task_name: taskName,
+        category: category,
+        notes: notes,
+        status: 'Pending',
+        attachment_base64: attachment_base64,
+        attachment_filename: attachment_filename
+      };
+
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToastMsg('Laporan tugas berhasil dikirim!');
+          document.getElementById('taskForm').reset();
+          document.getElementById('taskDate').value = new Date().toISOString().substring(0, 10);
+          switchTab('history');
+        } else {
+          showToastMsg(data.message || 'Gagal mengirim tugas');
+        }
+      } catch (err) {
+        console.error(err);
+        showToastMsg('Terjadi kesalahan koneksi');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    }
+
+    // Load My Tasks History
+    async function loadMyTasks() {
+      const container = document.getElementById('taskListContainer');
+      container.innerHTML = `
+        <div style="text-align:center; padding:30px; color:var(--text-muted)">
+          <i class="bi bi-arrow-repeat spin" style="font-size:24px; display:inline-block; margin-bottom:8px;"></i>
+          Memuat tugas Anda...
+        </div>
+      `;
+
+      const start = document.getElementById('filterStart').value;
+      const end = document.getElementById('filterEnd').value;
+
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getTasks&user_id=${currentUser.user_id}&start_date=${start}&end_date=${end}`);
+        const data = await res.json();
+
+        if (data.success && data.tasks && data.tasks.length > 0) {
+          container.innerHTML = data.tasks.map(t => {
+            const statusBadge = t.status === 'Completed' ? 'badge-success' : (t.status === 'In Progress' ? 'badge-warn' : 'badge-info');
+            const scoreHTML = t.score ? `
+              <div style="display:flex; align-items:center; gap:6px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-radius:30px; padding:4px 10px; margin-top:8px; width:fit-content;">
+                <i class="bi bi-star-fill" style="color:#F59E0B; font-size:12px;"></i>
+                <span style="font-size:11px; font-weight:700; color:var(--primary);">Skor Productivity: ${t.score}</span>
+              </div>
+            ` : '';
+            
+            const attachmentHTML = t.attachment_url ? `
+              <a href="${t.attachment_url}" target="_blank" class="btn btn-sm btn-ghost" style="margin-top:10px; display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.06); padding:6px 12px; border-radius:30px; font-size:11px; text-decoration:none; color:var(--text);">
+                <i class="bi bi-paperclip"></i> Lihat Lampiran
+              </a>
+            ` : '';
+
+            return `
+              <div class="card" style="background:var(--card-bg, rgba(255,255,255,0.05)); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px; display:flex; flex-direction:column; gap:6px; position:relative;">
+                <div style="display:flex; justify-content:between; align-items:center; gap:8px;">
+                  <span class="badge ${statusBadge}" style="font-size:10px;">${t.status}</span>
+                  <span style="font-size:11px; color:var(--text-muted); margin-left:auto;">${t.date}</span>
+                </div>
+                
+                <h4 style="margin:6px 0 2px 0; font-size:14px; font-weight:700; color:var(--text);">${t.task_name}</h4>
+                <div style="font-size:11px; color:var(--primary); font-weight:600;">Kategori: ${t.category}</div>
+                
+                ${t.notes ? `<p style="margin:8px 0 0 0; font-size:12px; color:var(--text-muted); line-height:1.4;">${t.notes}</p>` : ''}
+                
+                ${scoreHTML}
+                ${attachmentHTML}
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = `
+            <div class="card" style="text-align:center; padding:45px 20px; color:var(--text-muted);">
+              <i class="bi bi-journal-x" style="font-size:36px; opacity:0.3; display:block; margin-bottom:12px;"></i>
+              Tidak ada laporan tugas pada rentang tanggal ini.
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `
+          <div class="card" style="text-align:center; padding:30px; color:var(--danger);">
+            <i class="bi bi-exclamation-triangle" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+            Gagal menghubungkan ke server. Coba lagi.
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+
+</html>

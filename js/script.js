@@ -579,7 +579,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 'leave-report': ['Rekap Kehadiran', 'Rekap jatah cuti, sakit, dan izin karyawan secara dinamis per periode'],
                 config: ['Konfigurasi Sistem', 'Pengaturan lokasi, jam kerja, dan kontak HRD/HC'],
                 holidays: ['Hari Libur Operasional', 'Kelola kalender hari libur operasional kantor'],
-                positions: ['Posisi & Divisi', 'Kelola data jabatan dan divisi organisasi perusahaan']
+                positions: ['Posisi & Divisi', 'Kelola data jabatan dan divisi organisasi perusahaan'],
+                tasks: ['Manajemen Tugas & Produktivitas', 'Kelola daily task, status pengerjaan, skor produktivitas, dan dokumen pelaporan karyawan']
             };
             document.getElementById('topbarTitle').textContent = titles[page][0];
             document.getElementById('topbarSub').textContent = titles[page][1];
@@ -591,6 +592,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             else if (page === 'leave-report') loadLeaveReport();
             else if (page === 'holidays') loadHolidays();
             else if (page === 'positions') loadPositions();
+            else if (page === 'tasks') loadAdminTasks();
             else if (page === 'config') {
                 loadConfig();
                 if (leafletMap) {
@@ -2986,6 +2988,235 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         });
         localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
         updateNotificationsUI();
+    };
+
+    // ============ ADMIN TASK SYSTEM ============
+    window.loadAdminTasks = async function () {
+        const body = document.getElementById('taskAdminBody');
+        if (!body) return;
+        body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px">Memuat data tugas...</td></tr>';
+
+        // Set default filter values if not set
+        if (!document.getElementById('taskFilterStart').value) {
+            const today = new Date();
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 30);
+            document.getElementById('taskFilterStart').value = sevenDaysAgo.toISOString().substring(0, 10);
+            document.getElementById('taskFilterEnd').value = today.toISOString().substring(0, 10);
+        }
+
+        const start = document.getElementById('taskFilterStart').value;
+        const end = document.getElementById('taskFilterEnd').value;
+        const name = document.getElementById('taskFilterName').value.trim();
+        const category = document.getElementById('taskFilterCategory').value;
+        const status = document.getElementById('taskFilterStatus').value;
+
+        try {
+            const res = await fetch(`${APPS_SCRIPT_URL}?action=getTasks&start_date=${start}&end_date=${end}`);
+            const data = await res.json();
+            
+            if (data.success && data.tasks) {
+                let filtered = data.tasks;
+                if (name) {
+                    filtered = filtered.filter(t => t.name.toLowerCase().includes(name.toLowerCase()));
+                }
+                if (category) {
+                    filtered = filtered.filter(t => t.category === category);
+                }
+                if (status) {
+                    filtered = filtered.filter(t => t.status === status);
+                }
+                
+                if (filtered.length === 0) {
+                    body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted)">Tidak ada data tugas ditemukan</td></tr>';
+                    return;
+                }
+                
+                body.innerHTML = filtered.map(t => {
+                    const statusBadge = t.status === 'Completed' ? 'badge-success' : (t.status === 'In Progress' ? 'badge-warn' : 'badge-info');
+                    const scoreDisp = t.score ? `<span class="badge badge-success" style="font-weight:800; font-size:12px;"><i class="bi bi-star-fill" style="color:#F59E0B; margin-right:4px;"></i> ${t.score}</span>` : '<span style="color:var(--text-muted)">—</span>';
+                    
+                    const attachmentHTML = t.attachment_url ? `
+                        <a href="${t.attachment_url}" target="_blank" class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:30px;">
+                            <i class="bi bi-paperclip" style="font-size:12px;"></i> File
+                        </a>
+                    ` : '<span style="color:var(--text-muted)">—</span>';
+
+                    const taskJsonStr = encodeURIComponent(JSON.stringify(t));
+
+                    return `
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    ${t.profile_pic_url ?
+                                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${t.name?.substring(0, 2).toUpperCase()}</div>'">` :
+                                        `<div class="avatar avatar-sm">${t.name?.substring(0, 2).toUpperCase()}</div>`
+                                    }
+                                    <div>
+                                        <strong>${t.name}</strong>
+                                        <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${t.position}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="white-space:nowrap">${t.date}</td>
+                            <td><strong>${t.task_name}</strong></td>
+                            <td><span class="badge badge-info" style="font-size:11px;">${t.category}</span></td>
+                            <td style="max-width:200px; font-size:12px; color:var(--text-muted); line-height:1.4;">${t.notes || '—'}</td>
+                            <td style="text-align:center;">${attachmentHTML}</td>
+                            <td style="text-align:center;"><span class="badge ${statusBadge}">${t.status}</span></td>
+                            <td style="text-align:center;">${scoreDisp}</td>
+                            <td>
+                                <div style="display:flex; gap:6px;">
+                                    <button class="btn btn-sm btn-primary" onclick="openEditTaskModal('${taskJsonStr}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-pencil-square"></i> Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteAdminTask('${t.task_id}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-trash-fill"></i> Hapus</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat tugas</td></tr>';
+            }
+        } catch (err) {
+            console.error(err);
+            body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--danger)">Gagal terhubung ke server</td></tr>';
+        }
+    };
+
+    window.openAddTaskModal = function () {
+        document.getElementById('modalTaskTitle').innerHTML = '<i class="bi bi-list-task text-primary" style="margin-right:8px"></i> Tambah Tugas Baru';
+        document.getElementById('adminTaskForm').reset();
+        document.getElementById('modalTaskId').value = '';
+        document.getElementById('modalTaskDate').value = new Date().toISOString().substring(0, 10);
+        
+        // Populate employee dropdown from active employees
+        const userSelect = document.getElementById('modalTaskUser');
+        if (userSelect && window.allUsers) {
+            const employees = window.allUsers.filter(u => u.role === 'Employee' && u.status === 'Active');
+            userSelect.innerHTML = employees.map(u => `
+                <option value="${u.user_id}">${u.name} (${u.position || 'Employee'})</option>
+            `).join('');
+        }
+
+        openModal('modalTask');
+    };
+
+    window.openEditTaskModal = function (taskJsonStr) {
+        const task = JSON.parse(decodeURIComponent(taskJsonStr));
+        document.getElementById('modalTaskTitle').innerHTML = '<i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Tugas & Productivity';
+        
+        document.getElementById('modalTaskId').value = task.task_id;
+        
+        // Populate employee dropdown from active employees
+        const userSelect = document.getElementById('modalTaskUser');
+        if (userSelect && window.allUsers) {
+            const employees = window.allUsers.filter(u => u.role === 'Employee' && u.status === 'Active');
+            userSelect.innerHTML = employees.map(u => `
+                <option value="${u.user_id}" ${u.user_id === task.user_id ? 'selected' : ''}>${u.name} (${u.position || 'Employee'})</option>
+            `).join('');
+        }
+        
+        document.getElementById('modalTaskName').value = task.task_name || '';
+        document.getElementById('modalTaskCategory').value = task.category || 'Other';
+        document.getElementById('modalTaskDate').value = task.date || '';
+        document.getElementById('modalTaskNotes').value = task.notes || '';
+        document.getElementById('modalTaskStatus').value = task.status || 'Pending';
+        document.getElementById('modalTaskScore').value = task.score || '';
+        
+        openModal('modalTask');
+    };
+
+    window.saveAdminTask = async function (e) {
+        e.preventDefault();
+        const taskId = document.getElementById('modalTaskId').value;
+        const userId = document.getElementById('modalTaskUser').value;
+        const taskName = document.getElementById('modalTaskName').value.trim();
+        const category = document.getElementById('modalTaskCategory').value;
+        const date = document.getElementById('modalTaskDate').value;
+        const notes = document.getElementById('modalTaskNotes').value.trim();
+        const status = document.getElementById('modalTaskStatus').value;
+        const score = document.getElementById('modalTaskScore').value;
+        const fileInput = document.getElementById('modalTaskFile');
+
+        const submitBtn = document.getElementById('btnSaveTask');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split spin"></i> Menyimpan...';
+
+        let attachment_base64 = '';
+        let attachment_filename = '';
+
+        if (fileInput && fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            attachment_filename = file.name;
+            const getBase64 = (f) => new Promise((res, rej) => {
+                const r = new FileReader();
+                r.readAsDataURL(f);
+                r.onload = () => res(r.result);
+                r.onerror = e => rej(e);
+            });
+            try {
+                attachment_base64 = await getBase64(file);
+            } catch (err) {
+                console.error("Failed to read file", err);
+            }
+        }
+
+        const payload = {
+            action: taskId ? 'updateTask' : 'createTask',
+            task_id: taskId || undefined,
+            user_id: userId,
+            task_name: taskName,
+            category: category,
+            date: date,
+            notes: notes,
+            status: status,
+            score: score || undefined,
+            attachment_base64: attachment_base64 || undefined,
+            attachment_filename: attachment_filename || undefined
+        };
+
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(taskId ? 'Tugas berhasil diperbarui!' : 'Tugas berhasil ditambahkan!', 'success');
+                closeModal('modalTask');
+                loadAdminTasks();
+            } else {
+                showToast(data.message || 'Gagal menyimpan tugas', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Terjadi kesalahan koneksi', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    };
+
+    window.deleteAdminTask = async function (taskId) {
+        if (!confirm('Apakah Anda yakin ingin menghapus tugas ini secara permanen?')) return;
+
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'deleteTask', task_id: taskId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Tugas berhasil dihapus!', 'success');
+                loadAdminTasks();
+            } else {
+                showToast(data.message || 'Gagal menghapus tugas', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Terjadi kesalahan koneksi', 'error');
+        }
     };
 
     // Automatic Tab Deep-Linking System

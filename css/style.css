@@ -1225,7 +1225,7 @@ html[data-theme="dark"] .sidebar-link.active {
 }
 
 .theme-toggle-btn {
-  background: var(--bg-surface) !important;
+  /* background: var(--bg-surface) !important; */
   border: 1px solid var(--border) !important;
   box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.05), -3px -3px 6px #36446333 !important;
   border-radius: 50% !important;

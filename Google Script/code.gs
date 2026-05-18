@@ -16,7 +16,8 @@ const SHEET = {
   HOLIDAYS: 'tbl_holidays',
   CONFIG: 'tbl_config',
   QUOTAS: 'tbl_leave_quota',
-  POSITION: 'tbl_position'
+  POSITION: 'tbl_position',
+  TASKS: 'tbl_tasks'
 };
 
 // ============ ENTRY POINTS ============
@@ -44,6 +45,7 @@ function doGet(e) {
         };
         break;
       case 'getHolidays':    result = getHolidays(); break;
+      case 'getTasks':       result = getTasks(e.parameter); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
     return jsonResponse(result);
@@ -76,6 +78,9 @@ function doPost(e) {
       case 'deletePosition': result = deletePosition(body); break;
       case 'addDivision':    result = addDivision(body); break;
       case 'deleteDivision': result = deleteDivision(body); break;
+      case 'createTask':     result = createTask(body); break;
+      case 'updateTask':     result = updateTask(body); break;
+      case 'deleteTask':     result = deleteTask(body); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
     return jsonResponse(result);
@@ -1641,4 +1646,156 @@ function deleteDivision(body) {
   } catch (e) {
     return { success: false, message: e.message };
   }
+}
+
+// ============ TASK MANAGEMENT & PRODUCTIVITY SYSTEM ============
+
+function getTasksSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('tbl_tasks');
+  if (!sheet) {
+    sheet = ss.insertSheet('tbl_tasks');
+    sheet.appendRow([
+      'task_id', 
+      'user_id', 
+      'date', 
+      'task_name', 
+      'category', 
+      'status', 
+      'attachment_url', 
+      'notes', 
+      'score'
+    ]);
+  }
+  return sheet;
+}
+
+function getTasks(params) {
+  const { user_id, date, start_date, end_date } = params;
+  const sheet = getTasksSheet();
+  const tasks = sheetToObjects(sheet);
+  const users = sheetToObjects(getSheet(SHEET.USERS));
+
+  let records = tasks.map(t => {
+    const user = users.find(u => u.user_id === t.user_id);
+    return {
+      ...t,
+      name: user ? user.name : 'Unknown',
+      position: user ? user.position : '',
+      profile_pic_url: user ? (user.profile_pic_url || '') : '',
+      date: formatDate(t.date)
+    };
+  });
+
+  if (user_id) {
+    records = records.filter(r => String(r.user_id).trim() === String(user_id).trim());
+  }
+  if (date) {
+    records = records.filter(r => formatDate(r.date) === date);
+  }
+  if (start_date) {
+    records = records.filter(r => formatDate(r.date) >= start_date);
+  }
+  if (end_date) {
+    records = records.filter(r => formatDate(r.date) <= end_date);
+  }
+
+  return { success: true, tasks: records.reverse() };
+}
+
+function createTask(body) {
+  const { user_id, date, task_name, category, notes, status, attachment_base64, attachment_filename } = body;
+  
+  if (!user_id || !task_name || !category) {
+    return { success: false, message: 'ID Karyawan, Nama Tugas, dan Kategori wajib diisi' };
+  }
+
+  let attachmentUrl = '';
+  if (attachment_base64) {
+    const filename = attachment_filename || `task_${user_id}_${new Date().getTime()}.jpg`;
+    const uploadRes = uploadBase64ToDrive(attachment_base64, filename, 'task_attachments');
+    if (uploadRes.id) {
+      attachmentUrl = uploadRes.url;
+    }
+  }
+
+  const sheet = getTasksSheet();
+  const newId = generateId('TSK');
+  const taskDate = date || getTodayString();
+  const taskStatus = status || 'Pending';
+  const score = body.score || '';
+
+  sheet.appendRow([
+    newId,
+    user_id,
+    taskDate,
+    task_name,
+    category,
+    taskStatus,
+    attachmentUrl,
+    notes || '',
+    score
+  ]);
+
+  return { success: true, task_id: newId, message: 'Tugas berhasil dibuat!' };
+}
+
+function updateTask(body) {
+  const { task_id, task_name, category, date, notes, status, score, attachment_base64, attachment_filename } = body;
+  if (!task_id) return { success: false, message: 'Task ID wajib dilampirkan' };
+
+  const sheet = getTasksSheet();
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim());
+  
+  const idIdx = headers.indexOf('task_id');
+  const nameIdx = headers.indexOf('task_name');
+  const categoryIdx = headers.indexOf('category');
+  const dateIdx = headers.indexOf('date');
+  const notesIdx = headers.indexOf('notes');
+  const statusIdx = headers.indexOf('status');
+  const scoreIdx = headers.indexOf('score');
+  const attIdx = headers.indexOf('attachment_url');
+  
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idIdx]).trim() === String(task_id).trim()) {
+      const rowNum = i + 1;
+      
+      if (task_name !== undefined) sheet.getRange(rowNum, nameIdx + 1).setValue(task_name);
+      if (category !== undefined) sheet.getRange(rowNum, categoryIdx + 1).setValue(category);
+      if (date !== undefined) sheet.getRange(rowNum, dateIdx + 1).setValue(date);
+      if (notes !== undefined) sheet.getRange(rowNum, notesIdx + 1).setValue(notes);
+      if (status !== undefined) sheet.getRange(rowNum, statusIdx + 1).setValue(status);
+      if (score !== undefined) sheet.getRange(rowNum, scoreIdx + 1).setValue(score);
+      
+      if (attachment_base64) {
+        const filename = attachment_filename || `task_${task_id}_${new Date().getTime()}.jpg`;
+        const uploadRes = uploadBase64ToDrive(attachment_base64, filename, 'task_attachments');
+        if (uploadRes.id) {
+          sheet.getRange(rowNum, attIdx + 1).setValue(uploadRes.url);
+        }
+      }
+      
+      return { success: true, message: 'Tugas berhasil diperbarui!' };
+    }
+  }
+  return { success: false, message: 'Tugas tidak ditemukan' };
+}
+
+function deleteTask(body) {
+  const { task_id } = body;
+  if (!task_id) return { success: false, message: 'Task ID wajib dilampirkan' };
+
+  const sheet = getTasksSheet();
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim());
+  const idIdx = headers.indexOf('task_id');
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idIdx]).trim() === String(task_id).trim()) {
+      sheet.deleteRow(i + 1);
+      return { success: true, message: 'Tugas berhasil dihapus!' };
+    }
+  }
+  return { success: false, message: 'Tugas tidak ditemukan' };
 }
