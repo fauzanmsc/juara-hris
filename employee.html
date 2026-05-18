@@ -19,187 +19,188 @@
 
 <body class="employee-page">
 
-  <div class="header">
-    <div class="header-top">
-      <div class="brand-row">
-        <span>JEF e-Attendance</span>
-        <span class="live-badge">LIVE</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px; position:relative;">
-        <button class="theme-toggle-btn" id="notifBellBtn" onclick="toggleNotifDropdown(event)" title="Notifikasi"
-          style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer; position:relative;">
-          <i class="bi bi-bell-fill"></i>
-          <span id="notifCountBadge" class="hidden"
-            style="position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; font-size:9px; font-weight:800; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg-card);">0</span>
-        </button>
-        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
-          style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
-          <i class="bi bi-sun-fill"></i>
-        </button>
-        <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
+  <div class="wrap-employee">
+    <div class="header">
+      <div class="header-top">
+        <div class="brand-row">
+          <span>JEF e-Attendance</span>
+          <span class="live-badge">LIVE</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; position:relative;">
+          <button class="theme-toggle-btn" id="notifBellBtn" onclick="toggleNotifDropdown(event)" title="Notifikasi"
+            style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer; position:relative;">
+            <i class="bi bi-bell-fill"></i>
+            <span id="notifCountBadge" class="hidden"
+              style="position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; font-size:9px; font-weight:800; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg-card);">0</span>
+          </button>
+          <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+            style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+            <i class="bi bi-sun-fill"></i>
+          </button>
+          <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
 
-        <!-- Dropdown Notifikasi Neumorphisme -->
-        <div id="notifDropdown" class="hidden"
-          style="position:absolute; top:44px; right:0; width:290px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-neu); z-index:1000; padding:14px; display:flex; flex-direction:column; gap:10px;">
-          <div
-            style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:4px;">
-            <span style="font-weight:800; font-size:12px; color:var(--text);"><i class="bi bi-bell-fill text-primary"
-                style="margin-right:4px;"></i> Notifikasi</span>
-            <button onclick="markAllNotifAsRead()"
-              style="background:none; border:none; color:var(--primary); font-size:10px; font-weight:800; cursor:pointer; padding:0;">Baca
-              Semua</button>
+          <!-- Dropdown Notifikasi Neumorphisme -->
+          <div id="notifDropdown" class="hidden"
+            style="position:absolute; top:44px; right:0; width:290px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-neu); z-index:1000; padding:14px; display:flex; flex-direction:column; gap:10px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:4px;">
+              <span style="font-weight:800; font-size:12px; color:var(--text);"><i class="bi bi-bell-fill text-primary"
+                  style="margin-right:4px;"></i> Notifikasi</span>
+              <button onclick="markAllNotifAsRead()"
+                style="background:none; border:none; color:var(--primary); font-size:10px; font-weight:800; cursor:pointer; padding:0;">Baca
+                Semua</button>
+            </div>
+            <div id="notifItemsContainer"
+              style="max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+              <div style="text-align:center; padding:12px; font-size:11px; color:var(--text-muted);">Tidak ada
+                notifikasi
+                baru</div>
+            </div>
           </div>
-          <div id="notifItemsContainer"
-            style="max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
-            <div style="text-align:center; padding:12px; font-size:11px; color:var(--text-muted);">Tidak ada notifikasi
-              baru</div>
+        </div>
+      </div>
+      <div class="profile-row">
+        <div class="avatar-container" style="position: relative; flex-shrink: 0;">
+          <div class="avatar-emp" id="avatarEl">U</div>
+          <button class="btn-edit-profile-avatar" onclick="openEditProfileModal()"
+            style="position: absolute; bottom: -2px; right: -2px; background: var(--primary); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 10px; box-shadow: var(--shadow-neu-soft); cursor: pointer; transition: all var(--transition); z-index: 10;">
+            <i class="bi bi-pencil-fill"></i>
+          </button>
+        </div>
+        <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <h3 id="userName" style="margin: 0;">—</h3>
           </div>
-        </div>
-      </div>
-    </div>
-    <div class="profile-row">
-      <div class="avatar-container" style="position: relative; flex-shrink: 0;">
-        <div class="avatar-emp" id="avatarEl">U</div>
-        <button class="btn-edit-profile-avatar" onclick="openEditProfileModal()"
-          style="position: absolute; bottom: -2px; right: -2px; background: var(--primary); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 10px; box-shadow: var(--shadow-neu-soft); cursor: pointer; transition: all var(--transition); z-index: 10;">
-          <i class="bi bi-pencil-fill"></i>
-        </button>
-      </div>
-      <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start;">
-        <div style="display:flex; align-items:center; gap:6px;">
-          <h3 id="userName" style="margin: 0;">—</h3>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
-          <p id="userPosition">—</p>
-          <span id="userDivisionLabel" class="status-chip chip-ok"
-            style="font-size:9px; font-weight:800; padding:2px 8px; border-radius:50px; background:rgba(59, 130, 246, 0.12); color:var(--info); border:1px solid rgba(59, 130, 246, 0.25); display:inline-block; text-transform: uppercase;">—</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="content pb-nav">
-    <!-- DATE BAR -->
-    <div class="date-bar">
-      <div class="date-info">
-        <div class="day" id="dayName">—</div>
-        <div class="date-full" id="dateStr">—</div>
-      </div>
-      <div class="live-clock" id="liveClock">--:--:--</div>
-    </div>
-
-    <!-- HOLIDAY / LEAVE ALERT BANNER -->
-    <div id="holidayLeaveAlert" style="display:none; margin-bottom: 20px;"></div>
-
-    <!-- STATS -->
-    <div class="section-label">Ringkasan Bulan Ini</div>
-    <div class="stats-grid-wrapper stagger fade-in">
-      <div class="stat-card-emp">
-        <div class="stat-val val-green" id="statHadir">—</div>
-        <div class="stat-lbl">Hadir</div>
-      </div>
-      <div class="stat-card-emp">
-        <div class="stat-val val-dark" id="statTerlambat">—</div>
-        <div class="stat-lbl">Terlambat</div>
-      </div>
-      <div class="stat-card-emp">
-        <div class="stat-val val-orange" id="statCuti">—</div>
-        <div class="stat-lbl">Sisa Cuti</div>
-      </div>
-      <div class="stat-card-emp radial-stat">
-        <div class="radial-chart-container">
-          <svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="9" fill="transparent"
-              class="radial-bg-ring" />
-            <circle id="attendanceRing" cx="50" cy="50" r="40" stroke="var(--success)" stroke-width="9"
-              fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"
-              style="stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);" />
-          </svg>
-          <div class="radial-chart-text">
-            <span id="attendanceRateVal">100%</span>
-            <span class="radial-chart-lbl">On-Time</span>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+            <p id="userPosition">—</p>
+            <span id="userDivisionLabel" class="status-chip chip-ok"
+              style="font-size:9px; font-weight:800; padding:2px 8px; border-radius:50px; background:rgba(59, 130, 246, 0.12); color:var(--info); border:1px solid rgba(59, 130, 246, 0.25); display:inline-block; text-transform: uppercase;">—</span>
           </div>
         </div>
       </div>
     </div>
-    <!-- TODAY -->
-    <div class="section-label">Kehadiran Hari Ini</div>
-    <div class="today-card fade-in">
-      <div class="today-header"><i class="bi bi-clock-history"></i> &nbsp;Log Absensi</div>
-      <div class="time-row">
-        <div class="time-item">
-          <div class="time-lbl">Masuk</div>
-          <div class="time-val" id="clockInTime">--:--</div>
-          <div><span class="status-chip chip-empty" id="statusIn"
-              onclick="if(this.textContent.trim() === 'Belum absen') window.location.href='attendance.html'">Belum
-              absen</span></div>
+
+    <div class="content pb-nav">
+      <!-- DATE BAR -->
+      <div class="date-bar">
+        <div class="date-info">
+          <div class="day" id="dayName">—</div>
+          <div class="date-full" id="dateStr">—</div>
         </div>
-        <div class="time-divider"></div>
-        <div class="time-item">
-          <div class="time-lbl">Pulang</div>
-          <div class="time-val empty" id="clockOutTime">--:--</div>
-          <div><span class="status-chip chip-empty" id="statusOut">—</span></div>
+        <div class="live-clock" id="liveClock">--:--:--</div>
+      </div>
+
+      <!-- HOLIDAY / LEAVE ALERT BANNER -->
+      <div id="holidayLeaveAlert" style="display:none; margin-bottom: 20px;"></div>
+
+      <!-- STATS -->
+      <div class="section-label">Ringkasan Bulan Ini</div>
+      <div class="stats-grid-wrapper stagger fade-in">
+        <div class="stat-card-emp">
+          <div class="stat-val val-green" id="statHadir">—</div>
+          <div class="stat-lbl">Hadir</div>
+        </div>
+        <div class="stat-card-emp">
+          <div class="stat-val val-dark" id="statTerlambat">—</div>
+          <div class="stat-lbl">Terlambat</div>
+        </div>
+        <div class="stat-card-emp">
+          <div class="stat-val val-orange" id="statCuti">—</div>
+          <div class="stat-lbl">Sisa Cuti</div>
+        </div>
+        <div class="stat-card-emp radial-stat">
+          <div class="radial-chart-container">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="9" fill="transparent"
+                class="radial-bg-ring" />
+              <circle id="attendanceRing" cx="50" cy="50" r="40" stroke="var(--success)" stroke-width="9"
+                fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"
+                style="stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);" />
+            </svg>
+            <div class="radial-chart-text">
+              <span id="attendanceRateVal">100%</span>
+              <span class="radial-chart-lbl">On-Time</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- TODAY -->
+      <div class="section-label">Kehadiran Hari Ini</div>
+      <div class="today-card fade-in">
+        <div class="today-header"><i class="bi bi-clock-history"></i> &nbsp;Log Absensi</div>
+        <div class="time-row">
+          <div class="time-item">
+            <div class="time-lbl">Masuk</div>
+            <div class="time-val" id="clockInTime">--:--</div>
+            <div><span class="status-chip chip-empty" id="statusIn"
+                onclick="if(this.textContent.trim() === 'Belum absen') window.location.href='attendance.html'">Belum
+                absen</span></div>
+          </div>
+          <div class="time-divider"></div>
+          <div class="time-item">
+            <div class="time-lbl">Pulang</div>
+            <div class="time-val empty" id="clockOutTime">--:--</div>
+            <div><span class="status-chip chip-empty" id="statusOut">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENU -->
+      <div class="section-label">Menu Utama</div>
+      <div class="menu-grid stagger fade-in">
+        <a href="attendance.html" class="menu-card">
+          <div class="menu-icon icon-yellow"><i class="bi bi-person-check-fill"></i></div>
+          <h4>Absensi</h4>
+          <p>Clock In &amp; Clock Out harian</p>
+        </a>
+        <a href="leave.html" class="menu-card">
+          <div class="menu-icon icon-success"><i class="bi bi-calendar-check-fill"></i></div>
+          <h4>Pengajuan</h4>
+          <p>Cuti, Sakit &amp; Izin</p>
+        </a>
+        <a href="history.html" class="menu-card">
+          <div class="menu-icon icon-blue"><i class="bi bi-clock-fill"></i></div>
+          <h4>Riwayat</h4>
+          <p>Histori kehadiran Anda</p>
+        </a>
+        <a href="leave.html?tab=history" class="menu-card">
+          <div class="menu-icon icon-danger"><i class="bi bi-folder-fill"></i></div>
+          <h4>Status Ajuan</h4>
+          <p>Tracking pengajuan</p>
+        </a>
+      </div>
+
+      <!-- ACTIVITY -->
+      <div class="section-label">Aktivitas Terakhir</div>
+      <div class="activity-list" id="activityList">
+        <div class="activity-item">
+          <div class="act-dot act-dot-yellow"><i class="bi bi-arrow-clockwise"></i></div>
+          <div class="act-content">
+            <strong>Memuat data...</strong>
+            <span>Sinkronisasi aktivitas terbaru</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- MENU -->
-    <div class="section-label">Menu Utama</div>
-    <div class="menu-grid stagger fade-in">
-      <a href="attendance.html" class="menu-card">
-        <div class="menu-icon icon-yellow"><i class="bi bi-person-check-fill"></i></div>
-        <h4>Absensi</h4>
-        <p>Clock In &amp; Clock Out harian</p>
-      </a>
-      <a href="leave.html" class="menu-card">
-        <div class="menu-icon icon-success"><i class="bi bi-calendar-check-fill"></i></div>
-        <h4>Pengajuan</h4>
-        <p>Cuti, Sakit &amp; Izin</p>
-      </a>
-      <a href="history.html" class="menu-card">
-        <div class="menu-icon icon-blue"><i class="bi bi-clock-fill"></i></div>
-        <h4>Riwayat</h4>
-        <p>Histori kehadiran Anda</p>
-      </a>
-      <a href="leave.html?tab=history" class="menu-card">
-        <div class="menu-icon icon-danger"><i class="bi bi-folder-fill"></i></div>
-        <h4>Status Ajuan</h4>
-        <p>Tracking pengajuan</p>
-      </a>
-    </div>
 
-    <!-- ACTIVITY -->
-    <div class="section-label">Aktivitas Terakhir</div>
-    <div class="activity-list" id="activityList">
-      <div class="activity-item">
-        <div class="act-dot act-dot-yellow"><i class="bi bi-arrow-clockwise"></i></div>
-        <div class="act-content">
-          <strong>Memuat data...</strong>
-          <span>Sinkronisasi aktivitas terbaru</span>
-        </div>
-      </div>
-    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <a href="employee.html" class="nav-item active">
+        <i class="bi bi-house-fill"></i>Beranda
+      </a>
+      <a href="attendance.html" class="nav-item">
+        <i class="bi bi-person-check-fill"></i>Absensi
+      </a>
+      <a href="leave.html" class="nav-item">
+        <i class="bi bi-calendar-check-fill"></i>Pengajuan
+      </a>
+      <a href="history.html" class="nav-item">
+        <i class="bi bi-clock-fill"></i>Riwayat
+      </a>
+    </nav>
   </div>
-  </div>
-
-
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <a href="employee.html" class="nav-item active">
-      <i class="bi bi-house-fill"></i>Beranda
-    </a>
-    <a href="attendance.html" class="nav-item">
-      <i class="bi bi-person-check-fill"></i>Absensi
-    </a>
-    <a href="leave.html" class="nav-item">
-      <i class="bi bi-calendar-check-fill"></i>Pengajuan
-    </a>
-    <a href="history.html" class="nav-item">
-      <i class="bi bi-clock-fill"></i>Riwayat
-    </a>
-  </nav>
-
   <!-- EDIT PROFILE MODAL -->
   <div id="editProfileModal"
     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:1000; align-items:center; justify-content:center; padding:20px;">

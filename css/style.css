@@ -1227,7 +1227,7 @@ html[data-theme="dark"] .sidebar-link.active {
 .theme-toggle-btn {
   background: var(--bg-surface) !important;
   border: 1px solid var(--border) !important;
-  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.05), -3px -3px 6px rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.05), -3px -3px 6px #ff920033 !important;
   border-radius: 50% !important;
   width: 34px !important;
   height: 34px !important;
@@ -1242,7 +1242,7 @@ html[data-theme="dark"] .sidebar-link.active {
 
 .theme-toggle-btn:hover {
   transform: translateY(-1px) scale(1.05);
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.05), -3px -3px 6px #ffb5543e !important
 }
 
 .clock-chip {
@@ -2395,7 +2395,7 @@ body.history-page {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 body.employee-page .header,
@@ -4328,7 +4328,7 @@ html[data-theme="light"] body.employee-page .radial-bg-ring {
 .content {
   background: var(--bg-card-gradient) !important;
   border-radius: var(--radius-lg) !important;
-  border: 1px solid var(--border) !important;
+  /* border: 1px solid var(--border) !important; */
   box-shadow: var(--shadow-neu-inset) !important;
   margin: 16px 16px 110px !important;
   padding: 20px !important;
@@ -5086,6 +5086,11 @@ body.employee-page .icon-blue {
   padding-right: 12px !important;
   border-radius: 0 !important;
   flex: 1;
+}
+
+.wrap-employee {
+  background: var(--bg-surface);
+  height: stretch;
 }
 
 .reg-modal-card .reg-email-suffix {

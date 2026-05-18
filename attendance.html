@@ -18,109 +18,111 @@
 
 <body class="attendance-page">
 
-  <div class="header">
-    <div style="display:flex; align-items:center; gap:14px;">
-      <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
-      <div class="header-info">
-        <h2>Absensi</h2>
-        <p id="headerSub">Memuat status...</p>
-      </div>
-    </div>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
-        style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
-        <i class="bi bi-sun-fill"></i>
-      </button>
-      <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
-    </div>
-  </div>
-
-  <div class="toast-att" id="toastEl"></div>
-
-  <div class="content">
-    <!-- CLOCK -->
-    <div class="clock-widget fade-in">
-      <div class="clock-time" id="clockDisplay">--:--:--</div>
-      <div class="clock-date" id="clockDate">—</div>
-    </div>
-
-    <!-- LOCK BANNER -->
-    <div class="lock-banner" id="lockBanner">
-      <div class="lock-icon-wrap"><i class="bi bi-lock-fill"></i></div>
-      <div class="lock-text">
-        <strong id="lockTitle">Absensi Dikunci</strong>
-        <p id="lockReason">—</p>
-      </div>
-    </div>
-
-    <!-- GEO -->
-    <div class="geo-widget loading" id="geoWidget">
-      <div class="geo-header">
-        <span class="geo-label">Status Lokasi</span>
-        <div class="geo-dot loading" id="geoDot"></div>
-      </div>
-      <div class="geo-main">
-        <div class="geo-icon loading" id="geoIcon"><i class="bi bi-broadcast"></i></div>
-        <div>
-          <div class="geo-title" id="geoTitle">Mendeteksi lokasi...</div>
-          <div class="geo-distance" id="geoDistance">Meminta izin GPS</div>
+  <div class="wrap-employee">
+    <div class="header">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <div class="header-info">
+          <h2>Absensi</h2>
+          <p id="headerSub">Memuat status...</p>
         </div>
       </div>
-    </div>
-
-    <!-- CAMERA -->
-    <div class="camera-card fade-in">
-      <div class="camera-head">
-        <span class="camera-label"><i class="bi bi-camera-fill"></i> &nbsp;Foto Selfie</span>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <span class="camera-toggle" id="cameraToggle" onclick="startCamera()" style="cursor:pointer;">Aktifkan
-            Kamera</span>
-          <span class="camera-toggle" id="btnFlipCamera" onclick="flipCamera()" style="cursor:pointer; display:none;"><i
-              class="bi bi-arrow-repeat"></i> Flip</span>
-        </div>
-      </div>
-      <div class="camera-container">
-        <video id="videoEl" autoplay playsinline muted></video>
-        <div class="camera-overlay" id="cameraOverlay">
-          <i class="bi bi-camera"></i>
-          <p>Aktifkan kamera untuk mengambil foto selfie sebelum absen</p>
-        </div>
-        <div class="face-guide" id="faceGuide" style="display:none"></div>
-        <img id="capturedImg" alt="Foto selfie">
-      </div>
-      <div class="camera-actions">
-        <button class="btn-capture" id="btnCapture" onclick="capturePhoto()" disabled>
-          <i class="bi bi-camera-fill"></i> Ambil Foto
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+          style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+          <i class="bi bi-sun-fill"></i>
         </button>
-        <button class="btn-retake" id="btnRetake" onclick="retakePhoto()"><i class="bi bi-arrow-repeat"></i></button>
+        <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
       </div>
     </div>
 
-    <!-- MAIN ACTION -->
-    <button class="btn-clock clock-in" id="mainBtn" disabled onclick="submitAttendance()">
-      <i class="bi bi-box-arrow-in-up"></i>
-      <span id="mainBtnText">CLOCK IN</span>
-    </button>
+    <div class="toast-att" id="toastEl"></div>
+
+    <div class="content">
+      <!-- CLOCK -->
+      <div class="clock-widget fade-in">
+        <div class="clock-time" id="clockDisplay">--:--:--</div>
+        <div class="clock-date" id="clockDate">—</div>
+      </div>
+
+      <!-- LOCK BANNER -->
+      <div class="lock-banner" id="lockBanner">
+        <div class="lock-icon-wrap"><i class="bi bi-lock-fill"></i></div>
+        <div class="lock-text">
+          <strong id="lockTitle">Absensi Dikunci</strong>
+          <p id="lockReason">—</p>
+        </div>
+      </div>
+
+      <!-- GEO -->
+      <div class="geo-widget loading" id="geoWidget">
+        <div class="geo-header">
+          <span class="geo-label">Status Lokasi</span>
+          <div class="geo-dot loading" id="geoDot"></div>
+        </div>
+        <div class="geo-main">
+          <div class="geo-icon loading" id="geoIcon"><i class="bi bi-broadcast"></i></div>
+          <div>
+            <div class="geo-title" id="geoTitle">Mendeteksi lokasi...</div>
+            <div class="geo-distance" id="geoDistance">Meminta izin GPS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMERA -->
+      <div class="camera-card fade-in">
+        <div class="camera-head">
+          <span class="camera-label"><i class="bi bi-camera-fill"></i> &nbsp;Foto Selfie</span>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <span class="camera-toggle" id="cameraToggle" onclick="startCamera()" style="cursor:pointer;">Aktifkan
+              Kamera</span>
+            <span class="camera-toggle" id="btnFlipCamera" onclick="flipCamera()"
+              style="cursor:pointer; display:none;"><i class="bi bi-arrow-repeat"></i> Flip</span>
+          </div>
+        </div>
+        <div class="camera-container">
+          <video id="videoEl" autoplay playsinline muted></video>
+          <div class="camera-overlay" id="cameraOverlay">
+            <i class="bi bi-camera"></i>
+            <p>Aktifkan kamera untuk mengambil foto selfie sebelum absen</p>
+          </div>
+          <div class="face-guide" id="faceGuide" style="display:none"></div>
+          <img id="capturedImg" alt="Foto selfie">
+        </div>
+        <div class="camera-actions">
+          <button class="btn-capture" id="btnCapture" onclick="capturePhoto()" disabled>
+            <i class="bi bi-camera-fill"></i> Ambil Foto
+          </button>
+          <button class="btn-retake" id="btnRetake" onclick="retakePhoto()"><i class="bi bi-arrow-repeat"></i></button>
+        </div>
+      </div>
+
+      <!-- MAIN ACTION -->
+      <button class="btn-clock clock-in" id="mainBtn" disabled onclick="submitAttendance()">
+        <i class="bi bi-box-arrow-in-up"></i>
+        <span id="mainBtnText">CLOCK IN</span>
+      </button>
+    </div>
+
+    <canvas id="photoCanvas" style="display:none"></canvas>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <a href="employee.html" class="nav-item">
+        <i class="bi bi-house-fill"></i>Beranda
+      </a>
+      <a href="attendance.html" class="nav-item active">
+        <i class="bi bi-person-check-fill"></i>Absensi
+      </a>
+      <a href="leave.html" class="nav-item">
+        <i class="bi bi-calendar-check-fill"></i>Pengajuan
+      </a>
+      <a href="history.html" class="nav-item">
+        <i class="bi bi-clock-fill"></i>Riwayat
+      </a>
+    </nav>
+
   </div>
-
-  <canvas id="photoCanvas" style="display:none"></canvas>
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <a href="employee.html" class="nav-item">
-      <i class="bi bi-house-fill"></i>Beranda
-    </a>
-    <a href="attendance.html" class="nav-item active">
-      <i class="bi bi-person-check-fill"></i>Absensi
-    </a>
-    <a href="leave.html" class="nav-item">
-      <i class="bi bi-calendar-check-fill"></i>Pengajuan
-    </a>
-    <a href="history.html" class="nav-item">
-      <i class="bi bi-clock-fill"></i>Riwayat
-    </a>
-  </nav>
-
   <script src="js/script.js"></script>
 
 </body>
