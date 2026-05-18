@@ -148,6 +148,16 @@ window.logout = function () {
     }
 };
 
+window.openModal = function (id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+};
+
+window.closeModal = function (id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+};
+
 // Helper Global: Parse waktu dari berbagai format (ISO full string atau HH:MM) ke format HH:MM 24 jam
 window.parseTime = function (val) {
     if (!val || val === '--:--' || val === '--') return null;
@@ -684,6 +694,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getUsers`);
                 const data = await res.json();
                 allUsers = data.users || [];
+                window.allUsers = allUsers;
             } catch (e) {
                 console.error('Error loading users:', e);
                 showToast('Gagal memuat data karyawan', 'error');
@@ -2590,7 +2601,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
 (function () {
     const userData = (() => {
         try {
-            return JSON.parse(localStorage.getItem('hris_user')) || {};
+            return JSON.parse(sessionStorage.getItem('hris_user')) || JSON.parse(localStorage.getItem('hris_user')) || {};
         } catch (e) {
             return {};
         }
@@ -2991,10 +3002,37 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
     };
 
     // ============ ADMIN TASK SYSTEM ============
+    function getEmbedPreviewUrl(url) {
+        if (!url) return '';
+        const match = url.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
+        if (match && match[1]) {
+            return `https://drive.google.com/file/d/${match[1]}/preview`;
+        }
+        return url;
+    }
+
+    window.previewAdminAttachment = function (url) {
+        const body = document.getElementById('modalDocBody');
+        const embedUrl = getEmbedPreviewUrl(url);
+        body.innerHTML = `<iframe src="${embedUrl}" style="width:100%; height:450px; border-radius:12px; border:none; background:#000;"></iframe>`;
+        openModal('modalDoc');
+    };
+
     window.loadAdminTasks = async function () {
         const body = document.getElementById('taskAdminBody');
         if (!body) return;
         body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px">Memuat data tugas...</td></tr>';
+
+        // Ensure users list is loaded globally
+        if (!window.allUsers || !window.allUsers.length) {
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=getUsers`);
+                const data = await res.json();
+                window.allUsers = data.users || [];
+            } catch (err) {
+                console.error("Failed to load users for tasks", err);
+            }
+        }
 
         // Set default filter values if not set
         if (!document.getElementById('taskFilterStart').value) {
@@ -3010,6 +3048,16 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         const name = document.getElementById('taskFilterName').value.trim();
         const category = document.getElementById('taskFilterCategory').value;
         const status = document.getElementById('taskFilterStatus').value;
+        const division = document.getElementById('taskFilterDivision') ? document.getElementById('taskFilterDivision').value : '';
+
+        // Populate Division Filter dynamically if not already populated
+        const divFilter = document.getElementById('taskFilterDivision');
+        if (divFilter && divFilter.options.length <= 1 && window.allUsers) {
+            const divisions = [...new Set(window.allUsers.map(u => u.division).filter(Boolean))].sort();
+            divFilter.innerHTML = '<option value="">Semua Divisi</option>' +
+                divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+            if (division) divFilter.value = division;
+        }
 
         try {
             const res = await fetch(`${APPS_SCRIPT_URL}?action=getTasks&start_date=${start}&end_date=${end}`);
@@ -3026,20 +3074,48 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                 if (status) {
                     filtered = filtered.filter(t => t.status === status);
                 }
+                if (division) {
+                    filtered = filtered.filter(t => {
+                        const userObj = window.allUsers?.find(u => u.user_id === t.user_id || u.name?.toLowerCase() === t.name?.toLowerCase());
+                        return userObj && userObj.division === division;
+                    });
+                }
                 
+                // Dynamic calculation for task statistics
+                const totalTasks = filtered.length;
+                const completedTasks = filtered.filter(t => t.status === 'Completed').length;
+                const pendingTasks = totalTasks - completedTasks;
+                
+                // Calculate average productivity score (only for tasks with a score)
+                const scoredTasks = filtered.filter(t => t.score && !isNaN(t.score));
+                const avgScore = scoredTasks.length > 0
+                    ? Math.round(scoredTasks.reduce((sum, t) => sum + Number(t.score), 0) / scoredTasks.length)
+                    : 0;
+
+                // Update Task Insights UI dynamically!
+                if (document.getElementById('taskStatTotal')) document.getElementById('taskStatTotal').textContent = totalTasks;
+                if (document.getElementById('taskStatCompleted')) document.getElementById('taskStatCompleted').textContent = completedTasks;
+                if (document.getElementById('taskStatPending')) document.getElementById('taskStatPending').textContent = pendingTasks;
+                if (document.getElementById('taskStatAvgScore')) {
+                    document.getElementById('taskStatAvgScore').innerHTML = avgScore > 0
+                        ? `<i class="bi bi-star-fill text-warn" style="margin-right:4px;"></i> ${avgScore}%`
+                        : '—';
+                }
+
                 if (filtered.length === 0) {
-                    body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted)">Tidak ada data tugas ditemukan</td></tr>';
+                    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Tidak ada data tugas ditemukan</td></tr>';
                     return;
                 }
                 
                 body.innerHTML = filtered.map(t => {
-                    const statusBadge = t.status === 'Completed' ? 'badge-success' : (t.status === 'In Progress' ? 'badge-warn' : 'badge-info');
+                    const statusBadge = t.status === 'Completed' ? 'badge-success' : 'badge-warn';
+                    const statusTranslation = t.status === 'Completed' ? 'Selesai' : 'Belum Selesai';
                     const scoreDisp = t.score ? `<span class="badge badge-success" style="font-weight:800; font-size:12px;"><i class="bi bi-star-fill" style="color:#F59E0B; margin-right:4px;"></i> ${t.score}</span>` : '<span style="color:var(--text-muted)">—</span>';
                     
                     const attachmentHTML = t.attachment_url ? `
-                        <a href="${t.attachment_url}" target="_blank" class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:30px;">
-                            <i class="bi bi-paperclip" style="font-size:12px;"></i> File
-                        </a>
+                        <button onclick="previewAdminAttachment('${t.attachment_url}')" class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:30px; cursor:pointer;">
+                            <i class="bi bi-file-earmark-arrow-up-fill text-primary" style="font-size:12px;"></i> Preview
+                        </button>
                     ` : '<span style="color:var(--text-muted)">—</span>';
 
                     const taskJsonStr = encodeURIComponent(JSON.stringify(t));
@@ -3059,27 +3135,31 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                                 </div>
                             </td>
                             <td style="white-space:nowrap">${t.date}</td>
-                            <td><strong>${t.task_name}</strong></td>
-                            <td><span class="badge badge-info" style="font-size:11px;">${t.category}</span></td>
-                            <td style="max-width:200px; font-size:12px; color:var(--text-muted); line-height:1.4;">${t.notes || '—'}</td>
-                            <td style="text-align:center;">${attachmentHTML}</td>
-                            <td style="text-align:center;"><span class="badge ${statusBadge}">${t.status}</span></td>
+                            <td>
+                                <strong style="font-size:13px; color:var(--text);">${t.task_name}</strong>
+                                <div style="font-size:10px; color:var(--text-muted); margin-top:3px; display:flex; gap:8px; align-items:center;">
+                                    <span class="badge badge-info" style="font-size:9px; padding:2px 6px;">${t.category}</span>
+                                    <span><i class="bi bi-clock-fill" style="margin-right:2px;"></i> ${t.start_time || '—'} - ${t.end_time || '—'}</span>
+                                </div>
+                            </td>
+                            <td style="text-align:center;"><span class="badge ${statusBadge}">${statusTranslation}</span></td>
                             <td style="text-align:center;">${scoreDisp}</td>
                             <td>
-                                <div style="display:flex; gap:6px;">
+                                <div style="display:flex; gap:6px; justify-content:center;">
+                                    <button class="btn btn-sm btn-ghost" onclick="viewAdminTaskDetail('${taskJsonStr}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-eye"></i> Detail</button>
                                     <button class="btn btn-sm btn-primary" onclick="openEditTaskModal('${taskJsonStr}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-pencil-square"></i> Edit</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteAdminTask('${t.task_id}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-trash-fill"></i> Hapus</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteAdminTask('${t.task_id}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-trash-fill"></i></button>
                                 </div>
                             </td>
                         </tr>
                     `;
                 }).join('');
             } else {
-                body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat tugas</td></tr>';
+                body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat tugas</td></tr>';
             }
         } catch (err) {
             console.error(err);
-            body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--danger)">Gagal terhubung ke server</td></tr>';
+            body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--danger)">Gagal terhubung ke server</td></tr>';
         }
     };
 
@@ -3088,6 +3168,11 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         document.getElementById('adminTaskForm').reset();
         document.getElementById('modalTaskId').value = '';
         document.getElementById('modalTaskDate').value = new Date().toISOString().substring(0, 10);
+        document.getElementById('modalTaskTarget').value = '';
+        document.getElementById('modalTaskStartTime').value = '';
+        document.getElementById('modalTaskEndTime').value = '';
+        document.getElementById('modalTaskOutput').value = '';
+        document.getElementById('modalTaskOthers').value = '';
         
         // Populate employee dropdown from active employees
         const userSelect = document.getElementById('modalTaskUser');
@@ -3099,6 +3184,96 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
 
         openModal('modalTask');
+    };
+
+    window.viewAdminTaskDetail = function(taskJsonStr) {
+        const t = JSON.parse(decodeURIComponent(taskJsonStr));
+        const body = document.getElementById('modalViewTaskAdminBody');
+        
+        const attachmentBtn = t.attachment_url ? `
+            <button onclick="previewAdminAttachment('${t.attachment_url}')" class="btn btn-primary" style="margin-top:8px; padding:10px 16px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; width:100%;">
+                <i class="bi bi-file-earmark-arrow-up-fill"></i> Buka Dokumen Lampiran
+            </button>
+        ` : `<div style="padding:12px; background:rgba(0,0,0,0.05); border-radius:8px; text-align:center; color:var(--text-muted); font-size:12px; margin-top:8px;"><i class="bi bi-dash-circle"></i> Tidak ada dokumen yang dilampirkan</div>`;
+
+        const statusBadge = t.status === 'Completed' ? 'badge-success' : 'badge-warn';
+        const statusText = t.status === 'Completed' ? 'Selesai' : 'Belum Selesai';
+
+        body.innerHTML = `
+            <div class="bento-detail-grid">
+                <div style="display:flex; gap:12px; padding-bottom:16px; border-bottom:1px dashed var(--border); margin-bottom:4px;">
+                    ${t.profile_pic_url ?
+                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;" onerror="this.outerHTML='<div class=\'avatar\' style=\'width:50px; height:50px; border-radius:14px;\'>${t.name?.substring(0, 2).toUpperCase()}</div>'">` :
+                        `<div class="avatar" style="width:50px; height:50px; border-radius:14px; font-size:18px;">${t.name?.substring(0, 2).toUpperCase()}</div>`
+                    }
+                    <div style="display:flex; flex-direction:column; justify-content:center;">
+                        <h4 style="margin:0; font-size:18px; font-weight:800; color:var(--text);">${t.name}</h4>
+                        <span style="color:var(--text-muted); font-size:12px;">${t.position || 'Employee'} • ${t.division || '-'}</span>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div class="bento-detail-item">
+                        <span class="bento-detail-label">Tanggal Laporan</span>
+                        <span class="bento-detail-value"><i class="bi bi-calendar-event text-primary" style="margin-right:6px"></i>${t.date}</span>
+                    </div>
+                    <div class="bento-detail-item">
+                        <span class="bento-detail-label">Status & Skor</span>
+                        <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                            <span class="badge ${statusBadge}">${statusText}</span>
+                            ${t.score ? `<span class="badge badge-success" style="font-weight:800;"><i class="bi bi-star-fill" style="color:#F59E0B; margin-right:4px;"></i> ${t.score}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bento-detail-item" style="background:rgba(59,130,246,0.05); border-color:rgba(59,130,246,0.15);">
+                    <span class="bento-detail-label text-primary">Nama Tugas Utama</span>
+                    <span class="bento-detail-value" style="font-size:16px;">${t.task_name}</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div class="bento-detail-item">
+                        <span class="bento-detail-label">Waktu Pengerjaan</span>
+                        <span class="bento-detail-value"><i class="bi bi-clock-fill text-warn" style="margin-right:6px"></i>${t.start_time || '--:--'} s/d ${t.end_time || '--:--'}</span>
+                    </div>
+                    <div class="bento-detail-item">
+                        <span class="bento-detail-label">Kategori Tugas</span>
+                        <span class="bento-detail-value">${t.category}</span>
+                    </div>
+                </div>
+
+                <div class="bento-detail-item">
+                    <span class="bento-detail-label">Target / Goals</span>
+                    <span class="bento-detail-value">${t.target_goals || '<span style="color:var(--text-muted)">-</span>'}</span>
+                </div>
+
+                <div class="bento-detail-item">
+                    <span class="bento-detail-label">Output Yang Dihasilkan</span>
+                    <span class="bento-detail-value">${t.output || '<span style="color:var(--text-muted)">-</span>'}</span>
+                </div>
+
+                ${t.notes ? `
+                <div class="bento-detail-item" style="background:rgba(245,158,11,0.05); border-color:rgba(245,158,11,0.15);">
+                    <span class="bento-detail-label text-warn">Kendala / Issue / Catatan</span>
+                    <span class="bento-detail-value">${t.notes}</span>
+                </div>
+                ` : ''}
+
+                ${t.others ? `
+                <div class="bento-detail-item">
+                    <span class="bento-detail-label">Lainnya</span>
+                    <span class="bento-detail-value">${t.others}</span>
+                </div>
+                ` : ''}
+
+                <div class="bento-detail-item" style="margin-top:8px;">
+                    <span class="bento-detail-label">File Lampiran Bukti Kerja</span>
+                    ${attachmentBtn}
+                </div>
+            </div>
+        `;
+
+        openModal('modalViewTaskAdmin');
     };
 
     window.openEditTaskModal = function (taskJsonStr) {
@@ -3117,9 +3292,14 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
         
         document.getElementById('modalTaskName').value = task.task_name || '';
+        document.getElementById('modalTaskTarget').value = task.target_goals || '';
+        document.getElementById('modalTaskStartTime').value = task.start_time || '';
+        document.getElementById('modalTaskEndTime').value = task.end_time || '';
+        document.getElementById('modalTaskOutput').value = task.output || '';
         document.getElementById('modalTaskCategory').value = task.category || 'Other';
         document.getElementById('modalTaskDate').value = task.date || '';
         document.getElementById('modalTaskNotes').value = task.notes || '';
+        document.getElementById('modalTaskOthers').value = task.others || '';
         document.getElementById('modalTaskStatus').value = task.status || 'Pending';
         document.getElementById('modalTaskScore').value = task.score || '';
         
@@ -3131,9 +3311,14 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         const taskId = document.getElementById('modalTaskId').value;
         const userId = document.getElementById('modalTaskUser').value;
         const taskName = document.getElementById('modalTaskName').value.trim();
+        const target = document.getElementById('modalTaskTarget').value.trim();
+        const startTime = document.getElementById('modalTaskStartTime').value;
+        const endTime = document.getElementById('modalTaskEndTime').value;
+        const output = document.getElementById('modalTaskOutput').value.trim();
         const category = document.getElementById('modalTaskCategory').value;
         const date = document.getElementById('modalTaskDate').value;
         const notes = document.getElementById('modalTaskNotes').value.trim();
+        const others = document.getElementById('modalTaskOthers').value.trim();
         const status = document.getElementById('modalTaskStatus').value;
         const score = document.getElementById('modalTaskScore').value;
         const fileInput = document.getElementById('modalTaskFile');
@@ -3167,9 +3352,14 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             task_id: taskId || undefined,
             user_id: userId,
             task_name: taskName,
+            target_goals: target,
+            start_time: startTime,
+            end_time: endTime,
+            output: output,
             category: category,
             date: date,
             notes: notes,
+            others: others,
             status: status,
             score: score || undefined,
             attachment_base64: attachment_base64 || undefined,

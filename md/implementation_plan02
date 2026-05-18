@@ -1,0 +1,59 @@
+# Implementation Plan - JEF HRIS Modernization & Premium Visual Redesign
+
+We will completely transform the e-Attendance e-Productivity portal into a spectacular, high-fidelity human capital dashboard matching the visuals of high-end SaaS tools (with modern glassmorphism UI, vibrant colors, sub-pixel retina-ready layout spacing, responsive tables, and live data insights).
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Key Enhancements Proposed**:
+> 1. **Sidebar Menu Modernization**: Modernizing the sidebar names to be ultra-premium, clean, and concise (Dashboard, Talents, Approvals, Attendance, Leaves, Structure, Tasks, Holidays, Settings).
+> 2. **Landing Page Apps Feature Banner**: We are adding a premium welcome banner and **HRIS Features Showcase Grid** at the top of the main Dashboard page. This turns the dashboard into a gorgeous "Landing Hub" with interactive shortcut widgets for each of e-Attendance's features.
+> 3. **Simplified, Responsive Datatable Layout**: Reducing columns in the admin tasks table from 9 to 6 (removing minor columns like Category, Description, and Attachment from the grid view).
+> 4. **Bento Details View Modal**: Creating an in-app glassmorphic details modal (`#modalViewTaskAdmin`) to present the simplified task elements in a beautiful, structured display with one-click Drive attachment previewing.
+> 5. **Admin Task Analytics Insights**: Injecting a dynamic statistical banner at the top of the Admin Task manager page to display live productivity statistics.
+
+---
+
+## Proposed Changes
+
+### 1. Styling Sheet
+#### [MODIFY] [style.css](file:///d:/WEB%20APPS/Juara%20Talenta/juara-talenta/css/style.css)
+*   Enhance sub-pixel anti-aliasing and retina-ready display styling across cards and text overlays.
+*   Make `.page-section` use full viewport stretch width and height for optimal space allocation.
+*   Overhaul table hover classes `table.table-modern tbody tr:hover` to apply frosted glass reflection and subtle glows.
+*   Add custom styles for the landing page feature banner, bento feature grid widgets, and task insights metrics.
+
+### 2. Main Dashboard & Modals Layout
+#### [MODIFY] [admin.html](file:///d:/WEB%20APPS/Juara%20Talenta/juara-talenta/admin.html)
+*   Update sidebar links (`sidebar-nav`) with modernized terminology:
+    *   *Dashboard* -> **Dashboard**
+    *   *Karyawan* -> **Talents**
+    *   *Approval* -> **Approvals**
+    *   *Riwayat Absensi* -> **Attendance**
+    *   *Laporan & Jatah Cuti* -> **Leaves**
+    *   *Posisi & Divisi* -> **Structure**
+    *   *Tugas & Produktivitas* -> **Tasks**
+    *   *Hari Libur Operasional* -> **Holidays**
+    *   *Konfigurasi* -> **Settings**
+*   Inject the **SaaS-style Landing Page Apps Hero Banner** with interactive features directory at the top of the Dashboard.
+*   Inject the **Task Statistics Banner** on both the main dashboard overview page and the tasks management page.
+*   Streamline the admin task table columns to: `Karyawan`, `Tanggal`, `Nama Tugas`, `Status`, `Skor Produktivitas`, `Aksi`.
+*   Inject the `#modalViewTaskAdmin` modal markup.
+
+### 3. Controller Actions & Calculations
+#### [MODIFY] [script.js](file:///d:/WEB%20APPS/Juara%20Talenta/juara-talenta/js/script.js)
+*   Update `loadAdminTasks()` to:
+    *   Instantly calculate live stats (Total Tasks, Tasks Completed, Pending Tasks, Avg Productivity Score) and update the task insight widgets on every search and filter reload.
+    *   Render the streamlined 6-column table rows.
+    *   Include a "Lihat Detail" action button that links to our new viewer.
+*   Implement `window.viewAdminTaskDetail(taskJsonStr)` to parse the data, resolve Google Drive iframe preview links, and populate `#modalViewTaskAdminBody` in a gorgeous glassmorphic bento format.
+
+---
+
+## Verification Plan
+
+### Automated & Manual Verification
+*   Utilize the browser subagent to verify page loading, sidebar name layouts, dashboard landing banner renders, simplified table column adjustments, dynamic statistics count changes, and the details viewer modal triggers.
+*   Capture visual screenshots to confirm that the glassmorphism layout is responsive and completely bug-free.

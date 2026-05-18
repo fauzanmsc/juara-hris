@@ -1,6 +1,6 @@
 {
-  "name": "JEF e-Attendance",
-  "short_name": "JEF e-Attendance",
+  "name": "JEF HRIS",
+  "short_name": "JEF HRIS",
   "description": "Platform manajemen kehadiran dan SDM terpadu untuk tim JEF Group",
   "start_url": "../index.html",
   "display": "standalone",

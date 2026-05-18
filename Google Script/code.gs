@@ -1653,19 +1653,24 @@ function deleteDivision(body) {
 function getTasksSheet() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = ss.getSheetByName('tbl_tasks');
+  const requiredHeaders = [
+    'task_id', 'user_id', 'date', 'task_name', 'category', 
+    'target_goals', 'start_time', 'end_time', 'output', 
+    'status', 'attachment_url', 'notes', 'others', 'score'
+  ];
   if (!sheet) {
     sheet = ss.insertSheet('tbl_tasks');
-    sheet.appendRow([
-      'task_id', 
-      'user_id', 
-      'date', 
-      'task_name', 
-      'category', 
-      'status', 
-      'attachment_url', 
-      'notes', 
-      'score'
-    ]);
+    sheet.appendRow(requiredHeaders);
+  } else {
+    // Robust auto-migration: append missing columns if any
+    const data = sheet.getDataRange().getValues();
+    const currentHeaders = data[0].map(h => String(h).trim());
+    requiredHeaders.forEach(header => {
+      if (!currentHeaders.includes(header)) {
+        const lastCol = sheet.getLastColumn();
+        sheet.getRange(1, lastCol + 1).setValue(header);
+      }
+    });
   }
   return sheet;
 }
@@ -1704,10 +1709,24 @@ function getTasks(params) {
 }
 
 function createTask(body) {
-  const { user_id, date, task_name, category, notes, status, attachment_base64, attachment_filename } = body;
+  const { 
+    user_id, 
+    date, 
+    task_name, 
+    category, 
+    target_goals, 
+    start_time, 
+    end_time, 
+    output, 
+    status, 
+    notes, 
+    others, 
+    attachment_base64, 
+    attachment_filename 
+  } = body;
   
-  if (!user_id || !task_name || !category) {
-    return { success: false, message: 'ID Karyawan, Nama Tugas, dan Kategori wajib diisi' };
+  if (!user_id || !task_name || !target_goals || !start_time || !end_time || !output) {
+    return { success: false, message: 'ID Karyawan, Nama Tugas, Target, Waktu Mulai, Waktu Selesai, dan Output wajib diisi' };
   }
 
   let attachmentUrl = '';
@@ -1723,6 +1742,7 @@ function createTask(body) {
   const newId = generateId('TSK');
   const taskDate = date || getTodayString();
   const taskStatus = status || 'Pending';
+  const finalCategory = category || 'Other';
   const score = body.score || '';
 
   sheet.appendRow([
@@ -1730,10 +1750,15 @@ function createTask(body) {
     user_id,
     taskDate,
     task_name,
-    category,
+    finalCategory,
+    target_goals,
+    start_time,
+    end_time,
+    output,
     taskStatus,
     attachmentUrl,
     notes || '',
+    others || '',
     score
   ]);
 
@@ -1741,7 +1766,22 @@ function createTask(body) {
 }
 
 function updateTask(body) {
-  const { task_id, task_name, category, date, notes, status, score, attachment_base64, attachment_filename } = body;
+  const { 
+    task_id, 
+    task_name, 
+    category, 
+    target_goals,
+    start_time,
+    end_time,
+    output,
+    date, 
+    notes, 
+    status, 
+    others,
+    score, 
+    attachment_base64, 
+    attachment_filename 
+  } = body;
   if (!task_id) return { success: false, message: 'Task ID wajib dilampirkan' };
 
   const sheet = getTasksSheet();
@@ -1757,6 +1797,12 @@ function updateTask(body) {
   const scoreIdx = headers.indexOf('score');
   const attIdx = headers.indexOf('attachment_url');
   
+  const targetGoalsIdx = headers.indexOf('target_goals');
+  const startTimeIdx = headers.indexOf('start_time');
+  const endTimeIdx = headers.indexOf('end_time');
+  const outputIdx = headers.indexOf('output');
+  const othersIdx = headers.indexOf('others');
+  
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][idIdx]).trim() === String(task_id).trim()) {
       const rowNum = i + 1;
@@ -1767,6 +1813,12 @@ function updateTask(body) {
       if (notes !== undefined) sheet.getRange(rowNum, notesIdx + 1).setValue(notes);
       if (status !== undefined) sheet.getRange(rowNum, statusIdx + 1).setValue(status);
       if (score !== undefined) sheet.getRange(rowNum, scoreIdx + 1).setValue(score);
+      
+      if (target_goals !== undefined && targetGoalsIdx !== -1) sheet.getRange(rowNum, targetGoalsIdx + 1).setValue(target_goals);
+      if (start_time !== undefined && startTimeIdx !== -1) sheet.getRange(rowNum, startTimeIdx + 1).setValue(start_time);
+      if (end_time !== undefined && endTimeIdx !== -1) sheet.getRange(rowNum, endTimeIdx + 1).setValue(end_time);
+      if (output !== undefined && outputIdx !== -1) sheet.getRange(rowNum, outputIdx + 1).setValue(output);
+      if (others !== undefined && othersIdx !== -1) sheet.getRange(rowNum, othersIdx + 1).setValue(others);
       
       if (attachment_base64) {
         const filename = attachment_filename || `task_${task_id}_${new Date().getTime()}.jpg`;
