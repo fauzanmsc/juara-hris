@@ -179,9 +179,9 @@
 
           <div class="form-group">
             <label class="form-label" style="text-align:left; font-size:11px;">Nama Lengkap</label>
-            <div class="input-wrap" style="height:40px; display:flex; align-items:center; position:relative;">
-              <i class="bi bi-person input-icon" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--primary); font-size:16px;"></i>
-              <input type="text" id="regName" placeholder="Masukkan nama lengkap Anda" required style="padding-left:42px; height:100%; width:100%; border:1.5px solid var(--border); border-radius:var(--radius-md); background:var(--bg-input); color:var(--text); font-weight:600; outline:none; font-size:13px;" oninput="updateRegInitials(this.value)">
+            <div class="input-wrap">
+              <i class="bi bi-person input-icon"></i>
+              <input type="text" id="regName" placeholder="Masukkan nama lengkap Anda" required oninput="updateRegInitials(this.value)">
             </div>
           </div>
 
@@ -189,29 +189,27 @@
           <div class="grid-2-resp" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0; padding:0;">
             <div class="form-group">
               <label class="form-label" style="text-align:left; font-size:11px;">Email Karyawan</label>
-              <div class="input-wrap reg-email-wrap" style="display: flex; align-items: center; background: var(--bg-input); border-radius: var(--radius-md); border: 1.5px solid var(--border); overflow: hidden; padding-right: 0; padding-left: 0; height: 40px;">
-                <i class="bi bi-envelope input-icon" style="position: static; margin-left: 12px; margin-right: 6px; flex-shrink: 0; color: var(--primary); font-size: 15px;"></i>
-                <input type="text" id="regEmail" placeholder="username" style="flex: 1; border: none; background: transparent; padding: 0; height: 100%; color: var(--text); font-weight: 600; outline: none; font-size: 13px;" required>
-                <span class="reg-email-suffix" style="background: var(--border); padding: 0 10px; font-weight: 700; color: var(--primary); height: 100%; display: flex; align-items: center; font-size: 11px; border-left: 1.5px solid var(--border); flex-shrink: 0;">@jefgroup.id</span>
+              <div class="input-wrap reg-email-wrap">
+                <i class="bi bi-envelope input-icon"></i>
+                <input type="text" id="regEmail" placeholder="username" required>
+                <span class="reg-email-suffix">@jefgroup.id</span>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label" style="text-align:left; font-size:11px;">PIN Login (6 Digit)</label>
-              <div class="input-wrap" style="height:40px; display:flex; align-items:center; position:relative;">
-                <i class="bi bi-shield-lock input-icon" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--primary); font-size:16px;"></i>
-                <input type="password" id="regPassword" placeholder="Buat PIN" required maxlength="6" pattern="\d{6}" inputmode="numeric" style="padding-left:42px; height:100%; width:100%; border:1.5px solid var(--border); border-radius:var(--radius-md); background:var(--bg-input); color:var(--text); font-weight:600; outline:none; font-size:13px;">
+              <div class="input-wrap">
+                <i class="bi bi-shield-lock input-icon"></i>
+                <input type="password" id="regPassword" placeholder="Buat PIN" required maxlength="6" pattern="\d{6}" inputmode="numeric">
               </div>
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" style="text-align:left; font-size:11px;">Jabatan (Position)</label>
-            <div class="input-wrap" style="height:40px; display:flex; align-items:center; position:relative;">
-              <i class="bi bi-briefcase input-icon" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--primary); font-size:16px;"></i>
-              <select id="regPosition" class="form-control reg-custom-select"
-                style="padding-left: 42px; height: 100%; width: 100%; border-radius: var(--radius-md); background: var(--bg-input); border: 1.5px solid var(--border); color: var(--text); font-weight: 600; outline: none; font-size:13px; cursor:pointer;"
-                required>
+            <div class="input-wrap">
+              <i class="bi bi-briefcase input-icon"></i>
+              <select id="regPosition" class="form-control reg-custom-select" required>
                 <option value="" disabled selected>Memuat daftar jabatan...</option>
               </select>
             </div>

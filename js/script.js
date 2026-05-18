@@ -397,7 +397,7 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
                 if (data.success && data.positions) {
                     loadedPositions = data.positions;
                     select.innerHTML = '<option value="" disabled selected>Pilih Jabatan...</option>' +
-                        data.positions.map(p => `<option value="${p}">${p}</option>`).join('');
+                        data.positions.map(p => `<option value="${p.position}">${p.position} (${p.division || 'Unassigned'})</option>`).join('');
                 } else {
                     select.innerHTML = '<option value="" disabled selected>Gagal memuat jabatan</option>';
                 }
@@ -626,9 +626,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     if (window.renderBelumAbsen) window.renderBelumAbsen(belumAbsen);
                 } catch (eu) { }
 
+                if (window.hidePageLoader) window.hidePageLoader();
             } catch (e) {
                 console.error('Error loading dashboard:', e);
                 showToast('Gagal memuat dashboard', 'error');
+                if (window.hidePageLoader) window.hidePageLoader();
             }
         }
 
@@ -737,6 +739,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             document.getElementById('mu_preview').src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
             document.getElementById('mu_file').value = '';
             document.getElementById('mu_role').value = 'Employee';
+            if (document.getElementById('mu_division')) document.getElementById('mu_division').value = 'Umum';
             document.getElementById('modalUser').classList.remove('hidden');
         }
 
@@ -748,6 +751,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             document.getElementById('mu_pin').value = '';
             document.getElementById('mu_position').value = u.position;
             document.getElementById('mu_role').value = u.role;
+            if (document.getElementById('mu_division')) {
+                document.getElementById('mu_division').value = u.division || 'Umum';
+            }
             document.getElementById('mu_preview').src = u.profile_pic_url ? getDirectDriveUrl(u.profile_pic_url) : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
             document.getElementById('mu_file').value = '';
             document.getElementById('modalUser').classList.remove('hidden');
@@ -773,6 +779,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 email: document.getElementById('mu_email').value,
                 password_pin: document.getElementById('mu_pin').value,
                 position: document.getElementById('mu_position').value,
+                division: document.getElementById('mu_division') ? document.getElementById('mu_division').value : 'Umum',
                 role: document.getElementById('mu_role').value,
                 profile_pic_base64,
                 profile_pic_name
@@ -1112,6 +1119,13 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const desc = document.getElementById('holiday_desc').value;
             if (!start || !desc) { showToast('Lengkapi tanggal mulai & keterangan libur', 'warn'); return; }
             try {
+                if (oldId) {
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'deleteHoliday', holiday_id: oldId })
+                    });
+                }
+                
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -1121,21 +1135,42 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                         description: desc
                     })
                 });
-                showToast('Hari libur ditambahkan', 'success');
+                
+                showToast(oldId ? 'Hari libur berhasil diperbarui' : 'Hari libur ditambahkan', 'success');
+                document.getElementById('holiday_old_id').value = '';
                 document.getElementById('holiday_start_date').value = '';
                 document.getElementById('holiday_end_date').value = '';
                 document.getElementById('holiday_desc').value = '';
+                
+                document.getElementById('holidayBtnText').textContent = 'Tambah';
+                document.getElementById('holidayBtnIcon').className = 'bi bi-plus-lg';
+                
                 loadConfig();
-            } catch (e) { showToast('Gagal menambah hari libur', 'error'); }
+            } catch (e) {
+                showToast(oldId ? 'Gagal memperbarui hari libur' : 'Gagal menambah hari libur', 'error');
+            }
         }
 
         window.delHoliday = async function (id) {
-            if (!confirm('Hapus hari libur ini?')) return;
-            try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteHoliday', holiday_id: id }) });
-                showToast('Hari libur dihapus', 'success'); loadConfig();
-            } catch (e) { showToast('Gagal menghapus hari libur', 'error'); }
+            window.customConfirm('Hapus hari libur ini secara permanen?', async () => {
+                try {
+                    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteHoliday', holiday_id: id }) });
+                    showToast('Hari libur dihapus', 'success'); loadConfig();
+                } catch (e) { showToast('Gagal menghapus hari libur', 'error'); }
+            });
         }
+
+        window.editHoliday = function (id) {
+            const hol = window.allHolidays.find(h => (h.holiday_id || h.id || h.start_date) === id);
+            if (!hol) return;
+            document.getElementById('holiday_old_id').value = id;
+            document.getElementById('holiday_start_date').value = hol.start_date;
+            document.getElementById('holiday_end_date').value = hol.end_date || hol.start_date;
+            document.getElementById('holiday_desc').value = hol.description;
+            
+            document.getElementById('holidayBtnText').textContent = 'Simpan Perubahan';
+            document.getElementById('holidayBtnIcon').className = 'bi bi-check-circle-fill';
+        };
 
         window.loadHolidays = function () {
             loadConfig();
@@ -1152,6 +1187,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             if (summary) summary.innerHTML = '<div style="text-align:center; color:var(--text-muted)">Memuat data chart...</div>';
 
             try {
+                if (window.loadDivisions) await window.loadDivisions();
+
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getPositions`);
                 const data = await res.json();
                 if (data.success && data.positions) {
@@ -1220,7 +1257,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 <tr style="border-bottom:1px solid var(--border)">
                   <td style="font-weight:700; color:var(--text); padding:12px; border-right:1px solid var(--border);">${p.position}</td>
                   <td style="font-weight:600; color:var(--text-muted); padding:12px; border-right:1px solid var(--border);">${p.division || 'Unassigned'}</td>
-                  <td style="text-align:center; padding:12px;">
+                  <td style="text-align:center; padding:12px; display:flex; justify-content:center; gap:8px;">
+                    <button class="btn btn-sm btn-ghost text-primary btn-neu-3d" onclick="editPositionAdmin('${p.position}', '${p.division || 'Umum'}')" title="Edit Jabatan" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
                     <button class="btn btn-sm btn-ghost text-danger btn-neu-3d" onclick="deletePositionAdmin('${p.position}')" title="Hapus Jabatan" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
                       <i class="bi bi-trash-fill"></i>
                     </button>
@@ -1228,6 +1268,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 </tr>
             `).join('');
         }
+
+        window.editPositionAdmin = function (posName, divName) {
+            document.getElementById('pos_name').value = posName;
+            document.getElementById('pos_division').value = divName;
+        };
 
         window.filterPositionsTable = function (division) {
             if (!division) {
@@ -1269,25 +1314,26 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.deletePositionAdmin = async function (posName) {
-            if (!confirm(`Apakah Anda yakin ingin menghapus jabatan "${posName}" secara permanen? Karyawan yang menjabat jabatan ini mungkin perlu diperbarui.`)) return;
-            try {
-                const res = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'deletePosition',
-                        position: posName
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showToast('Jabatan berhasil dihapus!', 'success');
-                    loadPositions();
-                } else {
-                    showToast(data.message || 'Gagal menghapus jabatan', 'error');
+            window.customConfirm(`Apakah Anda yakin ingin menghapus jabatan "${posName}" secara permanen? Karyawan yang menjabat jabatan ini mungkin perlu diperbarui.`, async () => {
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'deletePosition',
+                            position: posName
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Jabatan berhasil dihapus!', 'success');
+                        loadPositions();
+                    } else {
+                        showToast(data.message || 'Gagal menghapus jabatan', 'error');
+                    }
+                } catch (err) {
+                    showToast('Koneksi terputus. Gagal menghapus data.', 'error');
                 }
-            } catch (err) {
-                showToast('Koneksi terputus. Gagal menghapus data.', 'error');
-            }
+            });
         }
 
         // ============ LAPORAN & JATAH CUTI FUNCTIONS ============
@@ -1904,53 +1950,18 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                         ring.style.strokeDashoffset = offset;
                     }
 
+                    // Load Notifications
+                    if (window.loadNotifications) window.loadNotifications(data);
+
+                    // Update User Division Label
+                    const divLabel = document.getElementById('userDivisionLabel');
+                    if (divLabel) {
+                        divLabel.textContent = data.division || userData.division || 'Umum';
+                    }
+
                     // Check for active holiday or approved leave today
                     const alertEl = document.getElementById('holidayLeaveAlert');
                     if (alertEl) {
-                        let notificationHTML = '';
-                        if (data.latest_approved_leave) {
-                            const dismissedKey = `dismiss_leave_${data.latest_approved_leave.start_date}_Approved`;
-                            if (!localStorage.getItem(dismissedKey)) {
-                                notificationHTML += `
-                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.18) 100%); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: var(--shadow-neu-soft); margin-bottom: 15px;">
-                                        <div style="display:flex; align-items:center; gap:14px; text-align:left;">
-                                            <div style="width:38px; height:38px; border-radius:50%; background:rgba(34, 197, 94, 0.15); color:#22c55e; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
-                                                <i class="bi bi-calendar-check-fill"></i>
-                                            </div>
-                                            <div>
-                                                <h4 style="font-size:13px; font-weight:800; color:#22c55e; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">PENGAJUAN DISETUJUI! 🌟</h4>
-                                                <p style="font-size:11px; color:var(--text); opacity:0.85; margin:0; line-height:1.4;">
-                                                    Pengajuan <strong>${data.latest_approved_leave.leave_type}</strong> Anda (${data.latest_approved_leave.start_date} s/d ${data.latest_approved_leave.end_date}) telah disetujui.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button onclick="window.dismissLeaveAlert('${data.latest_approved_leave.start_date}', 'Approved')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:4px;"><i class="bi bi-x-lg"></i></button>
-                                    </div>
-                                `;
-                            }
-                        }
-                        if (data.latest_rejected_leave) {
-                            const dismissedKey = `dismiss_leave_${data.latest_rejected_leave.start_date}_Rejected`;
-                            if (!localStorage.getItem(dismissedKey)) {
-                                notificationHTML += `
-                                    <div class="alert-banner animate-slide-up" style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.18) 100%); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; box-shadow: var(--shadow-neu-soft); margin-bottom: 15px;">
-                                        <div style="display:flex; align-items:center; gap:14px; text-align:left;">
-                                            <div style="width:38px; height:38px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
-                                                <i class="bi bi-calendar-x-fill"></i>
-                                            </div>
-                                            <div>
-                                                <h4 style="font-size:13px; font-weight:800; color:#ef4444; margin:0 0 2px; font-family:var(--font-head); letter-spacing:0.3px;">PENGAJUAN DITOLAK ❌</h4>
-                                                <p style="font-size:11px; color:var(--text); opacity:0.85; margin:0; line-height:1.4;">
-                                                    Pengajuan <strong>${data.latest_rejected_leave.leave_type}</strong> Anda (${data.latest_rejected_leave.start_date} s/d ${data.latest_rejected_leave.end_date}) ditolak oleh HRD.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button onclick="window.dismissLeaveAlert('${data.latest_rejected_leave.start_date}', 'Rejected')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:4px;"><i class="bi bi-x-lg"></i></button>
-                                    </div>
-                                `;
-                            }
-                        }
-
                         if (data.today_holiday || data.today_leave) {
                             let alertHTML = '';
                             if (data.today_holiday) {
@@ -1979,9 +1990,6 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                                 `;
                             }
                             alertEl.innerHTML = alertHTML;
-                            alertEl.style.display = 'block';
-                        } else if (notificationHTML) {
-                            alertEl.innerHTML = notificationHTML;
                             alertEl.style.display = 'block';
                         } else {
                             alertEl.style.display = 'none';
@@ -2029,6 +2037,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
           `).join('');
                     }
                 }
+                if (window.hidePageLoader) window.hidePageLoader();
             } catch (e) {
                 // Demo fallback
                 document.getElementById('statHadir').textContent = 18;
@@ -2053,6 +2062,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
           <div class="activity-time">Kemarin</div>
         </div>
       `;
+                if (window.hidePageLoader) window.hidePageLoader();
             }
         }
 
@@ -2416,30 +2426,415 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
 
         window.cancelLeave = async function (requestId) {
-            if (!confirm('Apakah Anda yakin ingin membatalkan pengajuan ini?')) return;
-            showToast('Sedang membatalkan...', 'warn');
+            window.customConfirm('Apakah Anda yakin ingin membatalkan pengajuan ini?', async () => {
+                showToast('Sedang membatalkan...', 'warn');
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'deleteLeave',
+                            request_id: requestId,
+                            user_id: userData.user_id,
+                            user_role: userData.role || 'Employee'
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Pengajuan cuti berhasil dibatalkan!', 'success');
+                        loadHistory();
+                    } else {
+                        showToast(data.message || 'Gagal membatalkan pengajuan', 'error');
+                    }
+                } catch (e) {
+                    showToast('Pengajuan berhasil dibatalkan!', 'success');
+                    loadHistory();
+                }
+            });
+        }
+
+        // ============ CUSTOM CONFIRM & ALERT ENGINE ============
+        window.customAlert = function (message, onOK) {
+            let overlay = document.getElementById('globalModalOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'globalModalOverlay';
+                overlay.className = 'overlay';
+                overlay.style.zIndex = '999999';
+                document.body.appendChild(overlay);
+            }
+            
+            overlay.innerHTML = `
+                <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+                    <div class="card-border-glow"></div>
+                    <div style="position:relative; z-index:2;">
+                        <div style="width:60px; height:60px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:var(--info); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-info-circle-fill"></i></div>
+                        <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Notifikasi</h3>
+                        <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+                        <button class="btn btn-primary btn-xl btn-neu-3d" id="customAlertOKBtn" style="width:100%; border-radius:50px;">Tutup</button>
+                    </div>
+                </div>
+            `;
+            overlay.classList.remove('hidden');
+            
+            const okBtn = document.getElementById('customAlertOKBtn');
+            okBtn.focus();
+            okBtn.onclick = function() {
+                overlay.remove();
+                if (onOK) onOK();
+            };
+        };
+
+        window.customConfirm = function (message, onOK, onCancel) {
+            let overlay = document.getElementById('globalModalOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'globalModalOverlay';
+                overlay.className = 'overlay';
+                overlay.style.zIndex = '999999';
+                document.body.appendChild(overlay);
+            }
+            
+            overlay.innerHTML = `
+                <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+                    <div class="card-border-glow"></div>
+                    <div style="position:relative; z-index:2;">
+                        <div style="width:60px; height:60px; border-radius:50%; background:rgba(255, 146, 0, 0.15); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-question-circle-fill"></i></div>
+                        <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Konfirmasi</h3>
+                        <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+                        <div style="display:flex; gap:12px;">
+                            <button class="btn btn-ghost" id="customConfirmCancelBtn" style="flex:1; border-radius:50px; height:44px;">Batal</button>
+                            <button class="btn btn-primary btn-neu-3d" id="customConfirmOKBtn" style="flex:1; border-radius:50px; height:44px;">Oke</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            overlay.classList.remove('hidden');
+            
+            document.getElementById('customConfirmOKBtn').onclick = function() {
+                overlay.remove();
+                if (onOK) onOK();
+            };
+            document.getElementById('customConfirmCancelBtn').onclick = function() {
+                overlay.remove();
+                if (onCancel) onCancel();
+            };
+        };
+
+        // ============ DIVISION CRUD OPERATIONS ============
+        window.allDivisions = [];
+        window.loadDivisions = async function () {
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=getDivisions`);
+                const data = await res.json();
+                if (data.success && data.divisions) {
+                    window.allDivisions = data.divisions;
+                    
+                    // Render list
+                    renderDivisionsTable(data.divisions);
+                    
+                    // Populate pos_division select dropdown in Kelola Jabatan form
+                    const posDivSelect = document.getElementById('pos_division');
+                    if (posDivSelect) {
+                        posDivSelect.innerHTML = '<option value="" disabled selected>Pilih Divisi...</option>' +
+                            data.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+                    }
+                    
+                    // Populate mu_division select dropdown in edit user modal
+                    const muDivSelect = document.getElementById('mu_division');
+                    if (muDivSelect) {
+                        muDivSelect.innerHTML = data.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memuat divisi:", err);
+            }
+        };
+
+        window.renderDivisionsTable = function (list) {
+            const body = document.getElementById('divisionsTableBody');
+            if (!body) return;
+            if (!list.length) {
+                body.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--text-muted)">Belum ada data divisi.</td></tr>';
+                return;
+            }
+            body.innerHTML = list.map(d => `
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="font-weight:700; color:var(--text); padding:12px;">${d}</td>
+                  <td style="text-align:center; padding:12px;">
+                    <button class="btn btn-sm btn-ghost text-danger btn-neu-3d" onclick="deleteDivisionAdmin('${d}')" title="Hapus Divisi" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </td>
+                </tr>
+            `).join('');
+        };
+
+        window.addDivisionAdmin = async function () {
+            const div = document.getElementById('div_name').value.trim();
+            if (!div) {
+                showToast('Nama divisi wajib diisi!', 'warn');
+                return;
+            }
             try {
                 const res = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        action: 'deleteLeave',
-                        request_id: requestId,
-                        user_id: userData.user_id,
-                        user_role: userData.role || 'Employee'
-                    })
+                    body: JSON.stringify({ action: 'addDivision', division: div })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('Pengajuan cuti berhasil dibatalkan!', 'success');
-                    loadHistory();
+                    showToast('Divisi baru berhasil disimpan!', 'success');
+                    document.getElementById('div_name').value = '';
+                    await loadDivisions();
+                    await loadPositions();
                 } else {
-                    showToast(data.message || 'Gagal membatalkan pengajuan', 'error');
+                    showToast(data.message || 'Gagal menyimpan divisi', 'error');
                 }
-            } catch (e) {
-                showToast('Pengajuan berhasil dibatalkan!', 'success');
-                loadHistory();
+            } catch (err) {
+                showToast('Koneksi terputus. Gagal menyimpan divisi.', 'error');
             }
-        }
+        };
+
+        window.deleteDivisionAdmin = async function (divName) {
+            window.customConfirm(`Apakah Anda yakin ingin menghapus divisi "${divName}" secara permanen?`, async () => {
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'deleteDivision', division: divName })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Divisi berhasil dihapus!', 'success');
+                        await loadDivisions();
+                        await loadPositions();
+                    } else {
+                        showToast(data.message || 'Gagal menghapus divisi', 'error');
+                    }
+                } catch (err) {
+                    showToast('Koneksi terputus. Gagal menghapus divisi.', 'error');
+                }
+            });
+        };
+
+        // ============ TABLE SORTING OPERATIONS ============
+        window.positionsSortOrder = { col: '', asc: true };
+        window.sortPositionsTable = function (col) {
+            const order = window.positionsSortOrder;
+            if (order.col === col) {
+                order.asc = !order.asc;
+            } else {
+                order.col = col;
+                order.asc = true;
+            }
+            
+            const sorted = [...window.allPositions].sort((a, b) => {
+                let valA = a[col] || '';
+                let valB = b[col] || '';
+                if (order.asc) {
+                    return valA.localeCompare(valB);
+                } else {
+                    return valB.localeCompare(valA);
+                }
+            });
+            renderPositionsTable(sorted);
+        };
+
+        window.divisionsSortOrder = { asc: true };
+        window.sortDivisionsTable = function () {
+            const asc = window.divisionsSortOrder.asc;
+            window.divisionsSortOrder.asc = !asc;
+            
+            const sorted = [...window.allDivisions].sort((a, b) => {
+                if (asc) {
+                    return a.localeCompare(b);
+                } else {
+                    return b.localeCompare(a);
+                }
+            });
+            renderDivisionsTable(sorted);
+        };
+
+        // ============ DYNAMIC CALENDAR WIDGET ============
+        window.calendarCurrentDate = new Date();
+        window.prevCalendarMonth = function () {
+            window.calendarCurrentDate.setMonth(window.calendarCurrentDate.getMonth() - 1);
+            renderCalendar();
+        };
+
+        window.nextCalendarMonth = function () {
+            window.calendarCurrentDate.setMonth(window.calendarCurrentDate.getMonth() + 1);
+            renderCalendar();
+        };
+
+        window.renderCalendar = function () {
+            const grid = document.getElementById('calendarGrid');
+            const header = document.getElementById('calendarMonthYear');
+            if (!grid || !header) return;
+            
+            const year = window.calendarCurrentDate.getFullYear();
+            const month = window.calendarCurrentDate.getMonth();
+            
+            const monthNames = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            header.textContent = `${monthNames[month]} ${year}`;
+            
+            const dayHeaders = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+            let html = dayHeaders.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+            
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            const prevLastDay = new Date(year, month, 0).getDate();
+            
+            for (let i = firstDayIndex; i > 0; i--) {
+                html += `<div class="calendar-cell other-month">${prevLastDay - i + 1}</div>`;
+            }
+            
+            const today = new Date();
+            const holidays = window.allHolidays || [];
+            
+            for (let i = 1; i <= lastDay; i++) {
+                const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                
+                const activeHoliday = holidays.find(h => {
+                    const start = h.start_date;
+                    const end = h.end_date || start;
+                    return currentDateStr >= start && currentDateStr <= end;
+                });
+                
+                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
+                const cellClass = `calendar-cell ${activeHoliday ? 'holiday' : ''} ${isToday ? 'today' : ''}`;
+                const titleText = activeHoliday ? `title="${activeHoliday.description}"` : '';
+                
+                html += `<div class="${cellClass}" ${titleText}>${i}</div>`;
+            }
+            
+            const totalCells = firstDayIndex + lastDay;
+            const remaining = (7 - (totalCells % 7)) % 7;
+            for (let i = 1; i <= remaining; i++) {
+                html += `<div class="calendar-cell other-month">${i}</div>`;
+            }
+            
+            grid.innerHTML = html;
+        };
+
+        // ============ EMPLOYEE NOTIFICATION CENTER ============
+        window.toggleNotifDropdown = function (e) {
+            if (e) e.stopPropagation();
+            const dropdown = document.getElementById('notifDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+        };
+
+        // Click outside closes notification dropdown
+        document.addEventListener('click', function (e) {
+            const dropdown = document.getElementById('notifDropdown');
+            const bellBtn = document.querySelector('.btn-ghost i.bi-bell');
+            if (dropdown && !dropdown.contains(e.target) && (!bellBtn || !bellBtn.contains(e.target))) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        window.loadNotifications = function (data) {
+            if (!userData || !userData.user_id) return;
+            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+            
+            if (data.latest_approved_leave) {
+                const key = `dismiss_leave_${data.latest_approved_leave.start_date}_Approved`;
+                const alreadyNotified = notifications.some(n => n.type === 'Approved' && n.start_date === data.latest_approved_leave.start_date);
+                if (!alreadyNotified && !localStorage.getItem(key)) {
+                    notifications.unshift({
+                        id: 'notif_' + Date.now() + '_app',
+                        type: 'Approved',
+                        start_date: data.latest_approved_leave.start_date,
+                        message: `Pengajuan cuti Anda (${data.latest_approved_leave.leave_type}) mulai tanggal ${data.latest_approved_leave.start_date} s/d ${data.latest_approved_leave.end_date} telah DISETUJUI oleh HRD.`,
+                        read: false,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+            
+            if (data.latest_rejected_leave) {
+                const key = `dismiss_leave_${data.latest_rejected_leave.start_date}_Rejected`;
+                const alreadyNotified = notifications.some(n => n.type === 'Rejected' && n.start_date === data.latest_rejected_leave.start_date);
+                if (!alreadyNotified && !localStorage.getItem(key)) {
+                    notifications.unshift({
+                        id: 'notif_' + Date.now() + '_rej',
+                        type: 'Rejected',
+                        start_date: data.latest_rejected_leave.start_date,
+                        message: `Pengajuan cuti Anda (${data.latest_rejected_leave.leave_type}) mulai tanggal ${data.latest_rejected_leave.start_date} telah DITOLAK. Alasan: ${data.latest_rejected_leave.reason || '-'}`,
+                        read: false,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+            
+            localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
+            updateNotificationsUI();
+        };
+
+        window.updateNotificationsUI = function () {
+            if (!userData || !userData.user_id) return;
+            const list = document.getElementById('notifList');
+            const badge = document.getElementById('notifBadge');
+            if (!list) return;
+            
+            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+            const unreadCount = notifications.filter(n => !n.read).length;
+            
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+            
+            if (!notifications.length) {
+                list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">Belum ada notifikasi baru</div>';
+                return;
+            }
+            
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markNotifAsRead('${n.id}')" style="
+                    padding: 12px 16px;
+                    border-bottom: 1px solid var(--border);
+                    cursor: pointer;
+                    transition: background 0.2s ease;
+                    position: relative;
+                ">
+                    <div style="display:flex; gap:10px; align-items:flex-start;">
+                        <div style="width:28px; height:28px; border-radius:50%; background:${n.type === 'Approved' ? 'rgba(46,196,182,0.15)' : 'rgba(231,76,60,0.15)'}; color:${n.type === 'Approved' ? '#2ec4b6' : '#e74c3c'}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
+                            <i class="bi ${n.type === 'Approved' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <p style="margin:0; font-size:11px; color:var(--text); line-height:1.4; font-weight:${n.read ? '500' : '700'}; text-align:left;">${n.message}</p>
+                            <span style="font-size:9px; color:var(--text-muted); display:block; margin-top:4px; text-align:left;">${new Date(n.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        ${n.read ? '' : `<span style="width:8px; height:8px; border-radius:50%; background:var(--primary); display:block; flex-shrink:0; margin-top:4px;"></span>`}
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.markNotifAsRead = function (id) {
+            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+            const notif = notifications.find(n => n.id === id);
+            if (notif) {
+                notif.read = true;
+                localStorage.setItem(`dismiss_leave_${notif.start_date}_${notif.type}`, 'true');
+            }
+            localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
+            updateNotificationsUI();
+        };
+
+        window.markAllNotifAsRead = function () {
+            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+            notifications.forEach(n => {
+                n.read = true;
+                localStorage.setItem(`dismiss_leave_${n.start_date}_${n.type}`, 'true');
+            });
+            localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
+            updateNotificationsUI();
+        };
 
         // Automatic Tab Deep-Linking System
         const urlParams = new URLSearchParams(window.location.search);

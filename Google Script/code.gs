@@ -35,6 +35,7 @@ function doGet(e) {
       case 'leaveHistory':   result = getLeaveHistory(e.parameter.user_id); break;
       case 'getLeaveReport':  result = getLeaveReport(e.parameter); break;
       case 'getPositions':   result = getPositions(); break;
+      case 'getDivisions':   result = getDivisions(); break;
       case 'getConfig':
         result = {
           success: true,
@@ -73,6 +74,8 @@ function doPost(e) {
       case 'registerEmployee': result = registerEmployee(body); break;
       case 'addPosition':    result = addPosition(body); break;
       case 'deletePosition': result = deletePosition(body); break;
+      case 'addDivision':    result = addDivision(body); break;
+      case 'deleteDivision': result = deleteDivision(body); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
     return jsonResponse(result);
@@ -603,19 +606,21 @@ function addUser(body) {
   }
 
   // Cari divisi dari jabatan
-  let division = 'Umum';
-  try {
-    const posSheet = getSheet('tbl_position');
-    if (posSheet) {
-      const posData = posSheet.getDataRange().getValues();
-      for (let i = 1; i < posData.length; i++) {
-        if (posData[i][0] === position) {
-          division = posData[i][1] || 'Umum';
-          break;
+  let division = body.division || 'Umum';
+  if (!body.division) {
+    try {
+      const posSheet = getSheet('tbl_position');
+      if (posSheet) {
+        const posData = posSheet.getDataRange().getValues();
+        for (let i = 1; i < posData.length; i++) {
+          if (posData[i][0] === position) {
+            division = posData[i][1] || 'Umum';
+            break;
+          }
         }
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
 
   ensureUsersDivisionMigration();
   const sheet = getSheet(SHEET.USERS);
@@ -653,8 +658,8 @@ function updateUser(body) {
   }
 
   // Cari divisi dari jabatan
-  let division = '';
-  if (position) {
+  let division = body.division || '';
+  if (!body.division && position) {
     try {
       const posSheet = getSheet('tbl_position');
       if (posSheet) {
@@ -674,11 +679,9 @@ function updateUser(body) {
       if (name) sheet.getRange(i+1, idx.name+1).setValue(name);
       if (email) sheet.getRange(i+1, idx.email+1).setValue(email);
       if (password_pin) sheet.getRange(i+1, idx.password_pin+1).setValue(password_pin);
-      if (position) {
-        sheet.getRange(i+1, idx.position+1).setValue(position);
-        if (division && idx.division !== -1) {
-          sheet.getRange(i+1, idx.division+1).setValue(division);
-        }
+      if (position) sheet.getRange(i+1, idx.position+1).setValue(position);
+      if (division && idx.division !== -1) {
+        sheet.getRange(i+1, idx.division+1).setValue(division);
       }
       if (role) sheet.getRange(i+1, idx.role+1).setValue(role);
       if (profilePicUrl) sheet.getRange(i+1, idx.profile_pic_url+1).setValue(profilePicUrl);
@@ -795,6 +798,7 @@ function getEmployeeDashboard(params) {
   return {
     success: true,
     profile_pic_url: user ? (user.profile_pic_url || '') : '',
+    division: user ? (user.division || 'Umum') : 'Umum',
     stats: { hadir, terlambat, sisa_cuti: 12 }, // sisa cuti bisa dikonfigurasi
     today_in: todayAtt ? formatTimeVal(todayAtt.clock_in_time) : null,
     today_out: todayAtt ? formatTimeVal(todayAtt.clock_out_time) : null,
@@ -1458,4 +1462,69 @@ function registerEmployee(body) {
   }
 
   return { success: true, message: 'Pendaftaran berhasil. Menunggu persetujuan HR.' };
+}
+
+function getDivisions() {
+  try {
+    let sheet = getSheet('tbl_division');
+    if (!sheet) {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      sheet = ss.insertSheet('tbl_division');
+      sheet.appendRow(['division']);
+      const defaults = ['Management', 'Human Capital', 'Technology', 'Marketing', 'Sales', 'Umum'];
+      defaults.forEach(d => sheet.appendRow([d]));
+    }
+    const data = sheet.getDataRange().getValues();
+    const divisions = [];
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0]) {
+        divisions.push(data[i][0]);
+      }
+    }
+    return { success: true, divisions };
+  } catch (e) {
+    return { success: true, divisions: ['Management', 'Human Capital', 'Technology', 'Marketing', 'Sales', 'Umum'] };
+  }
+}
+
+function addDivision(body) {
+  const { division } = body;
+  if (!division) return { success: false, message: 'Nama divisi wajib diisi' };
+  try {
+    let sheet = getSheet('tbl_division');
+    if (!sheet) {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      sheet = ss.insertSheet('tbl_division');
+      sheet.appendRow(['division']);
+    }
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).toLowerCase() === division.toLowerCase()) {
+        return { success: false, message: 'Divisi sudah terdaftar' };
+      }
+    }
+    sheet.appendRow([division]);
+    return { success: true, message: 'Divisi berhasil ditambahkan' };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function deleteDivision(body) {
+  const { division } = body;
+  if (!division) return { success: false, message: 'Nama divisi wajib ditentukan' };
+  try {
+    const sheet = getSheet('tbl_division');
+    if (!sheet) return { success: false, message: 'Sheet divisi tidak ditemukan' };
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).toLowerCase() === division.toLowerCase()) {
+        sheet.deleteRow(i + 1);
+        return { success: true, message: 'Divisi berhasil dihapus' };
+      }
+    }
+    return { success: false, message: 'Divisi tidak ditemukan' };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
 }

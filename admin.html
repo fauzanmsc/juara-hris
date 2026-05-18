@@ -276,6 +276,11 @@
                 <option value="Inactive">Nonaktif</option>
                 <option value="Pending">Menunggu Persetujuan</option>
               </select>
+              <select class="form-control" id="userRoleFilter" onchange="filterUsers()" style="max-width:140px;">
+                <option value="">Semua Role</option>
+                <option value="Employee">Employee Only</option>
+                <option value="Admin">Admin Only</option>
+              </select>
             </div>
 
             <div class="table-wrap">
@@ -531,10 +536,11 @@
 
         <!-- HOLIDAYS PAGE -->
         <section class="page-section fade-in" id="page-holidays">
-          <div class="card" style="max-width: 900px; margin: 0 auto;">
+          <div class="card" style="margin: 0 auto;">
             <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-calendar2-x-fill text-danger"
                 style="margin-right:8px"></i> Hari Libur Operasional</h3>
 
+            <input type="hidden" id="holiday_old_id">
             <div class="holiday-form-grid" style="margin-bottom:20px;">
               <div class="form-group" style="margin-bottom:0">
                 <label class="form-label">Tanggal Mulai</label>
@@ -548,34 +554,72 @@
                 <label class="form-label">Keterangan Libur</label>
                 <input type="text" class="form-control" id="holiday_desc" placeholder="Contoh: Libur Lebaran">
               </div>
-              <button class="btn btn-primary btn-neu-3d"
+              <button class="btn btn-primary btn-neu-3d" id="btnSaveHoliday"
                 style="height:42px; display:flex; align-items:center; justify-content:center; padding:0 20px;"
-                onclick="addHoliday()"><i class="bi bi-plus-lg" style="margin-right:6px"></i> Tambah</button>
+                onclick="addHoliday()"><i class="bi bi-plus-lg" id="holidayBtnIcon" style="margin-right:6px"></i> <span id="holidayBtnText">Tambah</span></button>
             </div>
 
-            <div class="holiday-list" id="holidayList">
+            <div class="holiday-list" id="holidayList" style="margin-bottom: 24px;">
               <div style="text-align:center;padding:30px;color:var(--text-muted)">Memuat hari libur...</div>
+            </div>
+
+            <!-- Kalender Hari Libur -->
+            <div style="border-top:1px dashed var(--border); padding-top:24px; margin-top:24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 class="card-title" style="margin:0;"><i class="bi bi-calendar3 text-primary" style="margin-right:8px"></i> Kalender Hari Libur</h3>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <button onclick="prevCalendarMonth()" class="btn btn-muted btn-sm" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0;"><i class="bi bi-chevron-left"></i></button>
+                  <h4 id="calendarMonthYear" style="margin:0; font-family:var(--font-head); font-weight:800; font-size:13px; color:var(--text); width:90px; text-align:center;">Mei 2026</h4>
+                  <button onclick="nextCalendarMonth()" class="btn btn-muted btn-sm" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0;"><i class="bi bi-chevron-right"></i></button>
+                </div>
+              </div>
+              <div id="calendarGrid" class="calendar-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; text-align:center;">
+                <!-- Populated dynamically by script.js -->
+              </div>
             </div>
           </div>
         </section>
 
         <!-- POSITIONS PAGE -->
+        <!-- POSITIONS PAGE -->
         <section class="page-section fade-in" id="page-positions">
-          <div class="grid-2-resp" style="margin-bottom:24px;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:24px; margin-bottom:24px;">
             <!-- Form Kelola Jabatan -->
             <div class="card">
-              <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-briefcase-fill text-primary" style="margin-right:8px"></i> Kelola Jabatan</h3>
-              <div style="display:flex; flex-direction:column; gap:16px;">
+              <h3 class="card-title" style="margin-bottom:16px"><i class="bi bi-briefcase-fill text-primary"
+                  style="margin-right:8px"></i> Kelola Jabatan</h3>
+              <div style="display:flex; flex-direction:column; gap:14px;">
                 <div class="form-group" style="margin-bottom:0">
                   <label class="form-label">Nama Jabatan (Position)</label>
                   <input type="text" class="form-control" id="pos_name" placeholder="Contoh: Senior Developer">
                 </div>
                 <div class="form-group" style="margin-bottom:0">
                   <label class="form-label">Divisi (Division)</label>
-                  <input type="text" class="form-control" id="pos_division" placeholder="Contoh: Technology">
+                  <select class="form-control" id="pos_division" style="border-radius:12px; font-weight:700;">
+                    <option value="" disabled selected>Pilih Divisi...</option>
+                  </select>
                 </div>
-                <button class="btn btn-primary btn-neu-3d" style="height:44px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="addPositionAdmin()">
+                <button class="btn btn-primary btn-neu-3d"
+                  style="height:40px; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:4px;"
+                  onclick="addPositionAdmin()">
                   <i class="bi bi-plus-circle-fill"></i> Simpan Jabatan
+                </button>
+              </div>
+            </div>
+
+            <!-- Form Kelola Divisi -->
+            <div class="card">
+              <h3 class="card-title" style="margin-bottom:16px"><i class="bi bi-diagram-3-fill text-success"
+                  style="margin-right:8px"></i> Kelola Divisi</h3>
+              <div style="display:flex; flex-direction:column; gap:14px;">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Nama Divisi (Division Name)</label>
+                  <input type="text" class="form-control" id="div_name" placeholder="Contoh: Marketing">
+                </div>
+                <button class="btn btn-success btn-neu-3d"
+                  style="height:40px; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:48px;"
+                  onclick="addDivisionAdmin()">
+                  <i class="bi bi-plus-circle-fill"></i> Simpan Divisi
                 </button>
               </div>
             </div>
@@ -583,43 +627,71 @@
             <!-- Bento Chart Ringkasan Divisi -->
             <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
               <div>
-                <h3 class="card-title" style="margin-bottom:12px"><i class="bi bi-pie-chart-fill text-warning" style="margin-right:8px"></i> Ringkasan Divisi &amp; Posisi</h3>
-                <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Visualisasi jumlah jabatan per divisi dalam perusahaan</p>
+                <h3 class="card-title" style="margin-bottom:8px"><i class="bi bi-pie-chart-fill text-warning"
+                    style="margin-right:8px"></i> Ringkasan Divisi &amp; Posisi</h3>
+                <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Visualisasi jumlah jabatan per divisi</p>
               </div>
-              <div id="divisionSummaryChart" style="display:flex; flex-direction:column; gap:14px; flex:1; justify-content:center;">
-                <!-- Will be dynamically populated with beautiful premium Bento bar visual charts -->
+              <div id="divisionSummaryChart"
+                style="display:flex; flex-direction:column; gap:10px; flex:1; justify-content:center;">
                 <div style="text-align:center; color:var(--text-muted)">Memuat data chart...</div>
               </div>
             </div>
           </div>
 
-          <!-- Table List of Positions -->
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
-              <h3 class="card-title" style="margin:0;"><i class="bi bi-list-task text-success" style="margin-right:8px"></i> Daftar Jabatan Perusahaan</h3>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <label class="form-label" style="margin:0; font-size:12px; font-weight:700; white-space:nowrap;">Filter Divisi:</label>
-                <select id="posDivisionFilter" class="form-control" style="width:160px; height:34px; border-radius:12px; font-size:12px; padding:0 8px; font-weight:700;" onchange="filterPositionsTable(this.value)">
-                  <option value="">Semua Divisi</option>
-                </select>
+          <div class="grid-2-resp" style="display:grid; grid-template-columns:1.5fr 1fr; gap:24px;">
+            <!-- Table List of Positions -->
+            <div class="card">
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
+                <h3 class="card-title" style="margin:0;"><i class="bi bi-list-task text-primary"
+                    style="margin-right:8px"></i> Daftar Jabatan</h3>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <label class="form-label" style="margin:0; font-size:12px; font-weight:700; white-space:nowrap;">Filter Divisi:</label>
+                  <select id="posDivisionFilter" class="form-control"
+                    style="width:140px; height:32px; border-radius:12px; font-size:12px; padding:0 8px; font-weight:700;"
+                    onchange="filterPositionsTable(this.value)">
+                    <option value="">Semua Divisi</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table-modern" style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left; cursor:pointer;" onclick="sortPositionsTable('position')">Nama Jabatan <i class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
+                      <th style="text-align:left; cursor:pointer;" onclick="sortPositionsTable('division')">Divisi <i class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
+                      <th style="text-align:center; width:120px;">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="positionsTableBody">
+                    <tr>
+                      <td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar jabatan...</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div class="table-responsive">
-              <table class="data-table" style="width:100%; border-collapse:collapse;">
-                <thead>
-                  <tr>
-                    <th style="border-right:1px solid var(--border)">Nama Jabatan</th>
-                    <th style="border-right:1px solid var(--border)">Divisi</th>
-                    <th style="text-align:center; width:100px;">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody id="positionsTableBody">
-                  <tr>
-                    <td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar jabatan...</td>
-                  </tr>
-                </tbody>
-              </table>
+            <!-- Table List of Divisions -->
+            <div class="card">
+              <h3 class="card-title" style="margin-bottom:16px;"><i class="bi bi-list-stars text-success"
+                  style="margin-right:8px"></i> Daftar Divisi</h3>
+              <div class="table-responsive">
+                <table class="table-modern" style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left; cursor:pointer;" onclick="sortDivisionsTable()">Nama Divisi <i class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
+                      <th style="text-align:center; width:100px;">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="divisionsTableBody">
+                    <tr>
+                      <td colspan="2" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar divisi...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </section>
@@ -667,6 +739,12 @@
       <div class="form-group">
         <label class="form-label">Jabatan</label>
         <input type="text" class="form-control" id="mu_position" placeholder="Contoh: Content Creator">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Divisi</label>
+        <select class="form-control" id="mu_division" style="border-radius:12px; font-weight:700;">
+          <option value="Umum" selected>Umum</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Role Akses</label>
