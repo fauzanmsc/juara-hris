@@ -1,6 +1,7 @@
 // Gabungan script.js
 
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
 
 // Register Service Worker globally for caching and instant performance updates
 if ('serviceWorker' in navigator) {
@@ -681,39 +682,79 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         window.renderUsers = function (users) {
             const body = document.getElementById('userTableBody');
-            if (!users.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px">Tidak ada data</td></tr>'; return; }
-            body.innerHTML = users.map(u => `
-    <tr>
-      <td>
-        <div class="user-cell">
-          ${u.profile_pic_url ?
-                    `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
-                    `<div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>`
-                }
-          <span class="user-cell-name">${u.name}</span>
-        </div>
-      </td>
-      <td>${u.email}</td>
-      <td>${u.position}</td>
-      <td>${u.division || '—'}</td>
-      <td><span class="badge ${u.role === 'Admin' ? 'badge-primary' : 'badge-muted'}">${u.role}</span></td>
-      <td><span class="badge ${u.status === 'Active' ? 'badge-success' : (u.status === 'Pending' ? 'badge-warn' : 'badge-danger')}">${u.status === 'Pending' ? 'Menunggu Approval' : u.status}</span></td>
-      <td>
-        <div class="action-btns">
-          <button class="btn btn-sm btn-ghost" onclick='openEditUser(${JSON.stringify(u).replace(/'/g, "&#39;")})'><i class="bi bi-pencil-fill"></i></button>
-          ${u.status === 'Pending' ? `
-            <button class="btn btn-sm btn-success" onclick="toggleUser('${u.user_id}','Pending')" style="background-color: #2ec4b6 !important; border-color: #2ec4b6 !important; color: white !important;">
-              <i class="bi bi-person-check-fill"></i> Setujui
-            </button>
-          ` : `
-            <button class="btn btn-sm ${u.status === 'Active' ? 'btn-danger' : 'btn-success'}" onclick="toggleUser('${u.user_id}','${u.status}')">
-              ${u.status === 'Active' ? '<i class="bi bi-power"></i> Nonaktif' : '<i class="bi bi-check-circle"></i> Aktifkan'}
-            </button>
-          `}
-        </div>
-      </td>
-    </tr>
-  `).join('');
+            if (!body) return;
+            if (!users.length) { 
+                body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data</td></tr>'; 
+                return; 
+            }
+            
+            // Group by role
+            const groups = {};
+            users.forEach(u => {
+                const r = u.role || 'Employee';
+                if (!groups[r]) groups[r] = [];
+                groups[r].push(u);
+            });
+            
+            let html = '';
+            // Render Admin first, then Employee, then others
+            const rolesOrder = ['Admin', 'Employee'];
+            const allRoles = Object.keys(groups).sort((a,b) => {
+                const ia = rolesOrder.indexOf(a);
+                const ib = rolesOrder.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (ia !== -1) return -1;
+                if (ib !== -1) return 1;
+                return a.localeCompare(b);
+            });
+            
+            allRoles.forEach(role => {
+                const roleUsers = groups[role];
+                html += `
+                    <tr class="group-header-row" style="background:rgba(255,146,0,0.06); font-weight:800; border-bottom:1.5px solid rgba(255,146,0,0.15)">
+                        <td colspan="7" style="padding: 14px 18px; text-align:left; font-size:12px; color:var(--primary); letter-spacing:1px; text-transform:uppercase; font-family:var(--font-head);">
+                            <i class="bi bi-people-fill" style="margin-right:8px;"></i> ${role} &mdash; <span style="opacity:0.75; font-size:11px; text-transform:none;">${roleUsers.length} Karyawan</span>
+                        </td>
+                    </tr>
+                `;
+                
+                roleUsers.forEach(u => {
+                    html += `
+                        <tr style="border-bottom:1.5px dashed var(--border)">
+                          <td>
+                            <div class="user-cell">
+                              ${u.profile_pic_url ?
+                                `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;" onerror="this.outerHTML='<div class=\'avatar avatar-sm\' style=\'width:36px; height:36px; font-weight:800;\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
+                                `<div class="avatar avatar-sm" style="width:36px; height:36px; font-weight:800;">${u.name?.substring(0, 2).toUpperCase()}</div>`
+                              }
+                              <span class="user-cell-name" style="font-weight:700; color:var(--text);">${u.name}</span>
+                            </div>
+                          </td>
+                          <td style="color:var(--text-muted); font-size:13px;">${u.email}</td>
+                          <td style="font-weight:600; color:var(--text); font-size:13px;">${u.position}</td>
+                          <td style="font-weight:600; font-size:13px;"><span class="status-chip chip-ok" style="background:rgba(255,146,0,0.08); color:var(--primary); border:1px solid rgba(255,146,0,0.15); font-size:10px; font-weight:800; padding:2px 8px; border-radius:50px;">${u.division || 'Umum'}</span></td>
+                          <td><span class="badge ${u.role === 'Admin' ? 'badge-primary' : 'badge-muted'}" style="font-size:10px; font-weight:800; padding:3px 8px; border-radius:50px;">${u.role}</span></td>
+                          <td><span class="badge ${u.status === 'Active' ? 'badge-success' : (u.status === 'Pending' ? 'badge-warn' : 'badge-danger')}" style="font-size:10px; font-weight:800; padding:3px 8px; border-radius:50px;">${u.status === 'Pending' ? 'Menunggu Approval' : (u.status === 'Active' ? 'Aktif' : 'Nonaktif')}</span></td>
+                          <td>
+                            <div class="action-btns" style="display:flex; gap:6px; justify-content:center;">
+                              <button class="btn btn-sm btn-ghost btn-neu-3d" onclick='openEditUser(${JSON.stringify(u).replace(/'/g, "&#39;")})' style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0; color:var(--primary);"><i class="bi bi-pencil-fill"></i></button>
+                              ${u.status === 'Pending' ? `
+                                <button class="btn btn-sm btn-success btn-neu-3d" onclick="toggleUser('${u.user_id}','Pending')" style="background-color:#2ec4b6 !important; border-color:#2ec4b6 !important; color:white !important; font-size:11px; font-weight:800; height:32px; padding:0 12px; border-radius:8px;">
+                                  <i class="bi bi-person-check-fill"></i> Setujui
+                                </button>
+                              ` : `
+                                <button class="btn btn-sm ${u.status === 'Active' ? 'btn-danger' : 'btn-success'} btn-neu-3d" onclick="toggleUser('${u.user_id}','${u.status}')" style="font-size:11px; font-weight:800; height:32px; padding:0 12px; border-radius:8px;">
+                                  ${u.status === 'Active' ? '<i class="bi bi-power"></i> Nonaktif' : '<i class="bi bi-check-circle"></i> Aktif'}
+                                </button>
+                              `}
+                            </div>
+                          </td>
+                        </tr>
+                    `;
+                });
+            });
+            
+            body.innerHTML = html;
         }
 
         window.filterUsers = function () {
@@ -1095,6 +1136,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.renderHolidays = function (holidays) {
+            window.allHolidays = holidays;
+            if (typeof renderCalendar === 'function') renderCalendar();
             const list = document.getElementById('holidayList');
             if (!list) return;
             if (!holidays.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">Belum ada data hari libur</div>'; return; }
@@ -1102,12 +1145,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const dateText = h.start_date === h.end_date ? h.start_date : `${h.start_date} s/d ${h.end_date}`;
                 const id = h.holiday_id || h.id;
                 return `
-                    <div class="holiday-item">
+                    <div class="holiday-item" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-deep); border-radius:10px; padding:12px 16px; margin-bottom:8px; border:1px solid var(--border);">
                         <div class="holiday-info">
-                            <span class="holiday-desc">${h.description}</span>
-                            <span class="holiday-date"><i class="bi bi-calendar3"></i> ${dateText}</span>
+                            <span class="holiday-desc" style="font-weight:700; color:var(--text);">${h.description}</span>
+                            <span class="holiday-date" style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;"><i class="bi bi-calendar3"></i> ${dateText}</span>
                         </div>
-                        <button class="del-btn" onclick="delHoliday('${id}')"><i class="bi bi-trash-fill"></i></button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="edit-btn-pos btn-neu-3d" onclick="editHoliday('${id}')" style="background:rgba(255,183,3,0.12); border:1px solid rgba(255,183,3,0.3); color:var(--primary); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="del-btn btn-neu-3d" onclick="delHoliday('${id}')" style="background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.3); color:#e74c3c; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><i class="bi bi-trash-fill"></i></button>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -2451,396 +2497,409 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                 }
             });
         }
+    })();
+}
 
-        // ============ CUSTOM CONFIRM & ALERT ENGINE ============
-        window.customAlert = function (message, onOK) {
-            let overlay = document.getElementById('globalModalOverlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'globalModalOverlay';
-                overlay.className = 'overlay';
-                overlay.style.zIndex = '999999';
-                document.body.appendChild(overlay);
-            }
-            
-            overlay.innerHTML = `
-                <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
-                    <div class="card-border-glow"></div>
-                    <div style="position:relative; z-index:2;">
-                        <div style="width:60px; height:60px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:var(--info); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-info-circle-fill"></i></div>
-                        <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Notifikasi</h3>
-                        <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
-                        <button class="btn btn-primary btn-xl btn-neu-3d" id="customAlertOKBtn" style="width:100%; border-radius:50px;">Tutup</button>
+// ============ GLOBAL UTILITY, CALENDAR, & NOTIFICATION ENGINE ============
+(function () {
+    const userData = (() => {
+        try {
+            return JSON.parse(localStorage.getItem('hris_user')) || {};
+        } catch(e) {
+            return {};
+        }
+    })();
+
+    // ============ CUSTOM CONFIRM & ALERT ENGINE ============
+    window.customAlert = function (message, onOK) {
+        let overlay = document.getElementById('globalModalOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'globalModalOverlay';
+            overlay.className = 'overlay';
+            overlay.style.zIndex = '999999';
+            document.body.appendChild(overlay);
+        }
+        
+        overlay.innerHTML = `
+            <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+                <div class="card-border-glow"></div>
+                <div style="position:relative; z-index:2;">
+                    <div style="width:60px; height:60px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:var(--info); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-info-circle-fill"></i></div>
+                    <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Notifikasi</h3>
+                    <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+                    <button class="btn btn-primary btn-xl btn-neu-3d" id="customAlertOKBtn" style="width:100%; border-radius:50px;">Tutup</button>
+                </div>
+            </div>
+        `;
+        overlay.classList.remove('hidden');
+        
+        const okBtn = document.getElementById('customAlertOKBtn');
+        okBtn.focus();
+        okBtn.onclick = function() {
+            overlay.remove();
+            if (onOK) onOK();
+        };
+    };
+
+    window.customConfirm = function (message, onOK, onCancel) {
+        let overlay = document.getElementById('globalModalOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'globalModalOverlay';
+            overlay.className = 'overlay';
+            overlay.style.zIndex = '999999';
+            document.body.appendChild(overlay);
+        }
+        
+        overlay.innerHTML = `
+            <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+                <div class="card-border-glow"></div>
+                <div style="position:relative; z-index:2;">
+                    <div style="width:60px; height:60px; border-radius:50%; background:rgba(255, 146, 0, 0.15); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-question-circle-fill"></i></div>
+                    <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Konfirmasi</h3>
+                    <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn btn-ghost" id="customConfirmCancelBtn" style="flex:1; border-radius:50px; height:44px;">Batal</button>
+                        <button class="btn btn-primary btn-neu-3d" id="customConfirmOKBtn" style="flex:1; border-radius:50px; height:44px;">Oke</button>
                     </div>
                 </div>
-            `;
-            overlay.classList.remove('hidden');
-            
-            const okBtn = document.getElementById('customAlertOKBtn');
-            okBtn.focus();
-            okBtn.onclick = function() {
-                overlay.remove();
-                if (onOK) onOK();
-            };
+            </div>
+        `;
+        overlay.classList.remove('hidden');
+        
+        document.getElementById('customConfirmOKBtn').onclick = function() {
+            overlay.remove();
+            if (onOK) onOK();
         };
-
-        window.customConfirm = function (message, onOK, onCancel) {
-            let overlay = document.getElementById('globalModalOverlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'globalModalOverlay';
-                overlay.className = 'overlay';
-                overlay.style.zIndex = '999999';
-                document.body.appendChild(overlay);
-            }
-            
-            overlay.innerHTML = `
-                <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
-                    <div class="card-border-glow"></div>
-                    <div style="position:relative; z-index:2;">
-                        <div style="width:60px; height:60px; border-radius:50%; background:rgba(255, 146, 0, 0.15); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-question-circle-fill"></i></div>
-                        <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Konfirmasi</h3>
-                        <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
-                        <div style="display:flex; gap:12px;">
-                            <button class="btn btn-ghost" id="customConfirmCancelBtn" style="flex:1; border-radius:50px; height:44px;">Batal</button>
-                            <button class="btn btn-primary btn-neu-3d" id="customConfirmOKBtn" style="flex:1; border-radius:50px; height:44px;">Oke</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            overlay.classList.remove('hidden');
-            
-            document.getElementById('customConfirmOKBtn').onclick = function() {
-                overlay.remove();
-                if (onOK) onOK();
-            };
-            document.getElementById('customConfirmCancelBtn').onclick = function() {
-                overlay.remove();
-                if (onCancel) onCancel();
-            };
+        document.getElementById('customConfirmCancelBtn').onclick = function() {
+            overlay.remove();
+            if (onCancel) onCancel();
         };
+    };
 
-        // ============ DIVISION CRUD OPERATIONS ============
-        window.allDivisions = [];
-        window.loadDivisions = async function () {
-            try {
-                const res = await fetch(`${APPS_SCRIPT_URL}?action=getDivisions`);
-                const data = await res.json();
-                if (data.success && data.divisions) {
-                    window.allDivisions = data.divisions;
-                    
-                    // Render list
-                    renderDivisionsTable(data.divisions);
-                    
-                    // Populate pos_division select dropdown in Kelola Jabatan form
-                    const posDivSelect = document.getElementById('pos_division');
-                    if (posDivSelect) {
-                        posDivSelect.innerHTML = '<option value="" disabled selected>Pilih Divisi...</option>' +
-                            data.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
-                    }
-                    
-                    // Populate mu_division select dropdown in edit user modal
-                    const muDivSelect = document.getElementById('mu_division');
-                    if (muDivSelect) {
-                        muDivSelect.innerHTML = data.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
-                    }
+    // ============ DIVISION CRUD OPERATIONS ============
+    window.allDivisions = [];
+    window.loadDivisions = async function () {
+        try {
+            const res = await fetch(`${APPS_SCRIPT_URL}?action=getDivisions`);
+            const data = await res.json();
+            if (data.success && data.divisions) {
+                window.allDivisions = data.divisions;
+                
+                // Render list
+                renderDivisionsTable(data.divisions);
+                
+                // Populate pos_division select dropdown in Kelola Jabatan form
+                const posDivSelect = document.getElementById('pos_division');
+                if (posDivSelect) {
+                    posDivSelect.innerHTML = '<option value="" disabled selected>Pilih Divisi...</option>' +
+                        data.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
                 }
-            } catch (err) {
-                console.error("Gagal memuat divisi:", err);
+                
+                // Populate mu_division select dropdown in edit user modal
+                const muDivSelect = document.getElementById('mu_division');
+                if (muDivSelect) {
+                    muDivSelect.innerHTML = data.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+                }
             }
-        };
+        } catch (err) {
+            console.error("Gagal memuat divisi:", err);
+        }
+    };
 
-        window.renderDivisionsTable = function (list) {
-            const body = document.getElementById('divisionsTableBody');
-            if (!body) return;
-            if (!list.length) {
-                body.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--text-muted)">Belum ada data divisi.</td></tr>';
-                return;
-            }
-            body.innerHTML = list.map(d => `
-                <tr style="border-bottom:1px solid var(--border)">
-                  <td style="font-weight:700; color:var(--text); padding:12px;">${d}</td>
-                  <td style="text-align:center; padding:12px;">
-                    <button class="btn btn-sm btn-ghost text-danger btn-neu-3d" onclick="deleteDivisionAdmin('${d}')" title="Hapus Divisi" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
-                      <i class="bi bi-trash-fill"></i>
-                    </button>
-                  </td>
-                </tr>
-            `).join('');
-        };
+    window.renderDivisionsTable = function (list) {
+        const body = document.getElementById('divisionsTableBody');
+        if (!body) return;
+        if (!list.length) {
+            body.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--text-muted)">Belum ada data divisi.</td></tr>';
+            return;
+        }
+        body.innerHTML = list.map(d => `
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="font-weight:700; color:var(--text); padding:12px;">${d}</td>
+              <td style="text-align:center; padding:12px;">
+                <button class="btn btn-sm btn-ghost text-danger btn-neu-3d" onclick="deleteDivisionAdmin('${d}')" title="Hapus Divisi" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </td>
+            </tr>
+        `).join('');
+    };
 
-        window.addDivisionAdmin = async function () {
-            const div = document.getElementById('div_name').value.trim();
-            if (!div) {
-                showToast('Nama divisi wajib diisi!', 'warn');
-                return;
+    window.addDivisionAdmin = async function () {
+        const div = document.getElementById('div_name').value.trim();
+        if (!div) {
+            showToast('Nama divisi wajib diisi!', 'warn');
+            return;
+        }
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'addDivision', division: div })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Divisi baru berhasil disimpan!', 'success');
+                document.getElementById('div_name').value = '';
+                await loadDivisions();
+                await loadPositions();
+            } else {
+                showToast(data.message || 'Gagal menyimpan divisi', 'error');
             }
+        } catch (err) {
+            showToast('Koneksi terputus. Gagal menyimpan divisi.', 'error');
+        }
+    };
+
+    window.deleteDivisionAdmin = async function (divName) {
+        window.customConfirm(`Apakah Anda yakin ingin menghapus divisi "${divName}" secara permanen?`, async () => {
             try {
                 const res = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'addDivision', division: div })
+                    body: JSON.stringify({ action: 'deleteDivision', division: divName })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('Divisi baru berhasil disimpan!', 'success');
-                    document.getElementById('div_name').value = '';
+                    showToast('Divisi berhasil dihapus!', 'success');
                     await loadDivisions();
                     await loadPositions();
                 } else {
-                    showToast(data.message || 'Gagal menyimpan divisi', 'error');
+                    showToast(data.message || 'Gagal menghapus divisi', 'error');
                 }
             } catch (err) {
-                showToast('Koneksi terputus. Gagal menyimpan divisi.', 'error');
-            }
-        };
-
-        window.deleteDivisionAdmin = async function (divName) {
-            window.customConfirm(`Apakah Anda yakin ingin menghapus divisi "${divName}" secara permanen?`, async () => {
-                try {
-                    const res = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'deleteDivision', division: divName })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        showToast('Divisi berhasil dihapus!', 'success');
-                        await loadDivisions();
-                        await loadPositions();
-                    } else {
-                        showToast(data.message || 'Gagal menghapus divisi', 'error');
-                    }
-                } catch (err) {
-                    showToast('Koneksi terputus. Gagal menghapus divisi.', 'error');
-                }
-            });
-        };
-
-        // ============ TABLE SORTING OPERATIONS ============
-        window.positionsSortOrder = { col: '', asc: true };
-        window.sortPositionsTable = function (col) {
-            const order = window.positionsSortOrder;
-            if (order.col === col) {
-                order.asc = !order.asc;
-            } else {
-                order.col = col;
-                order.asc = true;
-            }
-            
-            const sorted = [...window.allPositions].sort((a, b) => {
-                let valA = a[col] || '';
-                let valB = b[col] || '';
-                if (order.asc) {
-                    return valA.localeCompare(valB);
-                } else {
-                    return valB.localeCompare(valA);
-                }
-            });
-            renderPositionsTable(sorted);
-        };
-
-        window.divisionsSortOrder = { asc: true };
-        window.sortDivisionsTable = function () {
-            const asc = window.divisionsSortOrder.asc;
-            window.divisionsSortOrder.asc = !asc;
-            
-            const sorted = [...window.allDivisions].sort((a, b) => {
-                if (asc) {
-                    return a.localeCompare(b);
-                } else {
-                    return b.localeCompare(a);
-                }
-            });
-            renderDivisionsTable(sorted);
-        };
-
-        // ============ DYNAMIC CALENDAR WIDGET ============
-        window.calendarCurrentDate = new Date();
-        window.prevCalendarMonth = function () {
-            window.calendarCurrentDate.setMonth(window.calendarCurrentDate.getMonth() - 1);
-            renderCalendar();
-        };
-
-        window.nextCalendarMonth = function () {
-            window.calendarCurrentDate.setMonth(window.calendarCurrentDate.getMonth() + 1);
-            renderCalendar();
-        };
-
-        window.renderCalendar = function () {
-            const grid = document.getElementById('calendarGrid');
-            const header = document.getElementById('calendarMonthYear');
-            if (!grid || !header) return;
-            
-            const year = window.calendarCurrentDate.getFullYear();
-            const month = window.calendarCurrentDate.getMonth();
-            
-            const monthNames = [
-                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-            ];
-            header.textContent = `${monthNames[month]} ${year}`;
-            
-            const dayHeaders = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-            let html = dayHeaders.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
-            
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const lastDay = new Date(year, month + 1, 0).getDate();
-            const prevLastDay = new Date(year, month, 0).getDate();
-            
-            for (let i = firstDayIndex; i > 0; i--) {
-                html += `<div class="calendar-cell other-month">${prevLastDay - i + 1}</div>`;
-            }
-            
-            const today = new Date();
-            const holidays = window.allHolidays || [];
-            
-            for (let i = 1; i <= lastDay; i++) {
-                const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                
-                const activeHoliday = holidays.find(h => {
-                    const start = h.start_date;
-                    const end = h.end_date || start;
-                    return currentDateStr >= start && currentDateStr <= end;
-                });
-                
-                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
-                const cellClass = `calendar-cell ${activeHoliday ? 'holiday' : ''} ${isToday ? 'today' : ''}`;
-                const titleText = activeHoliday ? `title="${activeHoliday.description}"` : '';
-                
-                html += `<div class="${cellClass}" ${titleText}>${i}</div>`;
-            }
-            
-            const totalCells = firstDayIndex + lastDay;
-            const remaining = (7 - (totalCells % 7)) % 7;
-            for (let i = 1; i <= remaining; i++) {
-                html += `<div class="calendar-cell other-month">${i}</div>`;
-            }
-            
-            grid.innerHTML = html;
-        };
-
-        // ============ EMPLOYEE NOTIFICATION CENTER ============
-        window.toggleNotifDropdown = function (e) {
-            if (e) e.stopPropagation();
-            const dropdown = document.getElementById('notifDropdown');
-            if (dropdown) {
-                dropdown.classList.toggle('active');
-            }
-        };
-
-        // Click outside closes notification dropdown
-        document.addEventListener('click', function (e) {
-            const dropdown = document.getElementById('notifDropdown');
-            const bellBtn = document.querySelector('.btn-ghost i.bi-bell');
-            if (dropdown && !dropdown.contains(e.target) && (!bellBtn || !bellBtn.contains(e.target))) {
-                dropdown.classList.remove('active');
+                showToast('Koneksi terputus. Gagal menghapus divisi.', 'error');
             }
         });
+    };
 
-        window.loadNotifications = function (data) {
-            if (!userData || !userData.user_id) return;
-            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
-            
-            if (data.latest_approved_leave) {
-                const key = `dismiss_leave_${data.latest_approved_leave.start_date}_Approved`;
-                const alreadyNotified = notifications.some(n => n.type === 'Approved' && n.start_date === data.latest_approved_leave.start_date);
-                if (!alreadyNotified && !localStorage.getItem(key)) {
-                    notifications.unshift({
-                        id: 'notif_' + Date.now() + '_app',
-                        type: 'Approved',
-                        start_date: data.latest_approved_leave.start_date,
-                        message: `Pengajuan cuti Anda (${data.latest_approved_leave.leave_type}) mulai tanggal ${data.latest_approved_leave.start_date} s/d ${data.latest_approved_leave.end_date} telah DISETUJUI oleh HRD.`,
-                        read: false,
-                        timestamp: Date.now()
-                    });
-                }
+    // ============ TABLE SORTING OPERATIONS ============
+    window.positionsSortOrder = { col: '', asc: true };
+    window.sortPositionsTable = function (col) {
+        const order = window.positionsSortOrder;
+        if (order.col === col) {
+            order.asc = !order.asc;
+        } else {
+            order.col = col;
+            order.asc = true;
+        }
+        
+        const sorted = [...window.allPositions].sort((a, b) => {
+            let valA = a[col] || '';
+            let valB = b[col] || '';
+            if (order.asc) {
+                return valA.localeCompare(valB);
+            } else {
+                return valB.localeCompare(valA);
             }
-            
-            if (data.latest_rejected_leave) {
-                const key = `dismiss_leave_${data.latest_rejected_leave.start_date}_Rejected`;
-                const alreadyNotified = notifications.some(n => n.type === 'Rejected' && n.start_date === data.latest_rejected_leave.start_date);
-                if (!alreadyNotified && !localStorage.getItem(key)) {
-                    notifications.unshift({
-                        id: 'notif_' + Date.now() + '_rej',
-                        type: 'Rejected',
-                        start_date: data.latest_rejected_leave.start_date,
-                        message: `Pengajuan cuti Anda (${data.latest_rejected_leave.leave_type}) mulai tanggal ${data.latest_rejected_leave.start_date} telah DITOLAK. Alasan: ${data.latest_rejected_leave.reason || '-'}`,
-                        read: false,
-                        timestamp: Date.now()
-                    });
-                }
-            }
-            
-            localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
-            updateNotificationsUI();
-        };
+        });
+        renderPositionsTable(sorted);
+    };
 
-        window.updateNotificationsUI = function () {
-            if (!userData || !userData.user_id) return;
-            const list = document.getElementById('notifList');
-            const badge = document.getElementById('notifBadge');
-            if (!list) return;
-            
-            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
-            const unreadCount = notifications.filter(n => !n.read).length;
-            
-            if (badge) {
-                badge.textContent = unreadCount;
-                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    window.divisionsSortOrder = { asc: true };
+    window.sortDivisionsTable = function () {
+        const asc = window.divisionsSortOrder.asc;
+        window.divisionsSortOrder.asc = !asc;
+        
+        const sorted = [...window.allDivisions].sort((a, b) => {
+            if (asc) {
+                return a.localeCompare(b);
+            } else {
+                return b.localeCompare(a);
             }
-            
-            if (!notifications.length) {
-                list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">Belum ada notifikasi baru</div>';
-                return;
-            }
-            
-            list.innerHTML = notifications.map(n => `
-                <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markNotifAsRead('${n.id}')" style="
-                    padding: 12px 16px;
-                    border-bottom: 1px solid var(--border);
-                    cursor: pointer;
-                    transition: background 0.2s ease;
-                    position: relative;
-                ">
-                    <div style="display:flex; gap:10px; align-items:flex-start;">
-                        <div style="width:28px; height:28px; border-radius:50%; background:${n.type === 'Approved' ? 'rgba(46,196,182,0.15)' : 'rgba(231,76,60,0.15)'}; color:${n.type === 'Approved' ? '#2ec4b6' : '#e74c3c'}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
-                            <i class="bi ${n.type === 'Approved' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
-                        </div>
-                        <div style="flex:1;">
-                            <p style="margin:0; font-size:11px; color:var(--text); line-height:1.4; font-weight:${n.read ? '500' : '700'}; text-align:left;">${n.message}</p>
-                            <span style="font-size:9px; color:var(--text-muted); display:block; margin-top:4px; text-align:left;">${new Date(n.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                        ${n.read ? '' : `<span style="width:8px; height:8px; border-radius:50%; background:var(--primary); display:block; flex-shrink:0; margin-top:4px;"></span>`}
-                    </div>
-                </div>
-            `).join('');
-        };
+        });
+        renderDivisionsTable(sorted);
+    };
 
-        window.markNotifAsRead = function (id) {
-            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
-            const notif = notifications.find(n => n.id === id);
-            if (notif) {
-                notif.read = true;
-                localStorage.setItem(`dismiss_leave_${notif.start_date}_${notif.type}`, 'true');
-            }
-            localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
-            updateNotificationsUI();
-        };
+    // ============ DYNAMIC CALENDAR WIDGET ============
+    window.calendarCurrentDate = new Date();
+    window.prevCalendarMonth = function () {
+        window.calendarCurrentDate.setMonth(window.calendarCurrentDate.getMonth() - 1);
+        renderCalendar();
+    };
 
-        window.markAllNotifAsRead = function () {
-            let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
-            notifications.forEach(n => {
-                n.read = true;
-                localStorage.setItem(`dismiss_leave_${n.start_date}_${n.type}`, 'true');
+    window.nextCalendarMonth = function () {
+        window.calendarCurrentDate.setMonth(window.calendarCurrentDate.getMonth() + 1);
+        renderCalendar();
+    };
+
+    window.renderCalendar = function () {
+        const grid = document.getElementById('calendarGrid');
+        const header = document.getElementById('calendarMonthYear');
+        if (!grid || !header) return;
+        
+        const year = window.calendarCurrentDate.getFullYear();
+        const month = window.calendarCurrentDate.getMonth();
+        
+        const monthNames = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+        header.textContent = `${monthNames[month]} ${year}`;
+        
+        const dayHeaders = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        let html = dayHeaders.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+        
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        const prevLastDay = new Date(year, month, 0).getDate();
+        
+        for (let i = firstDayIndex; i > 0; i--) {
+            html += `<div class="calendar-cell other-month">${prevLastDay - i + 1}</div>`;
+        }
+        
+        const today = new Date();
+        const holidays = window.allHolidays || [];
+        
+        for (let i = 1; i <= lastDay; i++) {
+            const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            
+            const activeHoliday = holidays.find(h => {
+                const start = h.start_date;
+                const end = h.end_date || start;
+                return currentDateStr >= start && currentDateStr <= end;
             });
-            localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
-            updateNotificationsUI();
-        };
+            
+            const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
+            const cellClass = `calendar-cell ${activeHoliday ? 'holiday' : ''} ${isToday ? 'today' : ''}`;
+            const titleText = activeHoliday ? `title="${activeHoliday.description}"` : '';
+            
+            html += `<div class="${cellClass}" ${titleText}>${i}</div>`;
+        }
+        
+        const totalCells = firstDayIndex + lastDay;
+        const remaining = (7 - (totalCells % 7)) % 7;
+        for (let i = 1; i <= remaining; i++) {
+            html += `<div class="calendar-cell other-month">${i}</div>`;
+        }
+        
+        grid.innerHTML = html;
+    };
 
-        // Automatic Tab Deep-Linking System
+    // ============ EMPLOYEE NOTIFICATION CENTER ============
+    window.toggleNotifDropdown = function (e) {
+        if (e) e.stopPropagation();
+        const dropdown = document.getElementById('notifDropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('active');
+        }
+    };
+
+    // Click outside closes notification dropdown
+    document.addEventListener('click', function (e) {
+        const dropdown = document.getElementById('notifDropdown');
+        const bellBtn = document.querySelector('.btn-ghost i.bi-bell');
+        if (dropdown && !dropdown.contains(e.target) && (!bellBtn || !bellBtn.contains(e.target))) {
+            dropdown.classList.remove('active');
+        }
+    });
+
+    window.loadNotifications = function (data) {
+        if (!userData || !userData.user_id) return;
+        let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+        
+        if (data.latest_approved_leave) {
+            const key = `dismiss_leave_${data.latest_approved_leave.start_date}_Approved`;
+            const alreadyNotified = notifications.some(n => n.type === 'Approved' && n.start_date === data.latest_approved_leave.start_date);
+            if (!alreadyNotified && !localStorage.getItem(key)) {
+                notifications.unshift({
+                    id: 'notif_' + Date.now() + '_app',
+                    type: 'Approved',
+                    start_date: data.latest_approved_leave.start_date,
+                    message: `Pengajuan cuti Anda (${data.latest_approved_leave.leave_type}) mulai tanggal ${data.latest_approved_leave.start_date} s/d ${data.latest_approved_leave.end_date} telah DISETUJUI oleh HRD.`,
+                    read: false,
+                    timestamp: Date.now()
+                });
+            }
+        }
+        
+        if (data.latest_rejected_leave) {
+            const key = `dismiss_leave_${data.latest_rejected_leave.start_date}_Rejected`;
+            const alreadyNotified = notifications.some(n => n.type === 'Rejected' && n.start_date === data.latest_rejected_leave.start_date);
+            if (!alreadyNotified && !localStorage.getItem(key)) {
+                notifications.unshift({
+                    id: 'notif_' + Date.now() + '_rej',
+                    type: 'Rejected',
+                    start_date: data.latest_rejected_leave.start_date,
+                    message: `Pengajuan cuti Anda (${data.latest_rejected_leave.leave_type}) mulai tanggal ${data.latest_rejected_leave.start_date} telah DITOLAK. Alasan: ${data.latest_rejected_leave.reason || '-'}`,
+                    read: false,
+                    timestamp: Date.now()
+                });
+            }
+        }
+        
+        localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
+        updateNotificationsUI();
+    };
+
+    window.updateNotificationsUI = function () {
+        if (!userData || !userData.user_id) return;
+        const list = document.getElementById('notifList');
+        const badge = document.getElementById('notifBadge');
+        if (!list) return;
+        
+        let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+        const unreadCount = notifications.filter(n => !n.read).length;
+        
+        if (badge) {
+            badge.textContent = unreadCount;
+            badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        }
+        
+        if (!notifications.length) {
+            list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">Belum ada notifikasi baru</div>';
+            return;
+        }
+        
+        list.innerHTML = notifications.map(n => `
+            <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markNotifAsRead('${n.id}')" style="
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--border);
+                cursor: pointer;
+                transition: background 0.2s ease;
+                position: relative;
+            ">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:${n.type === 'Approved' ? 'rgba(46,196,182,0.15)' : 'rgba(231,76,60,0.15)'}; color:${n.type === 'Approved' ? '#2ec4b6' : '#e74c3c'}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
+                        <i class="bi ${n.type === 'Approved' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <p style="margin:0; font-size:11px; color:var(--text); line-height:1.4; font-weight:${n.read ? '500' : '700'}; text-align:left;">${n.message}</p>
+                        <span style="font-size:9px; color:var(--text-muted); display:block; margin-top:4px; text-align:left;">${new Date(n.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    ${n.read ? '' : `<span style="width:8px; height:8px; border-radius:50%; background:var(--primary); display:block; flex-shrink:0; margin-top:4px;"></span>`}
+                </div>
+            </div>
+        `).join('');
+    };
+
+    window.markNotifAsRead = function (id) {
+        let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+        const notif = notifications.find(n => n.id === id);
+        if (notif) {
+            notif.read = true;
+            localStorage.setItem(`dismiss_leave_${notif.start_date}_${notif.type}`, 'true');
+        }
+        localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
+        updateNotificationsUI();
+    };
+
+    window.markAllNotifAsRead = function () {
+        let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
+        notifications.forEach(n => {
+            n.read = true;
+            localStorage.setItem(`dismiss_leave_${n.start_date}_${n.type}`, 'true');
+        });
+        localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
+        updateNotificationsUI();
+    };
+
+    // Automatic Tab Deep-Linking System
+    if (currentPage === 'leave.html') {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('tab') === 'history' || window.location.hash === '#tab-history') {
             window.switchTab('history');
         }
-    })();
-}
+    }
+})();
 
