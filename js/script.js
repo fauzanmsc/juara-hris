@@ -151,25 +151,20 @@ window.logout = function () {
 // Helper Global: Parse waktu dari berbagai format (ISO full string atau HH:MM) ke format HH:MM 24 jam
 window.parseTime = function (val) {
     if (!val || val === '--:--' || val === '--') return null;
-    if (typeof val === 'string' && val.includes('T')) {
-        const timePart = val.split('T')[1];
-        if (timePart) {
-            const [h, m] = timePart.split(':');
-            if (h !== undefined && m !== undefined) {
-                return String(parseInt(h, 10)).padStart(2, '0') + ':' + String(parseInt(m, 10)).padStart(2, '0');
-            }
-        }
-        return null;
+    let d = null;
+    if (val instanceof Date) {
+        d = val;
+    } else if (typeof val === 'string' && (val.includes('T') || val.includes('Z') || val.match(/^\d{4}-\d{2}-\d{2}/))) {
+        d = new Date(val);
+    }
+    if (d && !isNaN(d.getTime())) {
+        return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     }
     if (typeof val === 'string') {
-        const match = val.match(/(\d{2}):(\d{2}):\d{2}/);
+        const match = val.match(/(\d{1,2}):(\d{2})/);
         if (match) {
             return String(parseInt(match[1], 10)).padStart(2, '0') + ':' + String(parseInt(match[2], 10)).padStart(2, '0');
         }
-    }
-    if (typeof val === 'string' && val.includes(':')) {
-        const parts = val.split(':');
-        return String(parseInt(parts[0], 10)).padStart(2, '0') + ':' + String(parseInt(parts[1], 10)).padStart(2, '0');
     }
     return null;
 };
@@ -676,7 +671,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.viewPhoto = function (url) {
-            document.getElementById('modalPhotoImg').src = url;
+            document.getElementById('modalPhotoImg').src = getDirectDriveUrl(url);
             document.getElementById('modalPhoto').classList.remove('hidden');
         }
 
@@ -772,9 +767,20 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.filterUsers = function () {
-            const q = document.getElementById('userSearch').value.toLowerCase();
-            const st = document.getElementById('userStatusFilter').value;
-            renderUsers(allUsers.filter(u => (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) && (!st || u.status === st)));
+            const q = (document.getElementById('userSearch')?.value || '').trim().toLowerCase();
+            const st = document.getElementById('userStatusFilter')?.value || '';
+            const role = document.getElementById('userRoleFilter')?.value || '';
+            
+            const filtered = allUsers.filter(u => {
+                const matchesSearch = !q || 
+                    (u.name && u.name.toLowerCase().includes(q)) || 
+                    (u.email && u.email.toLowerCase().includes(q)) ||
+                    (u.user_id && u.user_id.toLowerCase().includes(q));
+                const matchesStatus = !st || u.status === st;
+                const matchesRole = !role || u.role === role;
+                return matchesSearch && matchesStatus && matchesRole;
+            });
+            renderUsers(filtered);
         }
 
         window.previewAvatar = function (input) {
@@ -978,10 +984,74 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&start_date=${start}&end_date=${end}&name=${encodeURIComponent(name)}&status=${status}`);
                 const data = await res.json();
                 renderAtt(data.records || []);
+                renderAttendanceAnalytics(data.analytics);
             } catch (e) {
                 console.error('Error loading attendance:', e);
                 showToast('Gagal memuat data absensi', 'error');
             }
+        }
+
+        window.renderAttendanceAnalytics = function (analytics) {
+            const container = document.getElementById('attendanceAnalyticsContainer');
+            if (!container) return;
+            
+            if (!analytics || (!analytics.top_absent?.length && !analytics.top_sick_permit?.length)) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'grid';
+
+            const buildList = (list, isAbsent) => {
+                if (!list || !list.length) {
+                    return `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Tidak ada data mencukupi</div>`;
+                }
+                return list.map((emp, idx) => {
+                    const avatarHTML = emp.profile_pic_url ?
+                        `<img src="${getDirectDriveUrl(emp.profile_pic_url)}" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;" onerror="this.outerHTML='<div class=\'avatar avatar-sm\' style=\'width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-weight:700;\'>${emp.name?.substring(0, 2).toUpperCase()}</div>'">` :
+                        `<div class="avatar avatar-sm" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-weight:700;">${emp.name?.substring(0, 2).toUpperCase()}</div>`;
+                    
+                    const statValue = isAbsent ? `${emp.absent_days} Hari` : `${emp.sick_permit_days} Hari`;
+                    const statClass = isAbsent ? 'stat-absent' : 'stat-sick-permit';
+
+                    return `
+                        <div class="top-emp-item">
+                            <div class="top-emp-left">
+                                <span class="top-emp-rank">${idx + 1}</span>
+                                ${avatarHTML}
+                                <div class="top-emp-info">
+                                    <span class="top-emp-name">${emp.name}</span>
+                                    <span class="top-emp-pos">${emp.position}</span>
+                                </div>
+                            </div>
+                            <span class="top-emp-stat ${statClass}">${statValue}</span>
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            container.innerHTML = `
+                <!-- Box 1: Paling Banyak Tidak Hadir -->
+                <div class="analytics-card">
+                    <h4 class="analytics-title">
+                        <i class="bi bi-person-x-fill text-danger" style="font-size:16px;"></i> 
+                        Top 3 Karyawan Paling Banyak Tidak Hadir
+                    </h4>
+                    <div class="top-emp-list">
+                        ${buildList(analytics.top_absent, true)}
+                    </div>
+                </div>
+
+                <!-- Box 2: Paling Sering Sakit & Izin -->
+                <div class="analytics-card">
+                    <h4 class="analytics-title">
+                        <i class="bi bi-heart-pulse-fill text-warning" style="font-size:16px;"></i> 
+                        Top 3 Karyawan Paling Sering Sakit & Izin
+                    </h4>
+                    <div class="top-emp-list">
+                        ${buildList(analytics.top_sick_permit, false)}
+                    </div>
+                </div>
+            `;
         }
 
         window.renderAtt = function (records) {
@@ -1778,6 +1848,10 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
 
         // ---- PRE-FLIGHT CHECK ----
         window.preFlightCheck = async function () {
+            if (new Date().getDay() === 0) {
+                showLock('holiday', 'Libur Operasional (Hari Kerja: Senin - Sabtu)');
+                return;
+            }
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=preflight&user_id=${userData.user_id}`);
                 const data = await res.json();
@@ -2322,6 +2396,20 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         if (!userData) window.location.href = 'index.html';
 
         let selectedType = 'Cuti', fileBase64 = null, fileName = null;
+        let remainingQuota = 12; // default
+        async function loadQuota() {
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=employeeDashboard&user_id=${userData.user_id}`);
+                const data = await res.json();
+                if (data.success && data.stats) {
+                    remainingQuota = Number(data.stats.sisa_cuti);
+                }
+            } catch (e) {
+                console.error('Error loading quota:', e);
+            }
+        }
+        loadQuota();
+
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('startDate').min = today;
         document.getElementById('endDate').min = today;
@@ -2386,6 +2474,10 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
 
         window.submitLeave = async function () {
+            if (remainingQuota <= 0) {
+                window.customAlert('Jatah cuti Anda saat ini adalah 0. Anda tidak dapat mengajukan Cuti, Sakit, atau Izin.');
+                return;
+            }
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value, reason = document.getElementById('reason').value.trim();
             if (!startDate || !endDate) { showToast('Pilih tanggal mulai & selesai', 'warn'); return; }
             if (!reason) { showToast('Alasan wajib diisi', 'warn'); return; }
@@ -2754,9 +2846,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
 
             const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
             const cellClass = `calendar-cell ${activeHoliday ? 'holiday' : ''} ${isToday ? 'today' : ''}`;
-            const titleText = activeHoliday ? `title="${activeHoliday.description}"` : '';
+            const tooltipAttr = activeHoliday ? `data-tooltip="${activeHoliday.description}"` : '';
 
-            html += `<div class="${cellClass}" ${titleText}>${i}</div>`;
+            html += `<div class="${cellClass}" ${tooltipAttr}>${i}</div>`;
         }
 
         const totalCells = firstDayIndex + lastDay;

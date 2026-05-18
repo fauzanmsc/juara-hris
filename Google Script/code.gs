@@ -116,21 +116,21 @@ function generateId(prefix) {
 }
 
 function getTodayString() {
-  return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd');
 }
 
 function getTimeString() {
-  return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'HH:mm:ss');
+  return Utilities.formatDate(new Date(), 'GMT+7', 'HH:mm:ss');
 }
 
 function formatDate(d) {
-  return Utilities.formatDate(new Date(d), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return Utilities.formatDate(new Date(d), 'GMT+7', 'yyyy-MM-dd');
 }
 
 function formatTimeVal(val) {
   if (!val) return '';
   if (Object.prototype.toString.call(val) === '[object Date]') {
-    return Utilities.formatDate(val, Session.getScriptTimeZone(), 'HH:mm');
+    return Utilities.formatDate(val, 'GMT+7', 'HH:mm');
   }
   var str = String(val).trim();
   var match = str.match(/(\d{2}):(\d{2}):\d{2}/);
@@ -200,7 +200,7 @@ function getConfigVal(key, defaultVal) {
   }
   let val;
   if (Object.prototype.toString.call(found.value) === '[object Date]') {
-    val = Utilities.formatDate(found.value, Session.getScriptTimeZone(), 'HH:mm');
+    val = Utilities.formatDate(found.value, 'GMT+7', 'HH:mm');
   } else {
     val = String(found.value).trim();
   }
@@ -335,8 +335,9 @@ function clockIn(body) {
   const { user_id, lat, lng, distance_meters, photo_base64 } = body;
   const today = getTodayString();
   const now = new Date();
-  const timeStr = Utilities.formatDate(now, Session.getScriptTimeZone(), 'HH:mm:ss');
-  const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+  const timeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
+  const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
+  const isSaturday = (dayName === 'Saturday');
 
   // Validasi radius
   const maxRadius = parseFloat(getConfigVal('max_radius_meters', '200'));
@@ -355,7 +356,7 @@ function clockIn(body) {
   let scheduleStart, toleranceMin;
   toleranceMin = parseInt(getConfigVal('tolerance_minutes', '15'));
 
-  if (dayOfWeek === 6) { // Sabtu
+  if (isSaturday) { // Sabtu
     scheduleStart = getConfigVal('saturday_start', '09:00');
   } else { // Senin-Jumat
     scheduleStart = getConfigVal('weekday_start', '10:00');
@@ -363,7 +364,8 @@ function clockIn(body) {
 
   const [sH, sM] = scheduleStart.split(':').map(Number);
   const deadlineMin = sH * 60 + sM + toleranceMin;
-  const clockMinutes = now.getHours() * 60 + now.getMinutes();
+  const [cH, cM] = timeStr.split(':').map(Number);
+  const clockMinutes = cH * 60 + cM;
   const statusIn = clockMinutes <= deadlineMin ? 'Tepat Waktu' : 'Terlambat';
 
   // Upload foto
@@ -404,8 +406,9 @@ function clockOut(body) {
   const { user_id, lat, lng, distance_meters, photo_base64 } = body;
   const today = getTodayString();
   const now = new Date();
-  const timeStr = Utilities.formatDate(now, Session.getScriptTimeZone(), 'HH:mm:ss');
-  const dayOfWeek = now.getDay();
+  const timeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
+  const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
+  const isSaturday = (dayName === 'Saturday');
 
   // Validasi radius
   const maxRadius = parseFloat(getConfigVal('max_radius_meters', '200'));
@@ -439,11 +442,12 @@ function clockOut(body) {
 
   // Hitung status pulang
   let scheduleEnd;
-  if (dayOfWeek === 6) scheduleEnd = getConfigVal('saturday_end', '17:00');
+  if (isSaturday) scheduleEnd = getConfigVal('saturday_end', '17:00');
   else scheduleEnd = getConfigVal('weekday_end', '19:00');
   const [eH, eM] = scheduleEnd.split(':').map(Number);
   const endMinutes = eH * 60 + eM;
-  const clockMinutes = now.getHours() * 60 + now.getMinutes();
+  const [cH, cM] = timeStr.split(':').map(Number);
+  const clockMinutes = cH * 60 + cM;
   const statusOut = clockMinutes >= endMinutes ? 'Normal' : 'Pulang Cepat';
 
   // Upload foto
@@ -713,7 +717,7 @@ function updateUserStatus(body) {
 // ============ ATTENDANCE LOG ============
 
 function getAttendanceLog(params) {
-  const { start_date, end_date, name, status } = params;
+  const { start_date, end_date, name, status, user_id } = params;
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const users = sheetToObjects(getSheet(SHEET.USERS));
 
@@ -728,12 +732,99 @@ function getAttendanceLog(params) {
     };
   });
 
+  if (user_id) records = records.filter(r => String(r.user_id).trim() === String(user_id).trim());
   if (start_date) records = records.filter(r => r.date >= start_date);
   if (end_date) records = records.filter(r => r.date <= end_date);
   if (name) records = records.filter(r => String(r.name).toLowerCase().includes(String(name).toLowerCase()));
   if (status) records = records.filter(r => r.status_in === status);
 
-  return { success: true, records: records.reverse() };
+  // Calculate Analytics for Top 3
+  const activeEmployees = users.filter(u => u.role === 'Employee' && u.status === 'Active');
+  const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
+  const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
+
+  // Find all unique dates in attendance sheet
+  const uniqueDates = [...new Set(attendance.map(a => formatDate(a.date)))].sort();
+  
+  const employeeAnalytics = activeEmployees.map(emp => {
+    // 1. Calculate Sick + Permit (Sakit & Izin)
+    const empLeaves = leaves.filter(l => 
+      String(l.user_id) === String(emp.user_id) && 
+      l.status === 'Approved' && 
+      (l.type === 'Sakit' || l.type === 'Izin')
+    );
+    
+    const sickPermitDays = empLeaves.reduce((sum, l) => {
+      const start = new Date(l.start_date);
+      const end = new Date(l.end_date);
+      const days = Math.round((end - start) / (24 * 3600 * 1000)) + 1;
+      return sum + (isNaN(days) ? 0 : days);
+    }, 0);
+
+    // 2. Calculate Absences (Tidak Hadir)
+    let absentDays = 0;
+    uniqueDates.forEach(dStr => {
+      // Skip if Sunday
+      const dt = new Date(dStr + 'T00:00:00');
+      if (dt.getDay() === 0) return;
+      
+      // Skip if holiday
+      const isHoliday = holidays.some(h => {
+        const start = h.start_date ? formatDate(h.start_date) : (h.date ? formatDate(h.date) : '');
+        const end = h.end_date ? formatDate(h.end_date) : start;
+        return dStr >= start && dStr <= end;
+      });
+      if (isHoliday) return;
+
+      // Check if present
+      const wasPresent = attendance.some(a => 
+        String(a.user_id) === String(emp.user_id) && 
+        formatDate(a.date) === dStr
+      );
+      if (wasPresent) return;
+
+      // Check if on approved leave
+      const wasOnLeave = leaves.some(l => 
+        String(l.user_id) === String(emp.user_id) && 
+        l.status === 'Approved' && 
+        formatDate(l.start_date) <= dStr && 
+        formatDate(l.end_date) >= dStr
+      );
+      if (wasOnLeave) return;
+
+      absentDays++;
+    });
+
+    return {
+      user_id: emp.user_id,
+      name: emp.name,
+      position: emp.position || 'Employee',
+      profile_pic_url: emp.profile_pic_url || '',
+      sick_permit_days: sickPermitDays,
+      absent_days: absentDays
+    };
+  });
+
+  // Top 3 Absent
+  const topAbsent = [...employeeAnalytics]
+    .sort((a, b) => b.absent_days - a.absent_days)
+    .slice(0, 3)
+    .filter(x => x.absent_days > 0);
+
+  // Top 3 Sick & Permit
+  const topSickPermit = [...employeeAnalytics]
+    .sort((a, b) => b.sick_permit_days - a.sick_permit_days)
+    .slice(0, 3)
+    .filter(x => x.sick_permit_days > 0);
+
+  return { 
+    success: true, 
+    records: records.reverse(),
+    analytics: {
+      top_absent: topAbsent,
+      top_sick_permit: topSickPermit
+    }
+  };
 }
 
 
@@ -742,8 +833,8 @@ function getAttendanceLog(params) {
 function getEmployeeDashboard(params) {
   const { user_id } = params;
   const today = getTodayString();
-  const now = new Date();
-  const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const [yearStr, monthStr] = today.split('-');
+  const monthStart = `${yearStr}-${monthStr}-01`;
 
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const thisMonth = attendance.filter(a =>
@@ -795,11 +886,34 @@ function getEmployeeDashboard(params) {
     reason: rejectedLeaves[rejectedLeaves.length - 1].reason || ''
   } : null;
 
+  const quotaSheet = getOrCreateSheet(SHEET.QUOTAS, ['user_id', 'name', 'allowed_leave_quota']);
+  const quotas = sheetToObjects(quotaSheet);
+  let qRecord = quotas.find(q => String(q.user_id) === String(user_id));
+  let allowedQuota = 12;
+  if (qRecord) {
+    allowedQuota = Number(qRecord.allowed_leave_quota);
+  } else {
+    quotaSheet.appendRow([user_id, user ? user.name : 'Karyawan', 12]);
+  }
+
+  const overallApprovedCuti = leaves.filter(l => 
+    String(l.user_id) === String(user_id) && 
+    l.status === 'Approved' && 
+    l.type === 'Cuti'
+  ).reduce((sum, l) => {
+    const start = new Date(l.start_date);
+    const end = new Date(l.end_date);
+    const days = Math.round((end - start) / (24 * 3600 * 1000)) + 1;
+    return sum + (isNaN(days) ? 0 : days);
+  }, 0);
+
+  const remainingQuota = allowedQuota - overallApprovedCuti;
+
   return {
     success: true,
     profile_pic_url: user ? (user.profile_pic_url || '') : '',
     division: user ? (user.division || 'Umum') : 'Umum',
-    stats: { hadir, terlambat, sisa_cuti: 12 }, // sisa cuti bisa dikonfigurasi
+    stats: { hadir, terlambat, sisa_cuti: remainingQuota >= 0 ? remainingQuota : 0 },
     today_in: todayAtt ? formatTimeVal(todayAtt.clock_in_time) : null,
     today_out: todayAtt ? formatTimeVal(todayAtt.clock_out_time) : null,
     status_in: todayAtt ? todayAtt.status_in : null,
@@ -844,7 +958,7 @@ function getAdminDashboard(params) {
       initials: user ? user.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() : 'XX',
       clock_in: formatTimeVal(a.clock_in_time),
       clock_out: formatTimeVal(a.clock_out_time) || null,
-      distance: a.distance_meters,
+      distance: a.distance_in_meters || a.distance_meters || '',
       status_in: a.status_in,
       photo_in: a.photo_in_url || '',
       profile_pic: user ? (user.profile_pic_url || '') : ''
