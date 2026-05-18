@@ -14,7 +14,9 @@ const SHEET = {
   ATTENDANCE: 'tbl_attendance',
   LEAVE: 'tbl_leave_requests',
   HOLIDAYS: 'tbl_holidays',
-  CONFIG: 'tbl_config'
+  CONFIG: 'tbl_config',
+  QUOTAS: 'tbl_leave_quota',
+  POSITION: 'tbl_position'
 };
 
 // ============ ENTRY POINTS ============
@@ -31,6 +33,8 @@ function doGet(e) {
       case 'getPendingLeaves': result = getPendingLeaves(); break;
       case 'getAttendance':  result = getAttendanceLog(e.parameter); break;
       case 'leaveHistory':   result = getLeaveHistory(e.parameter.user_id); break;
+      case 'getLeaveReport':  result = getLeaveReport(e.parameter); break;
+      case 'getPositions':   result = getPositions(); break;
       case 'getConfig':
         result = {
           success: true,
@@ -65,6 +69,10 @@ function doPost(e) {
       case 'saveConfig':     result = saveConfig(body); break;
       case 'addHoliday':     result = addHoliday(body); break;
       case 'deleteHoliday':  result = deleteHoliday(body); break;
+      case 'updateLeaveQuota': result = updateLeaveQuota(body); break;
+      case 'registerEmployee': result = registerEmployee(body); break;
+      case 'addPosition':    result = addPosition(body); break;
+      case 'deletePosition': result = deletePosition(body); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
     return jsonResponse(result);
@@ -171,7 +179,10 @@ function uploadBase64ToDrive(base64Data, filename, folder) {
 
 function getAllConfig() {
   const rows = sheetToObjects(getSheet(SHEET.CONFIG));
-  const config = {};
+  const config = {
+    wa_admin: '628123456789',
+    email_hrd: 'hrd@jefgroup.id'
+  };
   rows.forEach(r => { config[r.key] = r.value; });
   return config;
 }
@@ -225,11 +236,18 @@ function login(body) {
   const users = sheetToObjects(getSheet(SHEET.USERS));
   const user = users.find(u =>
     String(u.email).toLowerCase() === String(email).toLowerCase() &&
-    String(u.password_pin) === String(password_pin) &&
-    u.status === 'Active'
+    String(u.password_pin) === String(password_pin)
   );
 
-  if (!user) return { success: false, message: 'Email atau PIN salah, atau akun tidak aktif' };
+  if (!user) return { success: false, message: 'Email atau PIN salah' };
+
+  if (user.status === 'Pending') {
+    return { success: false, message: 'Akses Akun Anda belum disetujui' };
+  }
+
+  if (user.status === 'Inactive') {
+    return { success: false, message: 'Akun Anda dinonaktifkan. Silakan hubungi HR.' };
+  }
 
   return {
     success: true,
@@ -239,7 +257,8 @@ function login(body) {
       email: user.email,
       role: user.role,
       position: user.position,
-      profile_pic_url: user.profile_pic_url || ''
+      profile_pic_url: user.profile_pic_url || '',
+      division: user.division || 'Umum'
     }
   };
 }
@@ -251,11 +270,25 @@ function preflightCheck(params) {
   const { user_id } = params;
   const today = getTodayString();
 
-  // 1. Cek hari libur
+  // 1. Cek hari libur (mendukung single date dan date range)
   const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
-  const holiday = holidays.find(h => formatDate(h.date) === today);
+  const todayTime = new Date(today + 'T00:00:00').getTime();
+  const holiday = holidays.find(h => {
+    const startStr = h.start_date ? formatDate(h.start_date) : (h.date ? formatDate(h.date) : '');
+    const endStr = h.end_date ? formatDate(h.end_date) : startStr;
+    if (!startStr) return false;
+    const startT = new Date(startStr + 'T00:00:00').getTime();
+    const endT = new Date(endStr + 'T00:00:00').getTime();
+    return todayTime >= startT && todayTime <= endT;
+  });
   if (holiday) {
-    return { success: false, lock_type: 'holiday', message: `Hari ini libur: ${holiday.description}` };
+    return { success: false, lock_type: 'holiday', message: `Libur Operasional: ${holiday.description}` };
+  }
+
+  // 1.5 Cek otomatis Hari Minggu (Libur Operasional)
+  const checkDate = new Date(today + 'T00:00:00');
+  if (checkDate.getDay() === 0) { // 0 = Hari Minggu
+    return { success: false, lock_type: 'holiday', message: 'Libur Operasional (Hari Kerja: Senin - Sabtu)' };
   }
 
   // 2. Cek status cuti/izin/sakit yang approved
@@ -544,11 +577,17 @@ function deleteLeaveRequest(body) {
 // ============ USERS CRUD ============
 
 function getUsers() {
+  ensureUsersDivisionMigration();
   const users = sheetToObjects(getSheet(SHEET.USERS));
   const safe = users.map(u => ({
-    user_id: u.user_id, name: u.name, email: u.email,
-    position: u.position, role: u.role, status: u.status,
-    profile_pic_url: u.profile_pic_url
+    user_id: u.user_id, 
+    name: u.name, 
+    email: u.email,
+    position: u.position, 
+    role: u.role, 
+    status: u.status,
+    profile_pic_url: u.profile_pic_url,
+    division: u.division || 'Umum'
   }));
   return { success: true, users: safe };
 }
@@ -563,9 +602,25 @@ function addUser(body) {
     return { success: false, message: 'Email sudah terdaftar' };
   }
 
+  // Cari divisi dari jabatan
+  let division = 'Umum';
+  try {
+    const posSheet = getSheet('tbl_position');
+    if (posSheet) {
+      const posData = posSheet.getDataRange().getValues();
+      for (let i = 1; i < posData.length; i++) {
+        if (posData[i][0] === position) {
+          division = posData[i][1] || 'Umum';
+          break;
+        }
+      }
+    }
+  } catch (e) {}
+
+  ensureUsersDivisionMigration();
   const sheet = getSheet(SHEET.USERS);
   const newId = generateId('USR');
-  sheet.appendRow([newId, name, email, password_pin, role || 'Employee', position, '', 'Active']);
+  sheet.appendRow([newId, name, email, password_pin, role || 'Employee', position, '', 'Active', division]);
   return { success: true, user_id: newId };
 }
 
@@ -575,14 +630,18 @@ function updateUser(body) {
   const data = sheet.getDataRange().getValues();
   const headers = data[0].map(h => String(h).trim());
 
+  ensureUsersDivisionMigration();
+  const refreshedHeaders = sheet.getDataRange().getValues()[0].map(h => String(h).trim());
+
   const idx = {
-    user_id: headers.indexOf('user_id'),
-    name: headers.indexOf('name'),
-    email: headers.indexOf('email'),
-    password_pin: headers.indexOf('password_pin'),
-    role: headers.indexOf('role'),
-    position: headers.indexOf('position'),
-    profile_pic_url: headers.indexOf('profile_pic_url')
+    user_id: refreshedHeaders.indexOf('user_id'),
+    name: refreshedHeaders.indexOf('name'),
+    email: refreshedHeaders.indexOf('email'),
+    password_pin: refreshedHeaders.indexOf('password_pin'),
+    role: refreshedHeaders.indexOf('role'),
+    position: refreshedHeaders.indexOf('position'),
+    profile_pic_url: refreshedHeaders.indexOf('profile_pic_url'),
+    division: refreshedHeaders.indexOf('division')
   };
 
   let profilePicUrl = body.profile_pic_url;
@@ -593,16 +652,37 @@ function updateUser(body) {
     }
   }
 
+  // Cari divisi dari jabatan
+  let division = '';
+  if (position) {
+    try {
+      const posSheet = getSheet('tbl_position');
+      if (posSheet) {
+        const posData = posSheet.getDataRange().getValues();
+        for (let i = 1; i < posData.length; i++) {
+          if (posData[i][0] === position) {
+            division = posData[i][1] || 'Umum';
+            break;
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][idx.user_id]) === String(user_id)) {
       if (name) sheet.getRange(i+1, idx.name+1).setValue(name);
       if (email) sheet.getRange(i+1, idx.email+1).setValue(email);
       if (password_pin) sheet.getRange(i+1, idx.password_pin+1).setValue(password_pin);
-      if (position) sheet.getRange(i+1, idx.position+1).setValue(position);
+      if (position) {
+        sheet.getRange(i+1, idx.position+1).setValue(position);
+        if (division && idx.division !== -1) {
+          sheet.getRange(i+1, idx.division+1).setValue(division);
+        }
+      }
       if (role) sheet.getRange(i+1, idx.role+1).setValue(role);
       if (profilePicUrl) sheet.getRange(i+1, idx.profile_pic_url+1).setValue(profilePicUrl);
       
-      // Also return the updated picture if uploaded
       return { success: true, profile_pic_url: profilePicUrl };
     }
   }
@@ -793,7 +873,8 @@ function saveConfig(body) {
   const valIdx = headers.indexOf('value');
 
   const keys = ['office_latitude','office_longitude','max_radius_meters',
-                 'weekday_start','weekday_end','saturday_start','saturday_end','tolerance_minutes'];
+                 'weekday_start','weekday_end','saturday_start','saturday_end','tolerance_minutes',
+                 'wa_admin', 'email_hrd'];
 
   keys.forEach(key => {
     if (body[key] === undefined) return;
@@ -817,16 +898,37 @@ function getHolidays() {
   const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
   return {
     success: true,
-    holidays: holidays.map(h => ({ ...h, date: formatDate(h.date) }))
+    holidays: holidays.map(h => {
+      const s = h.start_date ? formatDate(h.start_date) : (h.date ? formatDate(h.date) : '');
+      const e = h.end_date ? formatDate(h.end_date) : s;
+      return {
+        holiday_id: h.holiday_id,
+        start_date: s,
+        end_date: e,
+        description: h.description,
+        created_by: h.created_by
+      };
+    })
   };
 }
 
 function addHoliday(body) {
-  const { date, description, created_by } = body;
-  if (!date || !description) return { success: false, message: 'Tanggal dan keterangan wajib diisi' };
+  const { start_date, end_date, description, created_by } = body;
+  if (!start_date || !description) return { success: false, message: 'Tanggal dan keterangan wajib diisi' };
   const sheet = getSheet(SHEET.HOLIDAYS);
   const newId = generateId('HOL');
-  sheet.appendRow([newId, date, description, created_by || '']);
+  const finalEndDate = end_date || start_date;
+
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim());
+
+  if (!headers.includes('start_date')) {
+    sheet.getRange(1, 2).setValue('start_date');
+    sheet.insertColumnAfter(2);
+    sheet.getRange(1, 3).setValue('end_date');
+  }
+
+  sheet.appendRow([newId, start_date, finalEndDate, description, created_by || '']);
   return { success: true, holiday_id: newId };
 }
 
@@ -1056,4 +1158,304 @@ function handleManualEditToChip(e) {
       range.insertFileChip(id);
     } catch(err) {}
   }
+}
+
+// ============ NEW LEAVE REPORT & QUOTA FUNCTIONS ============
+
+function getOrCreateSheet(name, headers) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(headers);
+  }
+  return sheet;
+}
+
+function getLeaveReport(params) {
+  const startDateStr = params.start_date || ''; // YYYY-MM-DD
+  const endDateStr = params.end_date || '';     // YYYY-MM-DD
+
+  const users = sheetToObjects(getSheet(SHEET.USERS)).filter(u => u.role === 'Employee' && u.status === 'Active');
+  const leaves = sheetToObjects(getSheet(SHEET.LEAVE)).filter(l => l.status === 'Approved');
+
+  // Load or create the quota sheet
+  const quotaSheet = getOrCreateSheet(SHEET.QUOTAS, ['user_id', 'name', 'allowed_leave_quota']);
+  const quotas = sheetToObjects(quotaSheet);
+
+  const report = users.map(user => {
+    // Find customized quota or default to 12
+    let qRecord = quotas.find(q => String(q.user_id) === String(user.user_id));
+    let allowedQuota = 12; // default
+    if (qRecord) {
+      allowedQuota = Number(qRecord.allowed_leave_quota);
+    } else {
+      // Add a new row to tbl_leave_quota for this employee
+      quotaSheet.appendRow([user.user_id, user.name, 12]);
+      allowedQuota = 12;
+    }
+
+    // Filter leaves for this employee
+    const userLeaves = leaves.filter(l => String(l.user_id) === String(user.user_id));
+
+    // Calculate total Cuti APPROVED overall
+    const overallApprovedCuti = userLeaves
+      .filter(l => l.type === 'Cuti')
+      .reduce((sum, l) => {
+        const start = new Date(l.start_date);
+        const end = new Date(l.end_date);
+        const days = Math.round((end - start) / (24 * 3600 * 1000)) + 1;
+        return sum + (isNaN(days) ? 0 : days);
+      }, 0);
+
+    const remainingQuota = allowedQuota - overallApprovedCuti;
+
+    // Filter leaves strictly within the dynamic period if provided
+    let periodLeaves = userLeaves;
+    if (startDateStr && endDateStr) {
+      const sLimit = new Date(startDateStr);
+      const eLimit = new Date(endDateStr);
+      periodLeaves = userLeaves.filter(l => {
+        const sDate = new Date(l.start_date);
+        const eDate = new Date(l.end_date);
+        return sDate <= eLimit && eDate >= sLimit;
+      });
+    }
+
+    // Calculate counts in the dynamic period
+    const countType = (type) => {
+      return periodLeaves
+        .filter(l => l.type === type)
+        .reduce((sum, l) => {
+          const start = new Date(l.start_date);
+          const end = new Date(l.end_date);
+          let days = Math.round((end - start) / (24 * 3600 * 1000)) + 1;
+          if (isNaN(days)) days = 0;
+          return sum + days;
+        }, 0);
+    };
+
+    return {
+      user_id: user.user_id,
+      name: user.name,
+      position: user.position || 'Employee',
+      profile_pic_url: user.profile_pic_url || '',
+      allowed_leave_quota: allowedQuota,
+      remaining_leave_quota: remainingQuota >= 0 ? remainingQuota : 0,
+      sick_count: countType('Sakit'),
+      permit_count: countType('Izin'),
+      cuti_count: countType('Cuti')
+    };
+  });
+
+  return { success: true, report: report };
+}
+
+function updateLeaveQuota(body) {
+  const { user_id, name, allowed_leave_quota } = body;
+  if (!user_id || allowed_leave_quota === undefined) {
+    return { success: false, message: 'Data tidak lengkap' };
+  }
+
+  const quotaSheet = getOrCreateSheet(SHEET.QUOTAS, ['user_id', 'name', 'allowed_leave_quota']);
+  const data = quotaSheet.getDataRange().getValues();
+  const headers = data[0].map(h => String(h).trim());
+  const idIdx = headers.indexOf('user_id');
+  const quotaIdx = headers.indexOf('allowed_leave_quota');
+
+  let found = false;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idIdx]) === String(user_id)) {
+      quotaSheet.getRange(i + 1, quotaIdx + 1).setValue(Number(allowed_leave_quota));
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    quotaSheet.appendRow([user_id, name || 'Karyawan', Number(allowed_leave_quota)]);
+  }
+
+  return { success: true, message: 'Jatah cuti berhasil diperbarui' };
+}
+
+function getPositions() {
+  try {
+    ensureUsersDivisionMigration();
+    let sheet = getSheet('tbl_position');
+    if (!sheet) {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      sheet = ss.insertSheet('tbl_position');
+      sheet.appendRow(['position', 'division']);
+      const defaults = [
+        ['Head Manager', 'Management'],
+        ['HR Staff', 'Human Capital'],
+        ['Developer', 'Technology'],
+        ['Social Media Specialist', 'Marketing'],
+        ['Sales Representative', 'Sales']
+      ];
+      defaults.forEach(p => sheet.appendRow(p));
+    }
+    
+    const lastCol = sheet.getLastColumn();
+    if (lastCol < 2) {
+      sheet.getRange(1, 2).setValue('division');
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const positions = [];
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0]) {
+        positions.push({
+          position: data[i][0],
+          division: data[i][1] || 'Umum'
+        });
+      }
+    }
+    return { success: true, positions };
+  } catch(e) {
+    return { 
+      success: true, 
+      positions: [
+        { position: 'Head Manager', division: 'Management' },
+        { position: 'HR Staff', division: 'Human Capital' },
+        { position: 'Developer', division: 'Technology' },
+        { position: 'Social Media Specialist', division: 'Marketing' },
+        { position: 'Sales Representative', division: 'Sales' }
+      ] 
+    };
+  }
+}
+
+function addPosition(body) {
+  const { position, division } = body;
+  if (!position || !division) return { success: false, message: 'Posisi dan Divisi wajib diisi' };
+  try {
+    const sheet = getSheet('tbl_position');
+    const lastCol = sheet.getLastColumn();
+    if (lastCol < 2) {
+      sheet.getRange(1, 2).setValue('division');
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).toLowerCase() === position.toLowerCase()) {
+        sheet.getRange(i + 1, 2).setValue(division);
+        return { success: true, message: 'Jabatan berhasil diperbarui' };
+      }
+    }
+    sheet.appendRow([position, division]);
+    return { success: true, message: 'Jabatan berhasil ditambahkan' };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function deletePosition(body) {
+  const { position } = body;
+  if (!position) return { success: false, message: 'Nama posisi wajib ditentukan' };
+  try {
+    const sheet = getSheet('tbl_position');
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).toLowerCase() === position.toLowerCase()) {
+        sheet.deleteRow(i + 1);
+        return { success: true, message: 'Jabatan berhasil dihapus' };
+      }
+    }
+    return { success: false, message: 'Jabatan tidak ditemukan' };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function ensureUsersDivisionMigration() {
+  try {
+    const sheet = getSheet(SHEET.USERS);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).trim());
+    let divIdx = headers.indexOf('division');
+    
+    if (divIdx === -1) {
+      sheet.getRange(1, headers.length + 1).setValue('division');
+      divIdx = headers.length;
+      
+      const posMap = {};
+      try {
+        const posSheet = getSheet('tbl_position');
+        if (posSheet) {
+          const posData = posSheet.getDataRange().getValues();
+          for (let i = 1; i < posData.length; i++) {
+            if (posData[i][0]) {
+              posMap[posData[i][0]] = posData[i][1] || 'Umum';
+            }
+          }
+        }
+      } catch(pe) {}
+      
+      const posIdx = headers.indexOf('position');
+      if (posIdx !== -1) {
+        for (let i = 1; i < data.length; i++) {
+          const userPos = data[i][posIdx];
+          const userDiv = posMap[userPos] || 'Umum';
+          sheet.getRange(i + 1, divIdx + 1).setValue(userDiv);
+        }
+      }
+    }
+  } catch (e) {
+    Logger.log('Migration failed: ' + e.message);
+  }
+}
+
+function registerEmployee(body) {
+  const { name, email, password_pin, position, profile_pic_base64 } = body;
+  if (!name || !email || !password_pin || !position) {
+    return { success: false, message: 'Semua kolom wajib diisi' };
+  }
+
+  // Cek duplikat email
+  const users = sheetToObjects(getSheet(SHEET.USERS));
+  if (users.find(u => String(u.email).toLowerCase() === String(email).toLowerCase())) {
+    return { success: false, message: 'Email sudah terdaftar' };
+  }
+
+  const sheet = getSheet(SHEET.USERS);
+  const newId = generateId('USR');
+
+  let profilePicUrl = '';
+  if (profile_pic_base64) {
+    const photoData = uploadBase64ToDrive(profile_pic_base64, `profile_${newId}_${Date.now()}.jpg`, 'foto_profil');
+    if (photoData.url && !photoData.url.startsWith('ERROR')) {
+      profilePicUrl = photoData.url;
+    }
+  }
+
+  // Cari divisi dari jabatan
+  let division = 'Umum';
+  try {
+    const posSheet = getSheet('tbl_position');
+    if (posSheet) {
+      const posData = posSheet.getDataRange().getValues();
+      for (let i = 1; i < posData.length; i++) {
+        if (posData[i][0] === position) {
+          division = posData[i][1] || 'Umum';
+          break;
+        }
+      }
+    }
+  } catch (e) {}
+
+  ensureUsersDivisionMigration();
+  sheet.appendRow([newId, name, email, password_pin, 'Employee', position, profilePicUrl, 'Pending', division]);
+  
+  try {
+    const quotaSheet = getSheet(SHEET.QUOTAS);
+    if (quotaSheet) {
+      quotaSheet.appendRow([newId, name, 12, 12]);
+    }
+  } catch (err) {
+    Logger.log('Error initializing quota: ' + err.message);
+  }
+
+  return { success: true, message: 'Pendaftaran berhasil. Menunggu persetujuan HR.' };
 }

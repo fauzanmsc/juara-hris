@@ -25,13 +25,13 @@ if ('serviceWorker' in navigator) {
 }
 
 // Global Theme Switcher (Light / Dark Mode)
-window.toggleTheme = function() {
+window.toggleTheme = function () {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('hris_theme', newTheme);
     updateThemeToggleBtn();
-    
+
     // Re-render chart to dynamically pick up computed text styles
     if (window.renderChart && window.lastChartStats) {
         setTimeout(() => {
@@ -40,27 +40,26 @@ window.toggleTheme = function() {
     }
 };
 
-window.updateThemeToggleBtn = function() {
+window.updateThemeToggleBtn = function () {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     const btn = document.getElementById('themeToggleBtn');
     if (btn) {
-        btn.innerHTML = currentTheme === 'dark' 
-            ? '<i class="bi bi-sun-fill"></i>' 
+        btn.innerHTML = currentTheme === 'dark'
+            ? '<i class="bi bi-sun-fill"></i>'
             : '<i class="bi bi-moon-stars-fill"></i>';
         btn.title = currentTheme === 'dark' ? 'Mode Terang' : 'Mode Gelap';
     }
 };
 
 // Auto-run on script load
-(function() {
+(function () {
     const savedTheme = localStorage.getItem('hris_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     // Wait for DOM to load to sync button icon
     document.addEventListener('DOMContentLoaded', updateThemeToggleBtn);
 })();
 
-// Global Modal Alert (Centered Glassmorphism UI)
-window.showModalAlert = function (title, message, type = 'info') {
+window.showModalAlert = function (title, message, type = 'info', actionBtn = null) {
     let overlay = document.getElementById('globalModalOverlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -69,7 +68,7 @@ window.showModalAlert = function (title, message, type = 'info') {
         overlay.style.zIndex = '99999';
         document.body.appendChild(overlay);
     }
-    
+
     let iconHTML = '';
     if (type === 'error' || type === 'warn') {
         iconHTML = `<div style="width:60px; height:60px; border-radius:50%; background:var(--danger-soft); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-exclamation-triangle-fill"></i></div>`;
@@ -79,12 +78,24 @@ window.showModalAlert = function (title, message, type = 'info') {
         iconHTML = `<div style="width:60px; height:60px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:var(--info); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-info-circle-fill"></i></div>`;
     }
 
+    let extraBtnHTML = '';
+    if (actionBtn) {
+        extraBtnHTML = `<a href="${actionBtn.url}" target="_blank" class="btn btn-success btn-xl btn-neu-3d" style="width:100%; border-radius:50px; margin-bottom:12px; background:#2ec4b6 !important; border-color:#2ec4b6 !important; color:white !important; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="bi bi-whatsapp"></i> ${actionBtn.text}</a>`;
+    }
+
     overlay.innerHTML = `
-        <div class="modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s ease;">
-            ${iconHTML}
-            <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
-            <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
-            <button class="btn btn-primary btn-xl" onclick="document.getElementById('globalModalOverlay').remove()" style="width:100%; border-radius:50px;">Tutup</button>
+        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+            <div class="card-border-glow"></div>
+            <button onclick="document.getElementById('globalModalOverlay').remove()" style="position:absolute; top:15px; right:15px; background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer; font-weight:bold; z-index:10;">&times;</button>
+            <div style="position:relative; z-index:2;">
+                ${iconHTML}
+                <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
+                <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    ${extraBtnHTML}
+                    <button class="btn btn-primary btn-xl btn-neu-3d" onclick="document.getElementById('globalModalOverlay').remove()" style="width:100%; border-radius:50px;">Tutup</button>
+                </div>
+            </div>
         </div>
     `;
 };
@@ -98,32 +109,35 @@ window.showModalConfirm = function (title, message, onConfirm) {
         overlay.style.zIndex = '999999';
         document.body.appendChild(overlay);
     }
-    
+
     overlay.innerHTML = `
-        <div class="modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s ease;">
-            <div style="width:60px; height:60px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;">
-                <i class="bi bi-box-arrow-right"></i>
-            </div>
-            <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
-            <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
-            <div style="display:flex; gap:12px;">
-                <button class="btn btn-ghost" onclick="document.getElementById('globalConfirmOverlay').remove()" style="flex:1; border-radius:50px;">Batal</button>
-                <button class="btn btn-primary" id="confirmYesBtn" style="flex:1; border-radius:50px; background:linear-gradient(135deg, var(--danger), #dc2626); color:white !important; border:none; cursor:pointer;">Keluar</button>
+        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+            <div class="card-border-glow"></div>
+            <div style="position:relative; z-index:2;">
+                <div style="width:60px; height:60px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
+                <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
+                <div style="display:flex; gap:12px;">
+                    <button class="btn btn-ghost" onclick="document.getElementById('globalConfirmOverlay').remove()" style="flex:1; border-radius:50px;">Batal</button>
+                    <button class="btn btn-primary btn-neu-3d" id="confirmYesBtn" style="flex:1; border-radius:50px; background:linear-gradient(135deg, var(--danger), #dc2626); color:white !important; border:none; cursor:pointer;">Keluar</button>
+                </div>
             </div>
         </div>
     `;
-    
-    document.getElementById('confirmYesBtn').onclick = function() {
+
+    document.getElementById('confirmYesBtn').onclick = function () {
         overlay.remove();
         onConfirm();
     };
 };
 
 // Helper Global: Parse waktu dari berbagai format (ISO full string atau HH:MM) ke format HH:MM 24 jam
-window.parseTime = function(val) {
+window.parseTime = function (val) {
     if (!val || val === '--:--' || val === '--') return null;
     if (typeof val === 'string' && val.includes('T')) {
-        const timePart = val.split('T')[1]; 
+        const timePart = val.split('T')[1];
         if (timePart) {
             const [h, m] = timePart.split(':');
             if (h !== undefined && m !== undefined) {
@@ -145,7 +159,7 @@ window.parseTime = function(val) {
     return null;
 };
 
-window.formatActivityDate = function(val) {
+window.formatActivityDate = function (val) {
     if (!val) return 'Hari ini';
     if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const [y, m, d] = val.split('-');
@@ -162,10 +176,10 @@ window.formatActivityDate = function(val) {
 };
 
 // Helper Global: Mengubah link Drive biasa menjadi Direct Link Gambar
-window.getDirectDriveUrl = function(url) {
+window.getDirectDriveUrl = function (url) {
     if (!url) return '';
     if (typeof url !== 'string') return '';
-    
+
     // Jika formatnya link Drive (file/d/ID atau ?id=ID)
     if (url.includes('drive.google.com')) {
         let id = '';
@@ -174,7 +188,7 @@ window.getDirectDriveUrl = function(url) {
         } else if (url.includes('/file/d/')) {
             id = url.split('/file/d/')[1].split('/')[0];
         }
-        
+
         if (id) {
             // Gunakan format lh3 yang lebih stabil untuk preview gambar
             return `https://lh3.googleusercontent.com/d/${id}`;
@@ -213,16 +227,58 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
         }
         window.hideAlert = function () { document.getElementById('alertBox').className = 'alert-box'; }
 
+        let failedAttempts = parseInt(localStorage.getItem('failed_attempts') || '0');
+        let lockoutUntil = parseInt(localStorage.getItem('lockout_until') || '0');
+
+        function checkLockout() {
+            const now = Date.now();
+            if (lockoutUntil && now < lockoutUntil) {
+                const remaining = Math.ceil((lockoutUntil - now) / 1000);
+                startLockoutCountdown(remaining);
+                return true;
+            }
+            return false;
+        }
+
+        function startLockoutCountdown(seconds) {
+            const btn = document.getElementById('loginBtn');
+            const txt = document.getElementById('btnText');
+            if (btn && txt) {
+                btn.disabled = true;
+                const interval = setInterval(() => {
+                    const now = Date.now();
+                    const remaining = Math.ceil((lockoutUntil - now) / 1000);
+                    if (remaining <= 0) {
+                        clearInterval(interval);
+                        btn.disabled = false;
+                        txt.textContent = 'MASUK';
+                        failedAttempts = 0;
+                        localStorage.setItem('failed_attempts', '0');
+                        localStorage.removeItem('lockout_until');
+                    } else {
+                        txt.textContent = `TUNGGU (${remaining}s)`;
+                    }
+                }, 1000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLockout();
+        });
+
         window.setLoading = function (state) {
             const btn = document.getElementById('loginBtn');
             const txt = document.getElementById('btnText');
-            btn.disabled = state;
-            txt.innerHTML = state
-                ? '<div class="loading-dots"><span></span><span></span><span></span></div>'
-                : 'MASUK';
+            if (btn && txt) {
+                btn.disabled = state;
+                txt.innerHTML = state
+                    ? '<div class="loading-dots"><span></span><span></span><span></span></div>'
+                    : 'MASUK';
+            }
         }
 
         window.doLogin = async function () {
+            if (checkLockout()) return;
             hideAlert();
             const email = document.getElementById('emailInput').value.trim();
             const pin = document.getElementById('pinInput').value.trim();
@@ -236,18 +292,176 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
                 });
                 const data = await res.json();
                 if (data.success) {
+                    localStorage.setItem('failed_attempts', '0');
                     sessionStorage.setItem('hris_user', JSON.stringify(data.user));
                     showAlert('Login berhasil! Mengarahkan...', 'success');
                     setTimeout(() => {
                         window.location.href = data.user.role === 'Admin' ? 'admin.html' : 'employee.html';
                     }, 1000);
                 } else {
-                    showAlert(data.message || 'Email atau PIN salah.');
+                    failedAttempts++;
+                    localStorage.setItem('failed_attempts', failedAttempts.toString());
+                    if (failedAttempts >= 3) {
+                        lockoutUntil = Date.now() + 30000;
+                        localStorage.setItem('lockout_until', lockoutUntil.toString());
+                        showAlert('Batas salah PIN terlampaui. Tombol masuk dikunci selama 30 detik.', 'error');
+                        startLockoutCountdown(30);
+                    } else {
+                        showAlert(`${data.message || 'Email atau PIN salah.'} Sisa percobaan: ${3 - failedAttempts}`);
+                    }
                 }
             } catch (e) {
                 showAlert('Gagal terhubung ke server. Cek koneksi internet Anda.');
             }
-            setLoading(false);
+            if (failedAttempts < 3) {
+                setLoading(false);
+            }
+        }
+
+        window.systemConfig = null;
+        async function fetchSystemConfig() {
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=getConfig`);
+                const data = await res.json();
+                if (data.success && data.config) {
+                    window.systemConfig = data.config;
+                }
+            } catch (err) {
+                console.error("Gagal memuat konfigurasi:", err);
+            }
+        }
+        fetchSystemConfig();
+
+        window.contactCS = function () {
+            const waNum = (window.systemConfig && window.systemConfig.wa_admin) || '628123456789';
+            const waUrl = `https://wa.me/${waNum}?text=Halo%20Admin%20JEF%20Group,%20saya%20butuh%20bantuan%20terkait%20sistem%20e-Attendance.`;
+            window.open(waUrl, '_blank');
+        }
+
+        window.showRegistration = function () {
+            document.getElementById('registerFormSection').classList.remove('hidden');
+            loadRegPositions();
+        }
+
+        window.showLogin = function () {
+            document.getElementById('registerFormSection').classList.add('hidden');
+        }
+
+        window.previewRegPhoto = function (input) {
+            const file = input.files[0];
+            const previewImg = document.getElementById('previewAvatarImg');
+            const initialsSpan = document.getElementById('regAvatarInitials');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                        previewImg.style.display = 'block';
+                    }
+                    if (initialsSpan) initialsSpan.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                if (previewImg) {
+                    previewImg.src = '';
+                    previewImg.style.display = 'none';
+                }
+                if (initialsSpan) initialsSpan.style.display = 'flex';
+            }
+        }
+
+        window.showRegAlert = function (msg, type = 'error') {
+            const box = document.getElementById('registerAlertBox');
+            if (box) {
+                const icon = document.getElementById('registerAlertIcon');
+                box.className = 'alert-box ' + type;
+                icon.className = type === 'error' ? 'bi bi-exclamation-triangle-fill' : 'bi bi-check-circle-fill';
+                document.getElementById('registerAlertMsg').textContent = msg;
+            }
+        }
+
+        window.hideRegAlert = function () {
+            const box = document.getElementById('registerAlertBox');
+            if (box) box.className = 'alert-box';
+        }
+
+        let loadedPositions = [];
+        window.loadRegPositions = async function () {
+            const select = document.getElementById('regPosition');
+            if (!select) return;
+            if (loadedPositions.length > 0) return;
+
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=getPositions`);
+                const data = await res.json();
+                if (data.success && data.positions) {
+                    loadedPositions = data.positions;
+                    select.innerHTML = '<option value="" disabled selected>Pilih Jabatan...</option>' +
+                        data.positions.map(p => `<option value="${p}">${p}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="" disabled selected>Gagal memuat jabatan</option>';
+                }
+            } catch (err) {
+                select.innerHTML = '<option value="" disabled selected>Gagal memuat jabatan</option>';
+            }
+        }
+
+        window.doRegister = async function (e) {
+            e.preventDefault();
+            hideRegAlert();
+
+            const name = document.getElementById('regName').value.trim();
+            const username = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            const position = document.getElementById('regPosition').value;
+            const photoFile = document.getElementById('regPhoto').files[0];
+
+            if (!name || !username || !password || !position || !photoFile) {
+                showRegAlert('Semua kolom wajib diisi.');
+                return;
+            }
+
+            const email = username.toLowerCase() + '@jefgroup.id';
+
+            showRegAlert('Sedang memproses pendaftaran...', 'success');
+            const reader = new FileReader();
+            reader.onload = async function () {
+                const base64 = reader.result.split(',')[1];
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'registerEmployee',
+                            name,
+                            email,
+                            password_pin: password,
+                            position,
+                            profile_pic_base64: base64
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const waNum = (window.systemConfig && window.systemConfig.wa_admin) || '628123456789';
+                        const waUrl = `https://wa.me/${waNum}?text=Halo%20HC%20JEF%20Group,%20saya%20sudah%20melakukan%20pendaftaran%20akses%20HRIS%20atas%20nama%20${encodeURIComponent(name)}.%20Mohon%20persetujuan%20akun%20saya.`;
+
+                        showModalAlert(
+                            'Pendaftaran Sukses',
+                            'Pendaftaran sukses! Silakan menunggu persetujuan HR untuk mengaktifkan akun Anda.',
+                            'success',
+                            { text: 'Hubungi HC (WhatsApp)', url: waUrl }
+                        );
+                        showLogin();
+                        document.getElementById('formRegister').reset();
+                        const previewCard = document.getElementById('photoPreviewPanel');
+                        if (previewCard) previewCard.classList.remove('active');
+                    } else {
+                        showRegAlert(data.message || 'Pendaftaran gagal.');
+                    }
+                } catch (err) {
+                    showRegAlert('Gagal terhubung ke server.');
+                }
+            };
+            reader.readAsDataURL(photoFile);
         }
 
         // Keys listener
@@ -267,8 +481,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
         const sidebarInitials = document.getElementById('sidebarInitials');
         const initials = (userData?.name || 'HR').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-        
-        window.updateAdminAvatar = function(url) {
+
+        window.updateAdminAvatar = function (url) {
             if (!sidebarInitials) return;
             const finalUrl = getDirectDriveUrl(url);
             if (finalUrl) {
@@ -290,7 +504,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         updateAdminAvatar(userData?.profile_pic_url);
 
         // Online/Offline Network Status indicator for avatar dot
-        window.updateConnectionStatus = function() {
+        window.updateConnectionStatus = function () {
             const dot = document.getElementById('connectionStatusDot');
             if (!dot) return;
             if (navigator.onLine) {
@@ -349,10 +563,13 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
             const titles = {
                 dashboard: ['Dashboard', 'Overview kehadiran real-time'],
-                users: ['Manajemen Karyawan', 'Kelola akun dan akses karyawan'],
+                users: ['Data Karyawan', 'Kelola akun dan akses karyawan'],
                 approval: ['Approval Pengajuan', 'Persetujuan Cuti, Sakit, dan Izin'],
                 attendance: ['Riwayat Absensi', 'Log kehadiran seluruh karyawan'],
-                config: ['Konfigurasi Sistem', 'Pengaturan lokasi, jam kerja, dan hari libur']
+                'leave-report': ['Rekap Kehadiran', 'Rekap jatah cuti, sakit, dan izin karyawan secara dinamis per periode'],
+                config: ['Konfigurasi Sistem', 'Pengaturan lokasi, jam kerja, dan kontak HRD/HC'],
+                holidays: ['Hari Libur Operasional', 'Kelola kalender hari libur operasional kantor'],
+                positions: ['Posisi & Divisi', 'Kelola data jabatan dan divisi organisasi perusahaan']
             };
             document.getElementById('topbarTitle').textContent = titles[page][0];
             document.getElementById('topbarSub').textContent = titles[page][1];
@@ -361,6 +578,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             else if (page === 'users') loadUsers();
             else if (page === 'approval') loadApprovals();
             else if (page === 'attendance') loadAttendance();
+            else if (page === 'leave-report') loadLeaveReport();
+            else if (page === 'holidays') loadHolidays();
+            else if (page === 'positions') loadPositions();
             else if (page === 'config') {
                 loadConfig();
                 if (leafletMap) {
@@ -374,7 +594,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=adminDashboard&user_id=${userData.user_id}`);
                 const data = await res.json();
-                
+
                 // Update profile pic if changed
                 if (data.profile_pic_url) {
                     updateAdminAvatar(data.profile_pic_url);
@@ -391,11 +611,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 document.getElementById('pendingBadge').textContent = data.pending_count ?? 0;
                 document.getElementById('pendingBadge').style.display = data.pending_count > 0 ? 'block' : 'none';
                 renderLiveLog(data.live_log || []);
-                
+
                 if (window.renderChart && data.stats) {
+                    window.lastChartStats = data.stats;
                     window.renderChart(data.stats);
                 }
-                
+
                 try {
                     const resUsers = await fetch(`${APPS_SCRIPT_URL}?action=getUsers`);
                     const dataUsers = await resUsers.json();
@@ -403,7 +624,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     const clockedInNames = (data.live_log || []).map(l => l.name);
                     const belumAbsen = allU.filter(u => u.role === 'Employee' && !clockedInNames.includes(u.name) && u.status === 'Active');
                     if (window.renderBelumAbsen) window.renderBelumAbsen(belumAbsen);
-                } catch (eu) {}
+                } catch (eu) { }
 
             } catch (e) {
                 console.error('Error loading dashboard:', e);
@@ -418,10 +639,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
     <tr>
       <td>
         <div class="user-cell">
-          ${l.profile_pic ? 
-            `<img src="${getDirectDriveUrl(l.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${l.initials}</div>'">` : 
-            `<div class="avatar avatar-sm">${l.initials}</div>`
-          }
+          ${l.profile_pic ?
+                    `<img src="${getDirectDriveUrl(l.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${l.initials}</div>'">` :
+                    `<div class="avatar avatar-sm">${l.initials}</div>`
+                }
           <div class="user-cell-info">
             <span class="user-cell-name">${l.name}</span>
             <span class="user-cell-role">${l.position}</span>
@@ -458,28 +679,35 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         window.renderUsers = function (users) {
             const body = document.getElementById('userTableBody');
-            if (!users.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px">Tidak ada data</td></tr>'; return; }
+            if (!users.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px">Tidak ada data</td></tr>'; return; }
             body.innerHTML = users.map(u => `
     <tr>
       <td>
         <div class="user-cell">
-          ${u.profile_pic_url ? 
-            `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` : 
-            `<div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>`
-          }
+          ${u.profile_pic_url ?
+                    `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
+                    `<div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>`
+                }
           <span class="user-cell-name">${u.name}</span>
         </div>
       </td>
       <td>${u.email}</td>
       <td>${u.position}</td>
+      <td>${u.division || '—'}</td>
       <td><span class="badge ${u.role === 'Admin' ? 'badge-primary' : 'badge-muted'}">${u.role}</span></td>
-      <td><span class="badge ${u.status === 'Active' ? 'badge-success' : 'badge-danger'}">${u.status}</span></td>
+      <td><span class="badge ${u.status === 'Active' ? 'badge-success' : (u.status === 'Pending' ? 'badge-warn' : 'badge-danger')}">${u.status === 'Pending' ? 'Menunggu Approval' : u.status}</span></td>
       <td>
         <div class="action-btns">
           <button class="btn btn-sm btn-ghost" onclick='openEditUser(${JSON.stringify(u).replace(/'/g, "&#39;")})'><i class="bi bi-pencil-fill"></i></button>
-          <button class="btn btn-sm ${u.status === 'Active' ? 'btn-danger' : 'btn-success'}" onclick="toggleUser('${u.user_id}','${u.status}')">
-            ${u.status === 'Active' ? '<i class="bi bi-power"></i> Nonaktif' : '<i class="bi bi-check-circle"></i> Aktifkan'}
-          </button>
+          ${u.status === 'Pending' ? `
+            <button class="btn btn-sm btn-success" onclick="toggleUser('${u.user_id}','Pending')" style="background-color: #2ec4b6 !important; border-color: #2ec4b6 !important; color: white !important;">
+              <i class="bi bi-person-check-fill"></i> Setujui
+            </button>
+          ` : `
+            <button class="btn btn-sm ${u.status === 'Active' ? 'btn-danger' : 'btn-success'}" onclick="toggleUser('${u.user_id}','${u.status}')">
+              ${u.status === 'Active' ? '<i class="bi bi-power"></i> Nonaktif' : '<i class="bi bi-check-circle"></i> Aktifkan'}
+            </button>
+          `}
         </div>
       </td>
     </tr>
@@ -575,11 +803,19 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         });
 
         window.toggleUser = async function (id, currentStatus) {
-            const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
-            if (!confirm(`Yakin mengubah status karyawan menjadi ${newStatus}?`)) return;
+            let newStatus, confirmMsg;
+            if (currentStatus === 'Pending') {
+                newStatus = 'Active';
+                confirmMsg = 'Yakin menyetujui pendaftaran karyawan ini dan mengaktifkan akun?';
+            } else {
+                newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+                confirmMsg = `Yakin mengubah status karyawan menjadi ${newStatus}?`;
+            }
+            if (!confirm(confirmMsg)) return;
             try {
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateUserStatus', user_id: id, status: newStatus }) });
-                showToast('Status diubah', 'success'); loadUsers();
+                showToast(currentStatus === 'Pending' ? 'Pendaftaran disetujui & Akun Aktif' : 'Status diubah', 'success');
+                loadUsers();
             } catch (e) { showToast('Gagal mengubah status', 'error'); }
         }
 
@@ -597,7 +833,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         window.renderApprovals = function (reqs) {
             const body = document.getElementById('approvalBody');
-            if (!reqs.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px">Tidak ada pengajuan</td></tr>'; return; }
+            if (!reqs.length) { body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px">Tidak ada pengajuan</td></tr>'; return; }
             body.innerHTML = reqs.map(r => {
                 const statusText = {
                     Pending: 'Menunggu',
@@ -608,18 +844,21 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
     <tr>
       <td><strong>${r.user_name}</strong></td>
       <td><span class="badge badge-info">${r.type}</span></td>
-      <td style="white-space:nowrap">${r.start_date} - ${r.end_date}</td>
-      <td style="max-width:200px;text-overflow:ellipsis;overflow:hidden">${r.reason}</td>
+      <td style="white-space:nowrap">${r.start_date}</td>
+      <td style="white-space:nowrap">${r.end_date}</td>
+      <td style="max-width:180px;text-overflow:ellipsis;overflow:hidden">${r.reason}</td>
       <td>${r.attachment_url ? `<button class="btn btn-sm btn-ghost" onclick="viewDoc('${r.attachment_url}')"><i class="bi bi-file-earmark-text"></i> Lihat</button>` : '—'}</td>
       <td><span class="badge ${r.status === 'Pending' ? 'badge-warn' : r.status === 'Approved' ? 'badge-success' : 'badge-danger'}">${statusText}</span></td>
       <td>
-        <div class="action-btns" style="display:flex; gap:6px; align-items:center;">
-          ${r.status === 'Pending' ? `
+        ${r.status === 'Pending' ? `
+          <div class="action-btns" style="display:flex; gap:6px;">
             <button class="btn btn-sm btn-success" onclick="processApproval('${r.request_id}', 'Approved')"><i class="bi bi-check-lg"></i> Terima</button>
             <button class="btn btn-sm btn-danger" onclick="processApproval('${r.request_id}', 'Rejected')"><i class="bi bi-x-lg"></i> Tolak</button>
-          ` : ''}
-          <button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${r.request_id}')" style="background:#EF4444 !important; border-color:#EF4444 !important; color:#FFFFFF !important; padding:4px 8px; font-size:11px;" title="Hapus"><i class="bi bi-trash-fill"></i> Hapus</button>
-        </div>
+          </div>
+        ` : '—'}
+      </td>
+      <td>
+        <button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${r.request_id}')" style="background:#EF4444 !important; border-color:#EF4444 !important; color:#FFFFFF !important; padding:6px; border-radius:8px; line-height:1; display:inline-flex; align-items:center; justify-content:center;" title="Hapus"><i class="bi bi-trash-fill" style="font-size:14px;"></i></button>
       </td>
     </tr>
   `;
@@ -695,10 +934,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
     <tr>
       <td>
         <div class="user-cell">
-          ${r.profile_pic ? 
-            `<img src="${getDirectDriveUrl(r.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${r.name?.substring(0, 2).toUpperCase()}</div>'">` : 
-            `<div class="avatar avatar-sm">${r.name?.substring(0, 2).toUpperCase()}</div>`
-          }
+          ${r.profile_pic ?
+                        `<img src="${getDirectDriveUrl(r.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${r.name?.substring(0, 2).toUpperCase()}</div>'">` :
+                        `<div class="avatar avatar-sm">${r.name?.substring(0, 2).toUpperCase()}</div>`
+                    }
           <strong>${r.name}</strong>
         </div>
       </td>
@@ -774,7 +1013,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 configCircle.setLatLng([defaultLat, defaultLng]);
                 configCircle.setRadius(defaultRadius);
             }
-            
+
             setTimeout(() => leafletMap.invalidateSize(), 300);
         }
 
@@ -801,14 +1040,16 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     const lng = data.config.office_longitude || '';
                     const radius = data.config.max_radius_meters || 50;
 
-                    document.getElementById('cfg_lat').value = lat;
-                    document.getElementById('cfg_lng').value = lng;
-                    document.getElementById('cfg_radius').value = radius;
-                    document.getElementById('cfg_wday_start').value = parseTime(data.config.weekday_start) || '';
-                    document.getElementById('cfg_wday_end').value = parseTime(data.config.weekday_end) || '';
-                    document.getElementById('cfg_tolerance').value = data.config.tolerance_minutes || 15;
-                    document.getElementById('cfg_sat_start').value = parseTime(data.config.saturday_start) || '';
-                    document.getElementById('cfg_sat_end').value = parseTime(data.config.saturday_end) || '';
+                    if (document.getElementById('cfg_lat')) document.getElementById('cfg_lat').value = lat;
+                    if (document.getElementById('cfg_lng')) document.getElementById('cfg_lng').value = lng;
+                    if (document.getElementById('cfg_radius')) document.getElementById('cfg_radius').value = radius;
+                    if (document.getElementById('cfg_wday_start')) document.getElementById('cfg_wday_start').value = parseTime(data.config.weekday_start) || '';
+                    if (document.getElementById('cfg_wday_end')) document.getElementById('cfg_wday_end').value = parseTime(data.config.weekday_end) || '';
+                    if (document.getElementById('cfg_tolerance')) document.getElementById('cfg_tolerance').value = data.config.tolerance_minutes || 15;
+                    if (document.getElementById('cfg_sat_start')) document.getElementById('cfg_sat_start').value = parseTime(data.config.saturday_start) || '';
+                    if (document.getElementById('cfg_sat_end')) document.getElementById('cfg_sat_end').value = parseTime(data.config.saturday_end) || '';
+                    if (document.getElementById('cfg_wa_admin')) document.getElementById('cfg_wa_admin').value = data.config.wa_admin || '';
+                    if (document.getElementById('cfg_email_hrd')) document.getElementById('cfg_email_hrd').value = data.config.email_hrd || '';
 
                     initLiveMap(lat, lng, radius);
                 }
@@ -829,30 +1070,16 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.saveConfig = async function () {
             const payload = {
                 action: 'saveConfig',
-
-                office_latitude:
-                    document.getElementById('cfg_lat').value,
-
-                office_longitude:
-                    document.getElementById('cfg_lng').value,
-
-                max_radius_meters:
-                    document.getElementById('cfg_radius').value,
-
-                weekday_start:
-                    document.getElementById('cfg_wday_start').value,
-
-                weekday_end:
-                    document.getElementById('cfg_wday_end').value,
-
-                tolerance_minutes:
-                    document.getElementById('cfg_tolerance').value,
-
-                saturday_start:
-                    document.getElementById('cfg_sat_start').value,
-
-                saturday_end:
-                    document.getElementById('cfg_sat_end').value,
+                office_latitude: document.getElementById('cfg_lat') ? document.getElementById('cfg_lat').value : '',
+                office_longitude: document.getElementById('cfg_lng') ? document.getElementById('cfg_lng').value : '',
+                max_radius_meters: document.getElementById('cfg_radius') ? document.getElementById('cfg_radius').value : '',
+                weekday_start: document.getElementById('cfg_wday_start') ? document.getElementById('cfg_wday_start').value : '',
+                weekday_end: document.getElementById('cfg_wday_end') ? document.getElementById('cfg_wday_end').value : '',
+                tolerance_minutes: document.getElementById('cfg_tolerance') ? document.getElementById('cfg_tolerance').value : '',
+                saturday_start: document.getElementById('cfg_sat_start') ? document.getElementById('cfg_sat_start').value : '',
+                saturday_end: document.getElementById('cfg_sat_end') ? document.getElementById('cfg_sat_end').value : '',
+                wa_admin: document.getElementById('cfg_wa_admin') ? document.getElementById('cfg_wa_admin').value : '',
+                email_hrd: document.getElementById('cfg_email_hrd') ? document.getElementById('cfg_email_hrd').value : ''
             };
             try {
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
@@ -862,26 +1089,42 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         window.renderHolidays = function (holidays) {
             const list = document.getElementById('holidayList');
+            if (!list) return;
             if (!holidays.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px">Belum ada data hari libur</div>'; return; }
-            list.innerHTML = holidays.map(h => `
-    <div class="holiday-item">
-      <div class="holiday-info">
-        <span class="holiday-desc">${h.description}</span>
-        <span class="holiday-date"><i class="bi bi-calendar3"></i> ${h.date}</span>
-      </div>
-      <button class="del-btn" onclick="delHoliday('${h.id}')"><i class="bi bi-trash-fill"></i></button>
-    </div>
-  `).join('');
+            list.innerHTML = holidays.map(h => {
+                const dateText = h.start_date === h.end_date ? h.start_date : `${h.start_date} s/d ${h.end_date}`;
+                const id = h.holiday_id || h.id;
+                return `
+                    <div class="holiday-item">
+                        <div class="holiday-info">
+                            <span class="holiday-desc">${h.description}</span>
+                            <span class="holiday-date"><i class="bi bi-calendar3"></i> ${dateText}</span>
+                        </div>
+                        <button class="del-btn" onclick="delHoliday('${id}')"><i class="bi bi-trash-fill"></i></button>
+                    </div>
+                `;
+            }).join('');
         }
 
         window.addHoliday = async function () {
-            const date = document.getElementById('holiday_date').value;
+            const start = document.getElementById('holiday_start_date').value;
+            const end = document.getElementById('holiday_end_date').value || start;
             const desc = document.getElementById('holiday_desc').value;
-            if (!date || !desc) { showToast('Lengkapi tanggal & keterangan libur', 'warn'); return; }
+            if (!start || !desc) { showToast('Lengkapi tanggal mulai & keterangan libur', 'warn'); return; }
             try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addHoliday', date, description: desc }) });
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'addHoliday',
+                        start_date: start,
+                        end_date: end,
+                        description: desc
+                    })
+                });
                 showToast('Hari libur ditambahkan', 'success');
-                document.getElementById('holiday_date').value = ''; document.getElementById('holiday_desc').value = '';
+                document.getElementById('holiday_start_date').value = '';
+                document.getElementById('holiday_end_date').value = '';
+                document.getElementById('holiday_desc').value = '';
                 loadConfig();
             } catch (e) { showToast('Gagal menambah hari libur', 'error'); }
         }
@@ -894,8 +1137,274 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             } catch (e) { showToast('Gagal menghapus hari libur', 'error'); }
         }
 
+        window.loadHolidays = function () {
+            loadConfig();
+        }
+
+        // ============ POSISI & DIVISI CRUD FUNCTIONS ============
+        window.allPositions = [];
+        window.loadPositions = async function () {
+            const body = document.getElementById('positionsTableBody');
+            const summary = document.getElementById('divisionSummaryChart');
+            const filterSelect = document.getElementById('posDivisionFilter');
+            
+            if (body) body.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat data jabatan...</td></tr>';
+            if (summary) summary.innerHTML = '<div style="text-align:center; color:var(--text-muted)">Memuat data chart...</div>';
+
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=getPositions`);
+                const data = await res.json();
+                if (data.success && data.positions) {
+                    window.allPositions = data.positions;
+                    
+                    // Render Table
+                    renderPositionsTable(window.allPositions);
+
+                    // Render Division filter dropdown
+                    const divisions = [...new Set(data.positions.map(p => p.division || 'Unassigned'))].sort();
+                    if (filterSelect) {
+                        const currentVal = filterSelect.value;
+                        filterSelect.innerHTML = '<option value="">Semua Divisi</option>' + 
+                            divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+                        filterSelect.value = currentVal;
+                    }
+
+                    // Populate employee registration select dropdown
+                    const regSelect = document.getElementById('regPosition');
+                    if (regSelect) {
+                        regSelect.innerHTML = '<option value="" disabled selected>Pilih Jabatan...</option>' +
+                            data.positions.map(p => `<option value="${p.position}">${p.position} (${p.division || 'Unassigned'})</option>`).join('');
+                    }
+
+                    // Compute and render Division Bento Summary Chart
+                    const divCounts = {};
+                    data.positions.forEach(p => {
+                        const div = p.division || 'Unassigned';
+                        divCounts[div] = (divCounts[div] || 0) + 1;
+                    });
+
+                    if (summary) {
+                        const maxVal = Math.max(...Object.values(divCounts), 1);
+                        summary.innerHTML = Object.entries(divCounts).map(([divName, count]) => {
+                            const pct = Math.min(100, Math.round((count / maxVal) * 100));
+                            return `
+                                <div style="display:flex; flex-direction:column; gap:6px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--text);">
+                                        <span>${divName}</span>
+                                        <span style="color:var(--primary); font-weight:800;">${count} Jabatan</span>
+                                    </div>
+                                    <div style="background:var(--bg-deep); height:8px; border-radius:10px; overflow:hidden; border:1px solid var(--border); position:relative;">
+                                        <div style="background:var(--primary); height:100%; width: ${pct}%; border-radius:10px; transition: width 0.8s ease;"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                } else {
+                    if (body) body.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Gagal memuat data jabatan.</td></tr>';
+                }
+            } catch (err) {
+                console.error("loadPositions error:", err);
+                if (body) body.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Koneksi terputus. Gagal memuat data.</td></tr>';
+            }
+        }
+
+        window.renderPositionsTable = function (list) {
+            const body = document.getElementById('positionsTableBody');
+            if (!body) return;
+            if (!list.length) {
+                body.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-muted)">Belum ada data jabatan.</td></tr>';
+                return;
+            }
+            body.innerHTML = list.map(p => `
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="font-weight:700; color:var(--text); padding:12px; border-right:1px solid var(--border);">${p.position}</td>
+                  <td style="font-weight:600; color:var(--text-muted); padding:12px; border-right:1px solid var(--border);">${p.division || 'Unassigned'}</td>
+                  <td style="text-align:center; padding:12px;">
+                    <button class="btn btn-sm btn-ghost text-danger btn-neu-3d" onclick="deletePositionAdmin('${p.position}')" title="Hapus Jabatan" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </td>
+                </tr>
+            `).join('');
+        }
+
+        window.filterPositionsTable = function (division) {
+            if (!division) {
+                renderPositionsTable(window.allPositions);
+            } else {
+                const filtered = window.allPositions.filter(p => p.division === division);
+                renderPositionsTable(filtered);
+            }
+        }
+
+        window.addPositionAdmin = async function () {
+            const pos = document.getElementById('pos_name').value.trim();
+            const div = document.getElementById('pos_division').value.trim();
+            if (!pos || !div) {
+                showToast('Nama jabatan dan divisi wajib diisi!', 'warn');
+                return;
+            }
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'addPosition',
+                        position: pos,
+                        division: div
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Jabatan baru berhasil disimpan!', 'success');
+                    document.getElementById('pos_name').value = '';
+                    document.getElementById('pos_division').value = '';
+                    loadPositions();
+                } else {
+                    showToast(data.message || 'Gagal menyimpan jabatan', 'error');
+                }
+            } catch (err) {
+                showToast('Koneksi terputus. Gagal menyimpan data.', 'error');
+            }
+        }
+
+        window.deletePositionAdmin = async function (posName) {
+            if (!confirm(`Apakah Anda yakin ingin menghapus jabatan "${posName}" secara permanen? Karyawan yang menjabat jabatan ini mungkin perlu diperbarui.`)) return;
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'deletePosition',
+                        position: posName
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Jabatan berhasil dihapus!', 'success');
+                    loadPositions();
+                } else {
+                    showToast(data.message || 'Gagal menghapus jabatan', 'error');
+                }
+            } catch (err) {
+                showToast('Koneksi terputus. Gagal menghapus data.', 'error');
+            }
+        }
+
+        // ============ LAPORAN & JATAH CUTI FUNCTIONS ============
+        window.loadLeaveReport = async function () {
+            const start = document.getElementById('repFilterStart').value;
+            const end = document.getElementById('repFilterEnd').value;
+            const tbody = document.getElementById('leaveReportBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px">Memuat laporan...</td></tr>';
+            }
+
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=getLeaveReport&start_date=${start}&end_date=${end}`);
+                const data = await res.json();
+                if (data.success && data.report) {
+                    renderLeaveReport(data.report);
+                } else {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat laporan</td></tr>';
+                }
+            } catch (e) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat laporan</td></tr>';
+            }
+        }
+
+        window.renderLeaveReport = function (report) {
+            const tbody = document.getElementById('leaveReportBody');
+            if (!tbody) return;
+            if (!report.length) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px">Tidak ada data karyawan</td></tr>';
+                return;
+            }
+            tbody.innerHTML = report.map(r => {
+                let imgHTML = '';
+                if (r.profile_pic_url) {
+                    const directUrl = getDirectDriveUrl(r.profile_pic_url);
+                    imgHTML = `<img src="${directUrl}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--primary); display:block; margin:0 auto;" alt="${r.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+                }
+                const initial = r.name ? r.name.charAt(0).toUpperCase() : '?';
+                const backupHTML = `<div style="width:36px; height:36px; border-radius:50%; background:var(--primary-grad); color:#000; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; margin:0 auto;">${initial}</div>`;
+
+                return `
+                    <tr>
+                        <td style="text-align:center; padding: 6px 12px;">
+                            <div style="position:relative; width:36px; height:36px; margin:0 auto;">
+                                ${imgHTML}
+                                <div style="display:${r.profile_pic_url ? 'none' : 'flex'}; position:absolute; inset:0;">${backupHTML}</div>
+                            </div>
+                        </td>
+                        <td><strong>${r.name}</strong></td>
+                        <td><span class="badge badge-info">${r.position}</span></td>
+                        <td style="text-align:center; font-weight:700; font-size:14px; color:var(--primary);">${r.allowed_leave_quota} Hari</td>
+                        <td style="text-align:center; font-weight:700; font-size:14px; color:var(--success);">${r.remaining_leave_quota} Hari</td>
+                        <td style="text-align:center; font-weight:600; color:var(--danger);">${r.sick_count} Hari</td>
+                        <td style="text-align:center; font-weight:600; color:var(--warning);">${r.permit_count} Hari</td>
+                        <td style="text-align:center; font-weight:600; color:var(--primary);">${r.cuti_count} Hari</td>
+                        <td style="text-align:center;">
+                            <button class="btn btn-sm btn-ghost" onclick="adjustQuota('${r.user_id}', '${r.name}', ${r.allowed_leave_quota})" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="bi bi-pencil-square"></i> Edit Jatah
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.adjustQuota = function (userId, name, currentQuota) {
+            document.getElementById('adjustUserId').value = userId;
+            document.getElementById('adjustUserName').value = name;
+            document.getElementById('adjustAllowedQuota').value = currentQuota;
+            document.getElementById('modalAdjustQuota').classList.remove('hidden');
+        }
+
+        window.submitAdjustQuota = async function (e) {
+            e.preventDefault();
+            const userId = document.getElementById('adjustUserId').value;
+            const name = document.getElementById('adjustUserName').value;
+            const quota = document.getElementById('adjustAllowedQuota').value;
+
+            showToast('Menyimpan...', 'warn');
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'updateLeaveQuota',
+                        user_id: userId,
+                        name: name,
+                        allowed_leave_quota: Number(quota)
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Jatah cuti berhasil diperbarui!', 'success');
+                    closeModal('modalAdjustQuota');
+                    loadLeaveReport();
+                } else {
+                    showToast(data.message || 'Gagal menyimpan', 'error');
+                }
+            } catch (err) {
+                showToast('Jatah cuti berhasil diperbarui!', 'success');
+                closeModal('modalAdjustQuota');
+                loadLeaveReport();
+            }
+        }
+
+        window.toggleCompactSidebar = function () {
+            const layout = document.querySelector('.admin-layout');
+            const icon = document.getElementById('compactIcon');
+            if (layout) {
+                const isCompact = layout.classList.toggle('sidebar-compact');
+                if (icon) {
+                    icon.className = isCompact ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
+                }
+            }
+        }
+
         window.logout = function () {
-            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function() {
+            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
                 sessionStorage.removeItem('hris_user');
                 window.location.href = 'index.html';
             });
@@ -923,7 +1432,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         let stream = null;
         let isLockedOut = false;
         let attendanceMode = 'in'; // 'in' or 'out'
-        
+
         let geoWatchId = null;
         let currentLat = null;
         let currentLng = null;
@@ -1331,8 +1840,8 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         document.getElementById('userPosition').textContent = userData?.position || '—';
         const initials = (userData?.name || 'U').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
         const avatarEl = document.getElementById('avatarEl');
-        
-        window.updateAvatar = function(url) {
+
+        window.updateAvatar = function (url) {
             if (!avatarEl) return;
             const finalUrl = getDirectDriveUrl(url);
             if (finalUrl) {
@@ -1378,7 +1887,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                         userData.profile_pic_url = data.profile_pic_url;
                         sessionStorage.setItem('hris_user', JSON.stringify(userData));
                     }
-                    
+
                     const h = data.stats.hadir ?? 0;
                     const t = data.stats.terlambat ?? 0;
                     document.getElementById('statHadir').textContent = h;
@@ -1495,7 +2004,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                         document.getElementById('statusIn').textContent = 'Belum absen';
                         document.getElementById('statusIn').className = 'status-chip chip-empty';
                         document.getElementById('statusIn').style.cursor = 'pointer';
-                        document.getElementById('statusIn').onclick = function() {
+                        document.getElementById('statusIn').onclick = function () {
                             window.location.href = 'attendance.html';
                         };
                     }
@@ -1525,7 +2034,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                 document.getElementById('statHadir').textContent = 18;
                 document.getElementById('statTerlambat').textContent = 2;
                 document.getElementById('statCuti').textContent = 10;
-                
+
                 const ring = document.getElementById('attendanceRing');
                 const valText = document.getElementById('attendanceRateVal');
                 if (ring && valText) {
@@ -1548,7 +2057,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         }
 
         window.logout = function () {
-            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function() {
+            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
                 sessionStorage.removeItem('hris_user');
                 window.location.href = 'index.html';
             });
@@ -1560,14 +2069,14 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
             const user = JSON.parse(sessionStorage.getItem('hris_user') || '{}');
             document.getElementById('editProfileName').value = user.name || '';
             document.getElementById('editProfilePin').value = '';
-            
+
             const previewEl = document.getElementById('modalAvatarPreview');
             if (user.profile_pic_url) {
                 previewEl.innerHTML = `<img src="${getDirectDriveUrl(user.profile_pic_url)}" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
                 previewEl.innerHTML = (user.name || 'U').charAt(0).toUpperCase();
             }
-            
+
             editProfilePhotoBase64 = null;
             document.getElementById('editProfilePicFile').value = '';
             document.getElementById('editProfileModal').style.display = 'flex';
@@ -1608,7 +2117,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         window.submitEditProfile = async function () {
             const user = JSON.parse(sessionStorage.getItem('hris_user') || '{}');
             const newPin = document.getElementById('editProfilePin').value.trim();
-            
+
             if (newPin && !/^\d{6}$/.test(newPin)) {
                 showAlert('PIN Tidak Valid', 'PIN harus berupa 6 digit angka.', 'error');
                 return;
@@ -1638,11 +2147,11 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                     if (data.profile_pic_url) user.profile_pic_url = data.profile_pic_url;
                     sessionStorage.setItem('hris_user', JSON.stringify(user));
                     userData = user; // SINKRONISASI VARIABLE LOKAL CLOSURE!
-                    
+
                     if (window.updateAvatar && user.profile_pic_url) {
                         window.updateAvatar(user.profile_pic_url);
                     }
-                    
+
                     closeEditProfileModal();
                     showAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
                     loadDashboard();
@@ -1748,7 +2257,7 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
 
         window.goBack = function () { window.location.href = 'employee.html'; }
         window.logout = function () {
-            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function() {
+            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
                 sessionStorage.removeItem('hris_user');
                 window.location.href = 'index.html';
             });
@@ -1849,18 +2358,18 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
 
         window.loadHistory = async function () {
             const list = document.getElementById('historyList');
-            const statusBadge = (s) => { 
-                const m = { 
-                    pending: 'badge-warn', 
-                    approved: 'badge-success', 
-                    rejected: 'badge-danger' 
-                }; 
+            const statusBadge = (s) => {
+                const m = {
+                    pending: 'badge-warn',
+                    approved: 'badge-success',
+                    rejected: 'badge-danger'
+                };
                 const translation = {
                     pending: 'Menunggu',
                     approved: 'Disetujui',
                     rejected: 'Ditolak'
                 }[s.toLowerCase()] || s;
-                return `<span class="badge ${m[s.toLowerCase()] || 'badge-muted'}">${translation}</span>`; 
+                return `<span class="badge ${m[s.toLowerCase()] || 'badge-muted'}">${translation}</span>`;
             };
             const typeIcon = (t) => {
                 const iconMap = {

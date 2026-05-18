@@ -35,15 +35,20 @@
 
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-logo">
-        <div class="sidebar-brand">
+      <div class="sidebar-logo" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+        <div class="sidebar-brand" style="display:flex; align-items:center; gap:10px; flex:1;">
           <div class="sidebar-brand-icon">JG</div>
           <div class="sidebar-brand-text">
             <h3>JEF HRIS</h3>
             <p>HR Admin Panel</p>
           </div>
         </div>
-        <button class="btn-close-sidebar" onclick="toggleSidebar()" aria-label="Close Sidebar">
+        <button class="btn-compact-sidebar" id="btnCompactSidebar" onclick="toggleCompactSidebar()"
+          title="Minimize Sidebar"
+          style="background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:auto; transition:all var(--transition); flex-shrink:0;">
+          <i class="bi bi-chevron-left" id="compactIcon"></i>
+        </button>
+        <button class="btn-close-sidebar" onclick="toggleSidebar()" aria-label="Close Sidebar" style="flex-shrink:0;">
           <i class="bi bi-x-lg"></i>
         </button>
       </div>
@@ -64,8 +69,17 @@
         <a class="sidebar-link" onclick="showPage('attendance', this)">
           <i class="bi bi-clock-history"></i> Riwayat Absensi
         </a>
+        <a class="sidebar-link" onclick="showPage('leave-report', this)">
+          <i class="bi bi-file-earmark-bar-graph-fill"></i> Laporan &amp; Jatah Cuti
+        </a>
+        <a class="sidebar-link" onclick="showPage('positions', this)">
+          <i class="bi bi-briefcase-fill"></i> Posisi &amp; Divisi
+        </a>
 
         <div class="nav-section-label">Sistem</div>
+        <a class="sidebar-link" onclick="showPage('holidays', this)">
+          <i class="bi bi-calendar2-x-fill"></i> Hari Libur Operasional
+        </a>
         <a class="sidebar-link" onclick="showPage('config', this)">
           <i class="bi bi-gear-fill"></i> Konfigurasi
         </a>
@@ -100,12 +114,20 @@
           </div>
         </div>
         <div class="topbar-actions" style="display:flex; align-items:center; gap:12px;">
+          <button class="refresh-toggle-btn hide-on-mobile" onclick="window.location.reload()" title="Refresh Halaman"
+            style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
           <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
             style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
             <i class="bi bi-sun-fill"></i>
           </button>
+          <button class="header-logout-btn" onclick="logout()" title="Keluar"
+            style="background:rgba(220,53,69,0.1); border:1px solid rgba(220,53,69,0.2); border-radius:50%; width: 36px; height: 36px; display:none; align-items:center; justify-content:center; color:var(--danger); font-size:16px; transition: all var(--transition); cursor:pointer;">
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
           <div class="clock-chip">
-            <div class="live-dot"></div>
+            <!-- <div class="live-dot"></div> -->
             <i class="bi bi-clock-fill text-primary" style="font-size:11px;"></i>
             <span id="liveTopClock">--:--:--</span>
           </div>
@@ -252,6 +274,7 @@
                 <option value="">Semua Status</option>
                 <option value="Active">Aktif</option>
                 <option value="Inactive">Nonaktif</option>
+                <option value="Pending">Menunggu Persetujuan</option>
               </select>
             </div>
 
@@ -262,6 +285,7 @@
                     <th>Karyawan</th>
                     <th>Email</th>
                     <th>Jabatan</th>
+                    <th>Divisi</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th>Aksi</th>
@@ -269,7 +293,7 @@
                 </thead>
                 <tbody id="userTableBody">
                   <tr>
-                    <td colspan="6" style="text-align:center;padding:30px">Memuat data karyawan...</td>
+                    <td colspan="7" style="text-align:center;padding:30px">Memuat data karyawan...</td>
                   </tr>
                 </tbody>
               </table>
@@ -289,22 +313,24 @@
                 Refresh</button>
             </div>
 
-            <div class="table-wrap">
+            <div class="table-wrap" style="max-height: 380px; overflow-y: auto;">
               <table>
                 <thead>
                   <tr>
                     <th>Karyawan</th>
                     <th>Jenis</th>
-                    <th>Tanggal</th>
-                    <th>Alasan</th>
+                    <th>Dari Tanggal</th>
+                    <th>Hingga Tanggal</th>
+                    <th>Catatan</th>
                     <th>Dokumen</th>
                     <th>Status</th>
                     <th>Keputusan</th>
+                    <th>Hapus</th>
                   </tr>
                 </thead>
                 <tbody id="approvalBody">
                   <tr>
-                    <td colspan="7" style="text-align:center;padding:30px">Memuat pengajuan...</td>
+                    <td colspan="9" style="text-align:center;padding:30px">Memuat pengajuan...</td>
                   </tr>
                 </tbody>
               </table>
@@ -360,16 +386,68 @@
           </div>
         </section>
 
+        <!-- LEAVE REPORT PAGE -->
+        <section class="page-section fade-in" id="page-leave-report">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Laporan &amp; Jatah Cuti</h3>
+                <p class="card-subtitle">Rekap jatah cuti, sakit, dan izin karyawan secara dinamis per periode</p>
+              </div>
+              <button class="btn btn-sm btn-ghost" onclick="loadLeaveReport()"><i class="bi bi-arrow-clockwise"></i>
+                Refresh</button>
+            </div>
+
+            <!-- Periode Filter Row -->
+            <div class="filter-row" style="margin-bottom: 20px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:12px; font-weight:600; color:var(--text-muted)">Periode:</span>
+                <input type="date" class="form-control" id="repFilterStart" style="width:160px">
+                <span style="font-size:12px; font-weight:600; color:var(--text-muted)">s.d</span>
+                <input type="date" class="form-control" id="repFilterEnd" style="width:160px">
+              </div>
+              <button class="btn btn-primary" style="padding: 10px 20px; border-radius: var(--radius-md);"
+                onclick="loadLeaveReport()">
+                <i class="bi bi-filter"></i> Terapkan Filter
+              </button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 70px; text-align: center;">Foto</th>
+                    <th>Karyawan</th>
+                    <th>Jabatan</th>
+                    <th>Jatah Cuti Tahunan</th>
+                    <th>Sisa Cuti</th>
+                    <th>Total Sakit (Periode)</th>
+                    <th>Total Izin (Periode)</th>
+                    <th>Total Cuti (Periode)</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="leaveReportBody">
+                  <tr>
+                    <td colspan="8" style="text-align:center;padding:30px">Memuat laporan...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
         <!-- CONFIG PAGE -->
         <section class="page-section fade-in" id="page-config">
-          <div class="grid-2">
-            <!-- Geofence & Jam Kerja -->
-            <div class="card">
-              <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-sliders text-primary"
-                  style="margin-right:8px"></i> Pengaturan Sistem</h3>
+          <div class="card" style="margin-bottom: 24px;">
+            <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-sliders text-primary"
+                style="margin-right:8px"></i> Pengaturan Sistem &amp; Jam Kerja</h3>
 
-              <div class="config-group">
-                <h4><i class="bi bi-geo-alt-fill"></i> Lokasi Kantor (Geofence)</h4>
+            <div class="grid-2-resp">
+              <!-- Left Column: Geofence -->
+              <div class="config-group" style="border:none; padding:0; margin:0;">
+                <h4 style="margin-bottom:14px;"><i class="bi bi-geo-alt-fill text-primary" style="margin-right:6px"></i>
+                  Lokasi Kantor (Geofence)</h4>
                 <div class="form-group">
                   <label class="form-label">Latitude</label>
                   <input type="text" class="form-control" id="cfg_lat" placeholder="-6.2088">
@@ -383,12 +461,14 @@
                   <input type="number" class="form-control" id="cfg_radius" value="50">
                 </div>
                 <div id="configMap"
-                  style="height: 220px; border-radius: var(--radius-md); margin-top: 15px; border: 1px solid var(--border); box-shadow: var(--shadow-neu-inset); z-index: 1;">
+                  style="height: 180px; border-radius: var(--radius-md); margin-top: 15px; border: 1px solid var(--border); box-shadow: var(--shadow-neu-inset); z-index: 1;">
                 </div>
               </div>
 
-              <div class="config-group" style="border-top:1px solid var(--border); padding-top:20px">
-                <h4><i class="bi bi-clock-fill"></i> Jam Kerja</h4>
+              <!-- Right Column: Jam Kerja -->
+              <div class="config-group" style="border:none; padding:0; margin:0;">
+                <h4 style="margin-bottom:14px;"><i class="bi bi-clock-fill text-primary" style="margin-right:6px"></i>
+                  Waktu Absensi</h4>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px">
                   <div class="form-group">
                     <label class="form-label">Masuk (Sen-Jum)</label>
@@ -414,32 +494,132 @@
                   </div>
                 </div>
               </div>
-
-              <button class="btn btn-primary btn-xl" onclick="saveConfig()"><i class="bi bi-save-fill"></i> Simpan
-                Konfigurasi</button>
             </div>
 
-            <!-- Hari Libur -->
+            <div style="margin-top:24px; text-align:right;">
+              <button class="btn btn-primary btn-xl btn-neu-3d" onclick="saveConfig()"><i class="bi bi-save-fill"
+                  style="margin-right:6px"></i> Simpan Konfigurasi</button>
+            </div>
+          </div>
+
+          <!-- Bottom Card: Kontak & Komunikasi -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-chat-dots-fill text-success"
+                style="margin-right:8px"></i> Pengaturan Kontak &amp; HC</h3>
+
+            <div class="grid-2-resp">
+              <div class="form-group">
+                <label class="form-label">Nomor WhatsApp Admin</label>
+                <input type="text" class="form-control" id="cfg_wa_admin" placeholder="Contoh: 628123456789">
+                <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">Gunakan kode negara tanpa simbol +
+                  atau spasi.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email HRD Utama</label>
+                <input type="email" class="form-control" id="cfg_email_hrd" placeholder="Contoh: hrd@jefgroup.id">
+                <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">Email resmi HRD untuk koordinasi
+                  data kehadiran.</p>
+              </div>
+            </div>
+
+            <div style="margin-top:24px; text-align:right;">
+              <button class="btn btn-primary btn-xl btn-neu-3d" onclick="saveConfig()"><i class="bi bi-save-fill"
+                  style="margin-right:6px"></i> Simpan Kontak</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- HOLIDAYS PAGE -->
+        <section class="page-section fade-in" id="page-holidays">
+          <div class="card" style="max-width: 900px; margin: 0 auto;">
+            <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-calendar2-x-fill text-danger"
+                style="margin-right:8px"></i> Hari Libur Operasional</h3>
+
+            <div class="holiday-form-grid" style="margin-bottom:20px;">
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Tanggal Mulai</label>
+                <input type="date" class="form-control" id="holiday_start_date">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Tanggal Selesai (Opsional)</label>
+                <input type="date" class="form-control" id="holiday_end_date">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Keterangan Libur</label>
+                <input type="text" class="form-control" id="holiday_desc" placeholder="Contoh: Libur Lebaran">
+              </div>
+              <button class="btn btn-primary btn-neu-3d"
+                style="height:42px; display:flex; align-items:center; justify-content:center; padding:0 20px;"
+                onclick="addHoliday()"><i class="bi bi-plus-lg" style="margin-right:6px"></i> Tambah</button>
+            </div>
+
+            <div class="holiday-list" id="holidayList">
+              <div style="text-align:center;padding:30px;color:var(--text-muted)">Memuat hari libur...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- POSITIONS PAGE -->
+        <section class="page-section fade-in" id="page-positions">
+          <div class="grid-2-resp" style="margin-bottom:24px;">
+            <!-- Form Kelola Jabatan -->
             <div class="card">
-              <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-calendar2-x-fill text-danger"
-                  style="margin-right:8px"></i> Hari Libur</h3>
-
-              <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:16px; flex-wrap:wrap">
-                <div class="form-group" style="flex:1; margin-bottom:0; min-width:140px">
-                  <label class="form-label">Tanggal</label>
-                  <input type="date" class="form-control" id="holiday_date">
+              <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-briefcase-fill text-primary" style="margin-right:8px"></i> Kelola Jabatan</h3>
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Nama Jabatan (Position)</label>
+                  <input type="text" class="form-control" id="pos_name" placeholder="Contoh: Senior Developer">
                 </div>
-                <div class="form-group" style="flex:2; margin-bottom:0; min-width:200px">
-                  <label class="form-label">Keterangan</label>
-                  <input type="text" class="form-control" id="holiday_desc" placeholder="Contoh: Idul Fitri">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Divisi (Division)</label>
+                  <input type="text" class="form-control" id="pos_division" placeholder="Contoh: Technology">
                 </div>
-                <button class="btn btn-primary" style="height:48px" onclick="addHoliday()"><i
-                    class="bi bi-plus-lg"></i></button>
+                <button class="btn btn-primary btn-neu-3d" style="height:44px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="addPositionAdmin()">
+                  <i class="bi bi-plus-circle-fill"></i> Simpan Jabatan
+                </button>
               </div>
+            </div>
 
-              <div class="holiday-list" id="holidayList">
-                <div style="text-align:center;padding:30px;color:var(--text-muted)">Memuat hari libur...</div>
+            <!-- Bento Chart Ringkasan Divisi -->
+            <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <h3 class="card-title" style="margin-bottom:12px"><i class="bi bi-pie-chart-fill text-warning" style="margin-right:8px"></i> Ringkasan Divisi &amp; Posisi</h3>
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Visualisasi jumlah jabatan per divisi dalam perusahaan</p>
               </div>
+              <div id="divisionSummaryChart" style="display:flex; flex-direction:column; gap:14px; flex:1; justify-content:center;">
+                <!-- Will be dynamically populated with beautiful premium Bento bar visual charts -->
+                <div style="text-align:center; color:var(--text-muted)">Memuat data chart...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table List of Positions -->
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+              <h3 class="card-title" style="margin:0;"><i class="bi bi-list-task text-success" style="margin-right:8px"></i> Daftar Jabatan Perusahaan</h3>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <label class="form-label" style="margin:0; font-size:12px; font-weight:700; white-space:nowrap;">Filter Divisi:</label>
+                <select id="posDivisionFilter" class="form-control" style="width:160px; height:34px; border-radius:12px; font-size:12px; padding:0 8px; font-weight:700;" onchange="filterPositionsTable(this.value)">
+                  <option value="">Semua Divisi</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table" style="width:100%; border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th style="border-right:1px solid var(--border)">Nama Jabatan</th>
+                    <th style="border-right:1px solid var(--border)">Divisi</th>
+                    <th style="text-align:center; width:100px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="positionsTableBody">
+                  <tr>
+                    <td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar jabatan...</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -525,6 +705,35 @@
     </div>
   </div>
 
+  <!-- Modal Adjust Quota -->
+  <div class="overlay hidden" id="modalAdjustQuota">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="bi bi-calendar-check-fill text-primary" style="margin-right:8px"></i>
+          Sesuaikan Jatah Cuti</h3>
+        <button class="modal-close" onclick="closeModal('modalAdjustQuota')"><i class="bi bi-x"></i></button>
+      </div>
+      <div class="modal-body" style="padding:20px 0 0;">
+        <form id="formAdjustQuota" onsubmit="submitAdjustQuota(event)">
+          <input type="hidden" id="adjustUserId">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">Nama Karyawan</label>
+            <input type="text" class="form-control" id="adjustUserName" readonly
+              style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
+          </div>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">Jatah Cuti Tahunan</label>
+            <input type="number" class="form-control" id="adjustAllowedQuota" required min="0" max="365">
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+            <button type="button" class="btn btn-ghost" onclick="closeModal('modalAdjustQuota')">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
   <script src="js/script.js"></script>
   <script>
@@ -533,6 +742,11 @@
       if (!document.getElementById('dashChart')) return;
       const ctx = document.getElementById('dashChart').getContext('2d');
       if (window.dashPie) window.dashPie.destroy();
+
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#FFFFFF' : '#1E293B';
+      const chartBorderColor = isDark ? '#13192E' : '#FFFFFF';
+
       window.dashPie = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -551,7 +765,7 @@
               'rgba(59, 130, 246, 1)',
               'rgba(148, 163, 184, 0.95)'
             ],
-            borderColor: 'var(--bg-card)',
+            borderColor: chartBorderColor,
             borderWidth: 3,
             hoverOffset: 6
           }]
@@ -563,7 +777,7 @@
             legend: {
               position: 'bottom',
               labels: {
-                color: 'var(--text)',
+                color: textColor,
                 padding: 16,
                 usePointStyle: true,
                 pointStyle: 'circle',
