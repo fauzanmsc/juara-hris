@@ -22,14 +22,15 @@
   <div class="header">
     <div class="header-top">
       <div class="brand-row">
-        <span>JEF HRIS</span>
+        <span>JEF e-Attendance</span>
         <span class="live-badge">LIVE</span>
       </div>
       <div style="display:flex; align-items:center; gap:8px; position:relative;">
         <button class="theme-toggle-btn" id="notifBellBtn" onclick="toggleNotifDropdown(event)" title="Notifikasi"
           style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer; position:relative;">
           <i class="bi bi-bell-fill"></i>
-          <span id="notifCountBadge" class="hidden" style="position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; font-size:9px; font-weight:800; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg-card);">0</span>
+          <span id="notifCountBadge" class="hidden"
+            style="position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; font-size:9px; font-weight:800; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg-card);">0</span>
         </button>
         <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
           style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
@@ -38,13 +39,20 @@
         <button class="btn-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
 
         <!-- Dropdown Notifikasi Neumorphisme -->
-        <div id="notifDropdown" class="hidden" style="position:absolute; top:44px; right:0; width:290px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-neu); z-index:1000; padding:14px; display:flex; flex-direction:column; gap:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:4px;">
-            <span style="font-weight:800; font-size:12px; color:var(--text);"><i class="bi bi-bell-fill text-primary" style="margin-right:4px;"></i> Notifikasi</span>
-            <button onclick="markAllNotifAsRead()" style="background:none; border:none; color:var(--primary); font-size:10px; font-weight:800; cursor:pointer; padding:0;">Baca Semua</button>
+        <div id="notifDropdown" class="hidden"
+          style="position:absolute; top:44px; right:0; width:290px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-neu); z-index:1000; padding:14px; display:flex; flex-direction:column; gap:10px;">
+          <div
+            style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:4px;">
+            <span style="font-weight:800; font-size:12px; color:var(--text);"><i class="bi bi-bell-fill text-primary"
+                style="margin-right:4px;"></i> Notifikasi</span>
+            <button onclick="markAllNotifAsRead()"
+              style="background:none; border:none; color:var(--primary); font-size:10px; font-weight:800; cursor:pointer; padding:0;">Baca
+              Semua</button>
           </div>
-          <div id="notifItemsContainer" style="max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
-            <div style="text-align:center; padding:12px; font-size:11px; color:var(--text-muted);">Tidak ada notifikasi baru</div>
+          <div id="notifItemsContainer"
+            style="max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+            <div style="text-align:center; padding:12px; font-size:11px; color:var(--text-muted);">Tidak ada notifikasi
+              baru</div>
           </div>
         </div>
       </div>
@@ -62,8 +70,9 @@
           <h3 id="userName" style="margin: 0;">—</h3>
         </div>
         <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
-          <p id="userPosition" style="margin:0;">—</p>
-          <span id="userDivisionLabel" class="status-chip chip-ok" style="font-size:9px; font-weight:800; padding:2px 8px; border-radius:50px; background:rgba(255, 146, 0, 0.12); color:var(--primary); border:1px solid rgba(255, 146, 0, 0.25); display:inline-block;">—</span>
+          <p id="userPosition">—</p>
+          <span id="userDivisionLabel" class="status-chip chip-ok"
+            style="font-size:9px; font-weight:800; padding:2px 8px; border-radius:50px; background:rgba(59, 130, 246, 0.12); color:var(--info); border:1px solid rgba(59, 130, 246, 0.25); display:inline-block; text-transform: uppercase;">—</span>
         </div>
       </div>
     </div>

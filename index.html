@@ -84,7 +84,7 @@
           <div class="feature-dot"><i class="bi bi-graph-up-arrow"></i></div>HR Dashboard &amp; Laporan Real-time
         </div>
         <div class="feature-item">
-          <div class="feature-dot"><i class="bi bi-gear-fill"></i></div>Konfigurasi Dinamis Tanpa Coding
+          <div class="feature-dot"><i class="bi bi-gear-fill"></i></div>Konfigurasi Dinamis
         </div>
       </div>
     </div>
@@ -140,24 +140,26 @@
       </div>
     </div>
 
-    <div class="form-footer">
-      JEF GROUP HRIS v2.0 &nbsp;·&nbsp; © 2026 <span class="powered-by"><span
-          class="footer-dot">&nbsp;·&nbsp;</span>Powered by Google Workspace</span>
+    <div class="form-footer" style="line-height: 1.6; text-align: center;">
+      <div>JEF GROUP e-Attendance v2.0 © 2026</div>
+      <div style="font-size: 11px; margin-top: 4px; opacity: 0.8;">Powered by Google Workspace</div>
     </div>
   </div>
 
   <!-- REGISTRATION MODAL OVERLAY -->
   <div class="reg-modal-overlay hidden" id="registerFormSection" onclick="if(event.target===this)showLogin()">
     <div class="reg-modal-container">
-      
+
       <!-- Registration Card Neumorphisme -->
       <div class="reg-modal-card">
         <div class="card-border-glow"></div>
         <button class="reg-modal-close" onclick="showLogin()" type="button">&times;</button>
 
         <div class="form-header" style="margin-bottom: 20px; text-align:center;">
-          <h2 style="font-size:22px; font-weight:800; color:var(--text); font-family:var(--font-head); margin: 0;">Registrasi Karyawan <span class="reg-pencil-anim">📝</span></h2>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Lengkapi data diri Anda untuk akses e-Attendance</p>
+          <h2 style="font-size:22px; font-weight:800; color:var(--text); font-family:var(--font-head); margin: 0;">
+            Registrasi Karyawan <span class="reg-pencil-anim">📝</span></h2>
+          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Lengkapi data diri Anda untuk akses
+            e-Attendance</p>
         </div>
 
         <div class="alert-box" id="registerAlertBox">
@@ -168,20 +170,29 @@
 
         <form id="formRegister" onsubmit="doRegister(event)" style="display:flex; flex-direction:column; gap:12px;">
           <!-- Avatar Uploader at the Top -->
-          <div class="reg-avatar-upload-container" style="display:flex; flex-direction:column; align-items:center; position:relative; cursor:pointer; margin-bottom: 4px;" onclick="document.getElementById('regPhoto').click()">
-            <div class="reg-avatar-preview" id="regAvatarPreview" style="width:84px; height:84px; border-radius:50%; border:3px dashed var(--primary); padding:3px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--bg-deep); transition: all var(--transition); box-shadow: var(--shadow-neu-inset);">
-              <span id="regAvatarInitials" style="font-family:var(--font-head); font-weight:800; font-size:28px; color:var(--primary); transition: all var(--transition);">JG</span>
-              <img id="previewAvatarImg" src="" style="width:100%; height:100%; border-radius:50%; object-fit:cover; display:none;" alt="Preview Foto">
+          <div class="reg-avatar-upload-container"
+            style="display:flex; flex-direction:column; align-items:center; position:relative; cursor:pointer; margin-bottom: 4px;"
+            onclick="document.getElementById('regPhoto').click()">
+            <div class="reg-avatar-preview" id="regAvatarPreview"
+              style="width:84px; height:84px; border-radius:50%; border:3px dashed var(--primary); padding:3px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--bg-deep); transition: all var(--transition); box-shadow: var(--shadow-neu-inset);">
+              <span id="regAvatarInitials"
+                style="font-family:var(--font-head); font-weight:800; font-size:28px; color:var(--primary); transition: all var(--transition);">JG</span>
+              <img id="previewAvatarImg" src=""
+                style="width:100%; height:100%; border-radius:50%; object-fit:cover; display:none;" alt="Preview Foto">
             </div>
-            <span style="font-size:10px; color:var(--primary); font-weight:700; margin-top:6px; text-transform:uppercase; letter-spacing:0.5px;"><i class="bi bi-camera-fill"></i> Ubah Foto Profil</span>
-            <input type="file" id="regPhoto" accept="image/*" style="display:none;" onchange="previewRegPhoto(this)" required>
+            <span
+              style="font-size:10px; color:var(--primary); font-weight:700; margin-top:6px; text-transform:uppercase; letter-spacing:0.5px;"><i
+                class="bi bi-camera-fill"></i> Ubah Foto Profil</span>
+            <input type="file" id="regPhoto" accept="image/*" style="display:none;" onchange="previewRegPhoto(this)"
+              required>
           </div>
 
           <div class="form-group">
             <label class="form-label" style="text-align:left; font-size:11px;">Nama Lengkap</label>
             <div class="input-wrap">
               <i class="bi bi-person input-icon"></i>
-              <input type="text" id="regName" placeholder="Masukkan nama lengkap Anda" required oninput="updateRegInitials(this.value)">
+              <input type="text" id="regName" placeholder="Masukkan nama lengkap Anda" required
+                oninput="updateRegInitials(this.value)">
             </div>
           </div>
 
@@ -200,27 +211,31 @@
               <label class="form-label" style="text-align:left; font-size:11px;">PIN Login (6 Digit)</label>
               <div class="input-wrap">
                 <i class="bi bi-shield-lock input-icon"></i>
-                <input type="password" id="regPassword" placeholder="Buat PIN" required maxlength="6" pattern="\d{6}" inputmode="numeric">
+                <input type="password" id="regPassword" placeholder="Buat PIN" required maxlength="6" pattern="\d{6}"
+                  inputmode="numeric">
               </div>
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" style="text-align:left; font-size:11px;">Jabatan (Position)</label>
-            <div class="input-wrap">
+            <div class="input-wrap" style="position: relative;">
               <i class="bi bi-briefcase input-icon"></i>
               <select id="regPosition" class="form-control reg-custom-select" required>
                 <option value="" disabled selected>Memuat daftar jabatan...</option>
               </select>
+              <i class="bi bi-chevron-down" style="position: absolute; right: 14px; pointer-events: none; color: var(--text-muted); font-size: 12px;"></i>
             </div>
           </div>
 
           <!-- Actions Row -->
           <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:12px; margin-top:8px;">
-            <button class="btn btn-muted btn-neu-3d" type="button" onclick="resetRegisterForm()" style="height:42px; border-radius:50px; font-weight:700; font-size:12px; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-deep); color:var(--text-muted); border:1px solid var(--border);">
+            <button class="btn btn-muted btn-neu-3d" type="button" onclick="resetRegisterForm()"
+              style="height:42px; border-radius:50px; font-weight:700; font-size:12px; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-deep); color:var(--text-muted); border:1px solid var(--border);">
               <i class="bi bi-arrow-counterclockwise"></i> Reset Data
             </button>
-            <button class="btn-login btn-neu-3d" type="submit" style="margin:0; height:42px; display:flex; align-items:center; justify-content:center; font-size: 12px; border-radius: 50px;">
+            <button class="btn-login btn-neu-3d" type="submit"
+              style="margin:0; height:42px; display:flex; align-items:center; justify-content:center; font-size: 12px; border-radius: 50px;">
               <span>DAFTAR SEKARANG</span>
             </button>
           </div>
@@ -252,9 +267,13 @@
       <button class="wa-chat-close" onclick="toggleWAPopup()">&times;</button>
     </div>
     <div class="wa-chat-body">
-      <p style="font-size:11px; margin-bottom:10px; color:var(--text-muted); line-height:1.4;">Hai! Tulis pesan Anda di bawah ini, kami akan langsung menghubungkan Anda ke WhatsApp Admin.</p>
-      <textarea id="waChatMessage" class="form-control" rows="3" placeholder="Tulis pesan bantuan Anda..." style="resize:none; font-size:13px; font-weight:600; margin-bottom:10px; width:100%; border-radius:8px; border:1px solid var(--border); background:var(--bg-input); color:var(--text); outline:none; padding:8px;"></textarea>
-      <button class="btn btn-success btn-neu-3d" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; height:38px; border-radius:50px; background:#25d366 !important; border-color:#25d366 !important; color:#000 !important; font-weight:800; font-size:12px; text-transform:uppercase;" onclick="sendWAMessage()">
+      <p style="font-size:11px; margin-bottom:10px; color:var(--text-muted); line-height:1.4;">Hai! Tulis pesan Anda di
+        bawah ini, kami akan langsung menghubungkan Anda ke WhatsApp Admin.</p>
+      <textarea id="waChatMessage" class="form-control" rows="3" placeholder="Tulis pesan bantuan Anda..."
+        style="resize:none; font-size:13px; font-weight:600; margin-bottom:10px; width:100%; border-radius:8px; border:1px solid var(--border); background:var(--bg-input); color:var(--text); outline:none; padding:8px;"></textarea>
+      <button class="btn btn-success btn-neu-3d"
+        style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; height:38px; border-radius:50px; background:#25d366 !important; border-color:#25d366 !important; color:#000 !important; font-weight:800; font-size:12px; text-transform:uppercase;"
+        onclick="sendWAMessage()">
         <i class="bi bi-send-fill"></i> Kirim ke WhatsApp
       </button>
     </div>
@@ -321,7 +340,7 @@
       }
 
       // WA Support in-page chat popup functions
-      window.toggleWAPopup = function() {
+      window.toggleWAPopup = function () {
         const popup = document.getElementById('waChatPopup');
         popup.classList.toggle('hidden');
         if (!popup.classList.contains('hidden')) {
@@ -329,7 +348,7 @@
         }
       }
 
-      window.sendWAMessage = function() {
+      window.sendWAMessage = function () {
         const msg = document.getElementById('waChatMessage').value.trim();
         if (!msg) {
           alert('Tulis pesan Anda terlebih dahulu.');
@@ -344,13 +363,13 @@
       }
 
       // Override global contactCS
-      window.contactCS = function() {
+      window.contactCS = function () {
         toggleWAPopup();
       }
     });
 
     // Helper functions for registration preview & reset
-    window.updateRegInitials = function(val) {
+    window.updateRegInitials = function (val) {
       const img = document.getElementById('previewAvatarImg');
       const initialsSpan = document.getElementById('regAvatarInitials');
       if (img.style.display === 'none') {
@@ -359,10 +378,10 @@
       }
     }
 
-    window.resetRegisterForm = function() {
+    window.resetRegisterForm = function () {
       const form = document.getElementById('formRegister');
       if (form) form.reset();
-      
+
       const img = document.getElementById('previewAvatarImg');
       const initialsSpan = document.getElementById('regAvatarInitials');
       img.src = '';

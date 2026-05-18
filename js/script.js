@@ -134,6 +134,20 @@ window.showModalConfirm = function (title, message, onConfirm) {
     };
 };
 
+window.logout = function () {
+    if (typeof window.showModalConfirm === 'function') {
+        window.showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
+            sessionStorage.removeItem('hris_user');
+            window.location.href = 'index.html';
+        });
+    } else {
+        if (confirm('Apakah Anda yakin ingin keluar dari sistem e-Attendance?')) {
+            sessionStorage.removeItem('hris_user');
+            window.location.href = 'index.html';
+        }
+    }
+};
+
 // Helper Global: Parse waktu dari berbagai format (ISO full string atau HH:MM) ke format HH:MM 24 jam
 window.parseTime = function (val) {
     if (!val || val === '--:--' || val === '--') return null;
@@ -683,11 +697,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.renderUsers = function (users) {
             const body = document.getElementById('userTableBody');
             if (!body) return;
-            if (!users.length) { 
-                body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data</td></tr>'; 
-                return; 
+            if (!users.length) {
+                body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data</td></tr>';
+                return;
             }
-            
+
             // Group by role
             const groups = {};
             users.forEach(u => {
@@ -695,11 +709,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 if (!groups[r]) groups[r] = [];
                 groups[r].push(u);
             });
-            
+
             let html = '';
             // Render Admin first, then Employee, then others
             const rolesOrder = ['Admin', 'Employee'];
-            const allRoles = Object.keys(groups).sort((a,b) => {
+            const allRoles = Object.keys(groups).sort((a, b) => {
                 const ia = rolesOrder.indexOf(a);
                 const ib = rolesOrder.indexOf(b);
                 if (ia !== -1 && ib !== -1) return ia - ib;
@@ -707,7 +721,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 if (ib !== -1) return 1;
                 return a.localeCompare(b);
             });
-            
+
             allRoles.forEach(role => {
                 const roleUsers = groups[role];
                 html += `
@@ -717,16 +731,16 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                         </td>
                     </tr>
                 `;
-                
+
                 roleUsers.forEach(u => {
                     html += `
                         <tr style="border-bottom:1.5px dashed var(--border)">
                           <td>
                             <div class="user-cell">
                               ${u.profile_pic_url ?
-                                `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;" onerror="this.outerHTML='<div class=\'avatar avatar-sm\' style=\'width:36px; height:36px; font-weight:800;\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
-                                `<div class="avatar avatar-sm" style="width:36px; height:36px; font-weight:800;">${u.name?.substring(0, 2).toUpperCase()}</div>`
-                              }
+                            `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;" onerror="this.outerHTML='<div class=\'avatar avatar-sm\' style=\'width:36px; height:36px; font-weight:800;\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
+                            `<div class="avatar avatar-sm" style="width:36px; height:36px; font-weight:800;">${u.name?.substring(0, 2).toUpperCase()}</div>`
+                        }
                               <span class="user-cell-name" style="font-weight:700; color:var(--text);">${u.name}</span>
                             </div>
                           </td>
@@ -753,7 +767,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     `;
                 });
             });
-            
+
             body.innerHTML = html;
         }
 
@@ -1171,7 +1185,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                         body: JSON.stringify({ action: 'deleteHoliday', holiday_id: oldId })
                     });
                 }
-                
+
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -1181,16 +1195,16 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                         description: desc
                     })
                 });
-                
+
                 showToast(oldId ? 'Hari libur berhasil diperbarui' : 'Hari libur ditambahkan', 'success');
                 document.getElementById('holiday_old_id').value = '';
                 document.getElementById('holiday_start_date').value = '';
                 document.getElementById('holiday_end_date').value = '';
                 document.getElementById('holiday_desc').value = '';
-                
+
                 document.getElementById('holidayBtnText').textContent = 'Tambah';
                 document.getElementById('holidayBtnIcon').className = 'bi bi-plus-lg';
-                
+
                 loadConfig();
             } catch (e) {
                 showToast(oldId ? 'Gagal memperbarui hari libur' : 'Gagal menambah hari libur', 'error');
@@ -1213,7 +1227,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             document.getElementById('holiday_start_date').value = hol.start_date;
             document.getElementById('holiday_end_date').value = hol.end_date || hol.start_date;
             document.getElementById('holiday_desc').value = hol.description;
-            
+
             document.getElementById('holidayBtnText').textContent = 'Simpan Perubahan';
             document.getElementById('holidayBtnIcon').className = 'bi bi-check-circle-fill';
         };
@@ -1228,7 +1242,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const body = document.getElementById('positionsTableBody');
             const summary = document.getElementById('divisionSummaryChart');
             const filterSelect = document.getElementById('posDivisionFilter');
-            
+
             if (body) body.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat data jabatan...</td></tr>';
             if (summary) summary.innerHTML = '<div style="text-align:center; color:var(--text-muted)">Memuat data chart...</div>';
 
@@ -1239,7 +1253,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const data = await res.json();
                 if (data.success && data.positions) {
                     window.allPositions = data.positions;
-                    
+
                     // Render Table
                     renderPositionsTable(window.allPositions);
 
@@ -1247,7 +1261,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     const divisions = [...new Set(data.positions.map(p => p.division || 'Unassigned'))].sort();
                     if (filterSelect) {
                         const currentVal = filterSelect.value;
-                        filterSelect.innerHTML = '<option value="">Semua Divisi</option>' + 
+                        filterSelect.innerHTML = '<option value="">Semua Divisi</option>' +
                             divisions.map(d => `<option value="${d}">${d}</option>`).join('');
                         filterSelect.value = currentVal;
                     }
@@ -1494,14 +1508,6 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 }
             }
         }
-
-        window.logout = function () {
-            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
-                sessionStorage.removeItem('hris_user');
-                window.location.href = 'index.html';
-            });
-        }
-
         // Init
         showPage('dashboard');
     })();
@@ -1713,7 +1719,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 document.getElementById('cameraOverlay').classList.add('hidden');
                 document.getElementById('faceGuide').style.display = 'block';
                 document.getElementById('btnCapture').disabled = false;
-                document.getElementById('cameraToggle').textContent = 'Kamera Aktif ✓';
+                document.getElementById('cameraToggle').textContent = 'On-Cam ✓';
                 document.getElementById('cameraToggle').style.color = 'var(--success)';
                 const flipBtn = document.getElementById('btnFlipCamera');
                 if (flipBtn) flipBtn.style.display = 'inline-flex';
@@ -2002,7 +2008,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                     // Update User Division Label
                     const divLabel = document.getElementById('userDivisionLabel');
                     if (divLabel) {
-                        divLabel.textContent = data.division || userData.division || 'Umum';
+                        divLabel.textContent = (data.division || userData.division || 'Umum').toUpperCase();
                     }
 
                     // Check for active holiday or approved leave today
@@ -2111,14 +2117,6 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                 if (window.hidePageLoader) window.hidePageLoader();
             }
         }
-
-        window.logout = function () {
-            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
-                sessionStorage.removeItem('hris_user');
-                window.location.href = 'index.html';
-            });
-        }
-
         let editProfilePhotoBase64 = null;
 
         window.openEditProfileModal = function () {
@@ -2312,12 +2310,6 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
         }
 
         window.goBack = function () { window.location.href = 'employee.html'; }
-        window.logout = function () {
-            showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
-                sessionStorage.removeItem('hris_user');
-                window.location.href = 'index.html';
-            });
-        }
 
         loadHistory();
     })();
@@ -2505,7 +2497,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
     const userData = (() => {
         try {
             return JSON.parse(localStorage.getItem('hris_user')) || {};
-        } catch(e) {
+        } catch (e) {
             return {};
         }
     })();
@@ -2520,7 +2512,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             overlay.style.zIndex = '999999';
             document.body.appendChild(overlay);
         }
-        
+
         overlay.innerHTML = `
             <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
                 <div class="card-border-glow"></div>
@@ -2533,10 +2525,10 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             </div>
         `;
         overlay.classList.remove('hidden');
-        
+
         const okBtn = document.getElementById('customAlertOKBtn');
         okBtn.focus();
-        okBtn.onclick = function() {
+        okBtn.onclick = function () {
             overlay.remove();
             if (onOK) onOK();
         };
@@ -2551,7 +2543,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             overlay.style.zIndex = '999999';
             document.body.appendChild(overlay);
         }
-        
+
         overlay.innerHTML = `
             <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
                 <div class="card-border-glow"></div>
@@ -2567,12 +2559,12 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             </div>
         `;
         overlay.classList.remove('hidden');
-        
-        document.getElementById('customConfirmOKBtn').onclick = function() {
+
+        document.getElementById('customConfirmOKBtn').onclick = function () {
             overlay.remove();
             if (onOK) onOK();
         };
-        document.getElementById('customConfirmCancelBtn').onclick = function() {
+        document.getElementById('customConfirmCancelBtn').onclick = function () {
             overlay.remove();
             if (onCancel) onCancel();
         };
@@ -2586,17 +2578,17 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             const data = await res.json();
             if (data.success && data.divisions) {
                 window.allDivisions = data.divisions;
-                
+
                 // Render list
                 renderDivisionsTable(data.divisions);
-                
+
                 // Populate pos_division select dropdown in Kelola Jabatan form
                 const posDivSelect = document.getElementById('pos_division');
                 if (posDivSelect) {
                     posDivSelect.innerHTML = '<option value="" disabled selected>Pilih Divisi...</option>' +
                         data.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
                 }
-                
+
                 // Populate mu_division select dropdown in edit user modal
                 const muDivSelect = document.getElementById('mu_division');
                 if (muDivSelect) {
@@ -2683,7 +2675,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             order.col = col;
             order.asc = true;
         }
-        
+
         const sorted = [...window.allPositions].sort((a, b) => {
             let valA = a[col] || '';
             let valB = b[col] || '';
@@ -2700,7 +2692,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
     window.sortDivisionsTable = function () {
         const asc = window.divisionsSortOrder.asc;
         window.divisionsSortOrder.asc = !asc;
-        
+
         const sorted = [...window.allDivisions].sort((a, b) => {
             if (asc) {
                 return a.localeCompare(b);
@@ -2727,52 +2719,52 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         const grid = document.getElementById('calendarGrid');
         const header = document.getElementById('calendarMonthYear');
         if (!grid || !header) return;
-        
+
         const year = window.calendarCurrentDate.getFullYear();
         const month = window.calendarCurrentDate.getMonth();
-        
+
         const monthNames = [
             "Januari", "Februari", "Maret", "April", "Mei", "Juni",
             "Juli", "Agustus", "September", "Oktober", "November", "Desember"
         ];
         header.textContent = `${monthNames[month]} ${year}`;
-        
+
         const dayHeaders = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
         let html = dayHeaders.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
-        
+
         const firstDayIndex = new Date(year, month, 1).getDay();
         const lastDay = new Date(year, month + 1, 0).getDate();
         const prevLastDay = new Date(year, month, 0).getDate();
-        
+
         for (let i = firstDayIndex; i > 0; i--) {
             html += `<div class="calendar-cell other-month">${prevLastDay - i + 1}</div>`;
         }
-        
+
         const today = new Date();
         const holidays = window.allHolidays || [];
-        
+
         for (let i = 1; i <= lastDay; i++) {
             const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            
+
             const activeHoliday = holidays.find(h => {
                 const start = h.start_date;
                 const end = h.end_date || start;
                 return currentDateStr >= start && currentDateStr <= end;
             });
-            
+
             const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
             const cellClass = `calendar-cell ${activeHoliday ? 'holiday' : ''} ${isToday ? 'today' : ''}`;
             const titleText = activeHoliday ? `title="${activeHoliday.description}"` : '';
-            
+
             html += `<div class="${cellClass}" ${titleText}>${i}</div>`;
         }
-        
+
         const totalCells = firstDayIndex + lastDay;
         const remaining = (7 - (totalCells % 7)) % 7;
         for (let i = 1; i <= remaining; i++) {
             html += `<div class="calendar-cell other-month">${i}</div>`;
         }
-        
+
         grid.innerHTML = html;
     };
 
@@ -2781,23 +2773,23 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         if (e) e.stopPropagation();
         const dropdown = document.getElementById('notifDropdown');
         if (dropdown) {
-            dropdown.classList.toggle('active');
+            dropdown.classList.toggle('hidden');
         }
     };
 
     // Click outside closes notification dropdown
     document.addEventListener('click', function (e) {
         const dropdown = document.getElementById('notifDropdown');
-        const bellBtn = document.querySelector('.btn-ghost i.bi-bell');
+        const bellBtn = document.getElementById('notifBellBtn');
         if (dropdown && !dropdown.contains(e.target) && (!bellBtn || !bellBtn.contains(e.target))) {
-            dropdown.classList.remove('active');
+            dropdown.classList.add('hidden');
         }
     });
 
     window.loadNotifications = function (data) {
         if (!userData || !userData.user_id) return;
         let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
-        
+
         if (data.latest_approved_leave) {
             const key = `dismiss_leave_${data.latest_approved_leave.start_date}_Approved`;
             const alreadyNotified = notifications.some(n => n.type === 'Approved' && n.start_date === data.latest_approved_leave.start_date);
@@ -2812,7 +2804,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                 });
             }
         }
-        
+
         if (data.latest_rejected_leave) {
             const key = `dismiss_leave_${data.latest_rejected_leave.start_date}_Rejected`;
             const alreadyNotified = notifications.some(n => n.type === 'Rejected' && n.start_date === data.latest_rejected_leave.start_date);
@@ -2827,53 +2819,63 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                 });
             }
         }
-        
+
         localStorage.setItem(`notifs_${userData.user_id}`, JSON.stringify(notifications));
         updateNotificationsUI();
     };
 
     window.updateNotificationsUI = function () {
         if (!userData || !userData.user_id) return;
-        const list = document.getElementById('notifList');
-        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifItemsContainer');
+        const badge = document.getElementById('notifCountBadge');
         if (!list) return;
-        
+
         let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
         const unreadCount = notifications.filter(n => !n.read).length;
-        
+
         if (badge) {
             badge.textContent = unreadCount;
-            badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            if (unreadCount > 0) {
+                badge.classList.remove('hidden');
+                badge.style.display = 'flex';
+            } else {
+                badge.classList.add('hidden');
+                badge.style.display = 'none';
+            }
         }
-        
+
         if (!notifications.length) {
             list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">Belum ada notifikasi baru</div>';
             return;
         }
-        
+
         list.innerHTML = notifications.map(n => `
-            <div class="notif-item ${n.read ? '' : 'unread'}" onclick="markNotifAsRead('${n.id}')" style="
-                padding: 12px 16px;
+            <div class="notif-item ${n.read ? 'read-muted' : 'unread'}" onclick="markNotifAsRead('${n.id}', event)" style="
+                padding: 10px 12px;
                 border-bottom: 1px solid var(--border);
                 cursor: pointer;
-                transition: background 0.2s ease;
+                transition: all var(--transition);
                 position: relative;
+                border-radius: var(--radius-sm);
+                background: ${n.read ? 'transparent' : 'rgba(255, 146, 0, 0.04)'};
+                opacity: ${n.read ? '0.5' : '1'};
             ">
                 <div style="display:flex; gap:10px; align-items:flex-start;">
-                    <div style="width:28px; height:28px; border-radius:50%; background:${n.type === 'Approved' ? 'rgba(46,196,182,0.15)' : 'rgba(231,76,60,0.15)'}; color:${n.type === 'Approved' ? '#2ec4b6' : '#e74c3c'}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:${n.read ? 'rgba(255,255,255,0.05)' : (n.type === 'Approved' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)')}; color:${n.read ? 'var(--text-muted)' : (n.type === 'Approved' ? 'var(--success)' : 'var(--danger)')}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
                         <i class="bi ${n.type === 'Approved' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
                     </div>
                     <div style="flex:1;">
-                        <p style="margin:0; font-size:11px; color:var(--text); line-height:1.4; font-weight:${n.read ? '500' : '700'}; text-align:left;">${n.message}</p>
-                        <span style="font-size:9px; color:var(--text-muted); display:block; margin-top:4px; text-align:left;">${new Date(n.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <p style="margin:0; font-size:11px; color:${n.read ? 'var(--text-muted)' : 'var(--text)'}; line-height:1.4; font-weight:${n.read ? '500' : '700'}; text-align:left;">${n.message}</p>
+                        <span style="font-size:9px; color:var(--text-muted); display:block; margin-top:4px; text-align:left;">${new Date(n.timestamp).toLocaleDateString('id-ID')} ${new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    ${n.read ? '' : `<span style="width:8px; height:8px; border-radius:50%; background:var(--primary); display:block; flex-shrink:0; margin-top:4px;"></span>`}
+                    ${n.read ? '' : `<span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:block; flex-shrink:0; margin-top:4px; box-shadow: 0 0 8px var(--primary);"></span>`}
                 </div>
             </div>
         `).join('');
     };
 
-    window.markNotifAsRead = function (id) {
+    window.markNotifAsRead = function (id, event) {
+        if (event) event.stopPropagation();
         let notifications = JSON.parse(localStorage.getItem(`notifs_${userData.user_id}`)) || [];
         const notif = notifications.find(n => n.id === id);
         if (notif) {

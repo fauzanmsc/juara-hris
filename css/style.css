@@ -731,7 +731,6 @@ select.form-control option {
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   padding: 0 10px 0;
-  scrollbar-width: thin;
   position: relative;
 }
 
@@ -800,7 +799,7 @@ tbody tr td:last-child {
 }
 
 tbody tr:nth-child(even) td {
-  background: var(--bg-deep) !important;
+  background: var(--bg-input) !important;
 }
 
 tbody tr:hover td {
@@ -1087,7 +1086,7 @@ body.admin-layout {
   cursor: pointer;
   background: var(--bg-surface);
   border: 1px solid transparent;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.04), -2px -2px 5px rgba(255, 255, 255, 0.3);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.04), -2px -2px 5px rgb(255 255 255 / 11%);
 }
 
 .sidebar-link:hover {
@@ -1107,7 +1106,7 @@ body.admin-layout {
 }
 
 html[data-theme="dark"] .sidebar-link.active {
-  background: #272c3c !important;
+  background: #ff920045 !important;
 }
 
 .sidebar-link i {
@@ -1612,12 +1611,113 @@ html[data-theme="dark"] .sidebar-link.active {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+    font-size: 13px !important;
   }
 
   .admin-layout {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+  }
+
+  /* --- COMPACT FONTS & ELEMENT PADDING FOR MOBILE DEVICE READABILITY --- */
+  .topbar-title {
+    font-size: 15px !important;
+  }
+
+  .topbar-subtitle {
+    font-size: 10px !important;
+  }
+
+  .card-title,
+  .section-title {
+    font-size: 13px !important;
+  }
+
+  .card-subtitle,
+  .section-subtitle {
+    font-size: 9px !important;
+  }
+
+  .admin-content {
+    padding: 12px !important;
+  }
+
+  .card {
+    padding: 14px !important;
+  }
+
+  .stat-card {
+    padding: 10px 12px !important;
+  }
+
+  .stat-value {
+    font-size: 20px !important;
+  }
+
+  .stat-label {
+    font-size: 10px !important;
+  }
+
+  .stat-icon {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 16px !important;
+  }
+
+  .btn,
+  .btn-neu-3d {
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+    height: auto !important;
+  }
+
+  .form-control,
+  input,
+  select {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+    height: auto !important;
+  }
+
+  .form-label {
+    font-size: 10px !important;
+    margin-bottom: 4px !important;
+  }
+
+  table {
+    font-size: 11px !important;
+  }
+
+  thead th {
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+  }
+
+  tbody td {
+    padding: 10px 10px !important;
+  }
+
+  table.table-modern tbody td {
+    padding: 8px 10px !important;
+  }
+
+  .user-cell-name {
+    font-size: 11px !important;
+  }
+
+  .user-cell-role {
+    font-size: 9px !important;
+  }
+
+  .custom-modal-card {
+    padding: 16px !important;
+    width: 95% !important;
+    margin: 16px !important;
+  }
+
+  .modal-header h3 {
+    font-size: 16px !important;
   }
 
   .sidebar {
@@ -1945,7 +2045,7 @@ body.login-page .hero h1 {
 }
 
 body.login-page .hero h1 .grad {
-  background: linear-gradient(90deg, #ff9200 0%, #ffe600 25%, #ffffff 50%, #ffe600 75%, #ff9200 100%);
+  background: linear-gradient(90deg, #ff6f00 0%, #df8600 25%, #ffd676 50%, #ffcf4c 75%, #ff6f00 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -3006,7 +3106,6 @@ body.attendance-page .camera-card {
   background: var(--bg-glass);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
   backdrop-filter: blur(8px);
 }
 
@@ -4097,7 +4196,7 @@ body.employee-page .stat-card-emp .stat-val.val-dark {
 }
 
 body.employee-page .stat-card-emp .stat-val.val-orange {
-  color: var(--primary) !important;
+  color: var(--info) !important;
 }
 
 body.employee-page .stat-card-emp .stat-lbl {
@@ -4254,7 +4353,7 @@ body.employee-page .live-clock {
   font-family: var(--font-head) !important;
   font-size: 20px !important;
   font-weight: 800 !important;
-  color: var(--primary) !important;
+  color: var(--text) !important;
   padding: 8px 16px !important;
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-neu-inset) !important;
@@ -4899,15 +4998,27 @@ body.employee-page .icon-blue {
   font-weight: 700;
 }
 
-/* Scrollable select dropdown limits */
+/* Premium Native Select styling */
 .reg-custom-select {
-  max-height: 200px;
-  overflow-y: auto;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0 35px 0 42px !important;
+  color: var(--text) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .reg-custom-select option {
-  padding: 10px;
-  font-weight: 600;
+  background: var(--bg-card) !important;
+  color: var(--text) !important;
+  padding: 10px !important;
 }
 
 .hidden {
@@ -4972,23 +5083,29 @@ body.employee-page .icon-blue {
 
 .reg-modal-card .reg-email-wrap input {
   padding-left: 44px !important;
-  padding-right: 0 !important;
+  padding-right: 12px !important;
+  border-radius: 0 !important;
   flex: 1;
 }
 
 .reg-modal-card .reg-email-suffix {
-  background: var(--border);
-  padding: 0 12px;
+  background: rgba(255, 146, 0, 0.08);
+  padding: 0 16px;
   font-weight: 700;
   color: var(--primary);
-  height: 100%;
+  align-self: stretch;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
   border-left: 1.5px solid var(--border);
   flex-shrink: 0;
   transition: all var(--transition);
+}
+
+.reg-modal-card .input-wrap:focus-within .reg-email-suffix {
+  border-left-color: var(--primary);
+  background: rgba(255, 146, 0, 0.12);
 }
 
 /* Notifikasi Dropdown Styling */
@@ -5077,6 +5194,8 @@ table.table-modern {
   border-spacing: 0;
   width: 100%;
   min-width: 900px;
+  table-layout: auto;
+  /* Dynamic maximized cell width allocation */
 }
 
 table.table-modern thead th {
@@ -5099,6 +5218,33 @@ table.table-modern tbody tr:last-child {
 table.table-modern tbody td {
   border-bottom: 1px solid var(--border);
   padding: 12px 16px !important;
+  word-break: break-word;
+  /* Maximize readability for long descriptive texts */
+}
+
+/* Optimize Table Columns Cell Width Distribution Maximally */
+table.table-modern th:last-child,
+table.table-modern td:last-child,
+table th:last-child,
+table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* Ensure compact indicators and chips occupy minimal sizes so descriptive text takes up maximum possible width */
+table.table-modern td .status-chip,
+table.table-modern td .badge,
+table.table-modern td .avatar,
+table.table-modern td .btn-neu-3d,
+table td .status-chip,
+table td .badge,
+table td .avatar {
+  white-space: nowrap;
+}
+
+.user-cell-name {
+  white-space: nowrap;
 }
 
 /* Custom Premium Calendar styles */

@@ -39,8 +39,8 @@
         <div class="sidebar-brand" style="display:flex; align-items:center; gap:10px; flex:1;">
           <div class="sidebar-brand-icon">JG</div>
           <div class="sidebar-brand-text">
-            <h3>JEF HRIS</h3>
-            <p>HR Admin Panel</p>
+            <h3>JEF e-Attendance</h3>
+            <p>HC Admin Panel</p>
           </div>
         </div>
         <button class="btn-compact-sidebar" id="btnCompactSidebar" onclick="toggleCompactSidebar()"
@@ -556,7 +556,8 @@
               </div>
               <button class="btn btn-primary btn-neu-3d" id="btnSaveHoliday"
                 style="height:42px; display:flex; align-items:center; justify-content:center; padding:0 20px;"
-                onclick="addHoliday()"><i class="bi bi-plus-lg" id="holidayBtnIcon" style="margin-right:6px"></i> <span id="holidayBtnText">Tambah</span></button>
+                onclick="addHoliday()"><i class="bi bi-plus-lg" id="holidayBtnIcon" style="margin-right:6px"></i> <span
+                  id="holidayBtnText">Tambah</span></button>
             </div>
 
             <div class="holiday-list" id="holidayList" style="margin-bottom: 24px;">
@@ -566,14 +567,22 @@
             <!-- Kalender Hari Libur -->
             <div style="border-top:1px dashed var(--border); padding-top:24px; margin-top:24px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <h3 class="card-title" style="margin:0;"><i class="bi bi-calendar3 text-primary" style="margin-right:8px"></i> Kalender Hari Libur</h3>
+                <h3 class="card-title" style="margin:0;"><i class="bi bi-calendar3 text-primary"
+                    style="margin-right:8px"></i> Kalender Hari Libur</h3>
                 <div style="display:flex; align-items:center; gap:8px;">
-                  <button onclick="prevCalendarMonth()" class="btn btn-muted btn-sm" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0;"><i class="bi bi-chevron-left"></i></button>
-                  <h4 id="calendarMonthYear" style="margin:0; font-family:var(--font-head); font-weight:800; font-size:13px; color:var(--text); width:90px; text-align:center;">Mei 2026</h4>
-                  <button onclick="nextCalendarMonth()" class="btn btn-muted btn-sm" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0;"><i class="bi bi-chevron-right"></i></button>
+                  <button onclick="prevCalendarMonth()" class="btn btn-muted btn-sm"
+                    style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0;"><i
+                      class="bi bi-chevron-left"></i></button>
+                  <h4 id="calendarMonthYear"
+                    style="margin:0; font-family:var(--font-head); font-weight:800; font-size:13px; color:var(--text); width:90px; text-align:center;">
+                    Mei 2026</h4>
+                  <button onclick="nextCalendarMonth()" class="btn btn-muted btn-sm"
+                    style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0;"><i
+                      class="bi bi-chevron-right"></i></button>
                 </div>
               </div>
-              <div id="calendarGrid" class="calendar-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; text-align:center;">
+              <div id="calendarGrid" class="calendar-grid"
+                style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; text-align:center;">
                 <!-- Populated dynamically by script.js -->
               </div>
             </div>
@@ -629,7 +638,8 @@
               <div>
                 <h3 class="card-title" style="margin-bottom:8px"><i class="bi bi-pie-chart-fill text-warning"
                     style="margin-right:8px"></i> Ringkasan Divisi &amp; Posisi</h3>
-                <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Visualisasi jumlah jabatan per divisi</p>
+                <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Visualisasi jumlah jabatan per
+                  divisi</p>
               </div>
               <div id="divisionSummaryChart"
                 style="display:flex; flex-direction:column; gap:10px; flex:1; justify-content:center;">
@@ -646,7 +656,8 @@
                 <h3 class="card-title" style="margin:0;"><i class="bi bi-list-task text-primary"
                     style="margin-right:8px"></i> Daftar Jabatan</h3>
                 <div style="display:flex; align-items:center; gap:8px;">
-                  <label class="form-label" style="margin:0; font-size:12px; font-weight:700; white-space:nowrap;">Filter Divisi:</label>
+                  <label class="form-label"
+                    style="margin:0; font-size:12px; font-weight:700; white-space:nowrap;">Filter Divisi:</label>
                   <select id="posDivisionFilter" class="form-control"
                     style="width:140px; height:32px; border-radius:12px; font-size:12px; padding:0 8px; font-weight:700;"
                     onchange="filterPositionsTable(this.value)">
@@ -659,14 +670,18 @@
                 <table class="table-modern" style="width:100%;">
                   <thead>
                     <tr>
-                      <th style="text-align:left; cursor:pointer;" onclick="sortPositionsTable('position')">Nama Jabatan <i class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
-                      <th style="text-align:left; cursor:pointer;" onclick="sortPositionsTable('division')">Divisi <i class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
+                      <th style="text-align:left; cursor:pointer;" onclick="sortPositionsTable('position')">Nama Jabatan
+                        <i class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i>
+                      </th>
+                      <th style="text-align:left; cursor:pointer;" onclick="sortPositionsTable('division')">Divisi <i
+                          class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
                       <th style="text-align:center; width:120px;">Aksi</th>
                     </tr>
                   </thead>
                   <tbody id="positionsTableBody">
                     <tr>
-                      <td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar jabatan...</td>
+                      <td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar
+                        jabatan...</td>
                     </tr>
                   </tbody>
                 </table>
@@ -681,13 +696,15 @@
                 <table class="table-modern" style="width:100%;">
                   <thead>
                     <tr>
-                      <th style="text-align:left; cursor:pointer;" onclick="sortDivisionsTable()">Nama Divisi <i class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
+                      <th style="text-align:left; cursor:pointer;" onclick="sortDivisionsTable()">Nama Divisi <i
+                          class="bi bi-arrow-down-up" style="font-size:10px; margin-left:4px;"></i></th>
                       <th style="text-align:center; width:100px;">Aksi</th>
                     </tr>
                   </thead>
                   <tbody id="divisionsTableBody">
                     <tr>
-                      <td colspan="2" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar divisi...</td>
+                      <td colspan="2" style="text-align:center; padding:30px; color:var(--text-muted)">Memuat daftar
+                        divisi...</td>
                     </tr>
                   </tbody>
                 </table>
