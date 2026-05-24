@@ -22,6 +22,12 @@
 
 <body class="admin-layout">
 
+  <!-- PAGE LOADER -->
+  <div id="pageLoader" class="page-loader">
+    <div class="spinner-circle"></div>
+  </div>
+
+
   <div class="bg-animated">
     <div class="bg-orb bg-orb-1"></div>
     <div class="bg-orb bg-orb-2"></div>
@@ -79,7 +85,7 @@
           <i class="bi bi-list-task"></i> Tasks
         </a>
 
-        <div class="nav-section-label">SYSTEM ENGINE</div>
+        <div class="nav-section-label">SYSTEM</div>
         <a class="sidebar-link" onclick="showPage('holidays', this)">
           <i class="bi bi-calendar2-x-fill"></i> Holidays
         </a>
@@ -119,12 +125,12 @@
         </div>
         <div class="topbar-actions" style="display:flex; align-items:center; gap:12px;">
           <button class="refresh-toggle-btn hide-on-mobile" onclick="window.location.reload()" title="Refresh Halaman"
-            style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
-            <i class="bi bi-arrow-clockwise"></i>
+            style="background:var(--bg-deep); border:1px solid var(--border); box-shadow:inset 2px 2px 5px rgba(0,0,0,0.08), inset -2px -2px 5px rgba(255,255,255,0.3); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+            <i class="bi bi-arrow-clockwise text-primary"></i>
           </button>
           <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
-            style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
-            <i class="bi bi-sun-fill"></i>
+            style="background:var(--bg-deep); border:1px solid var(--border); box-shadow:inset 2px 2px 5px rgba(0,0,0,0.08), inset -2px -2px 5px rgba(255,255,255,0.3); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+            <i class="bi bi-sun-fill text-primary"></i>
           </button>
           <button class="header-logout-btn" onclick="logout()" title="Keluar"
             style="background:rgba(220,53,69,0.1); border:1px solid rgba(220,53,69,0.2); border-radius:50%; width: 36px; height: 36px; display:none; align-items:center; justify-content:center; color:var(--danger); font-size:16px; transition: all var(--transition); cursor:pointer;">
@@ -142,49 +148,19 @@
 
         <!-- DASHBOARD PAGE -->
         <section class="page-section active fade-in" id="page-dashboard">
-          
+
           <!-- SaaS Landing Apps Hero Banner -->
           <div class="hris-landing-hero fade-in">
-            <span class="hris-hero-badge"><i class="bi bi-shield-check-fill"></i> JEF HRIS Human Resource Hub v2.0</span>
-            <h1 style="font-family:var(--font-head); font-weight:900; font-size:28px; color:var(--text); line-height:1.2; margin-bottom:10px;">
-              Selamat Datang di JEF HRIS Engine <span id="adminWelcomeName" style="color:var(--primary);">Admin</span>! 👋
+            <h1
+              style="font-family:var(--font-head); font-weight:900; font-size:28px; color:var(--text); line-height:1.2; margin-bottom:10px;">
+              Selamat Datang, <span id="adminWelcomeName" style="color:var(--primary);">Admin</span>! 👋
             </h1>
-            <p style="color:var(--text-muted); font-size:13px; max-width:650px; line-height:1.6; margin-bottom:20px;">
-              Selamat bekerja! Ini adalah Control Center terpusat untuk mengelola seluruh ekosistem talenta, data absensi real-time, 
-              persetujuan cuti karyawan, struktur organisasi, hingga visualisasi tren produktivitas harian secara akurat.
+            <p style="color:var(--text-muted); font-size:13px; line-height:1.6;">
+              Selamat bekerja! Ini adalah Control Center terpusat untuk mengelola seluruh ekosistem talenta, data
+              absensi real-time,
+              persetujuan cuti karyawan, struktur organisasi, hingga visualisasi tren produktivitas harian secara
+              akurat.
             </p>
-            
-            <!-- Quick Features Bento Directory -->
-            <div class="hris-feature-grid">
-              <div class="hris-feature-card" onclick="showPage('users', document.querySelector('[onclick*=\'users\']'))">
-                <div class="hris-feature-icon" style="background:rgba(59,130,246,0.15); color:#3B82F6;"><i class="bi bi-people-fill"></i></div>
-                <div>
-                  <h4 style="margin:0; font-weight:800; font-size:14px; color:var(--text);">Manajemen Talenta</h4>
-                  <p style="margin:4px 0 0 0; font-size:11px; color:var(--text-muted); line-height:1.4;">Direktori profil aktif, rekrutmen, dan hak akses karyawan.</p>
-                </div>
-              </div>
-              <div class="hris-feature-card" onclick="showPage('approval', document.querySelector('[onclick*=\'approval\']'))">
-                <div class="hris-feature-icon" style="background:rgba(16,185,129,0.15); color:#10B981;"><i class="bi bi-clipboard-check-fill"></i></div>
-                <div>
-                  <h4 style="margin:0; font-weight:800; font-size:14px; color:var(--text);">Persetujuan Kehadiran</h4>
-                  <p style="margin:4px 0 0 0; font-size:11px; color:var(--text-muted); line-height:1.4;">Verifikasi izin, koreksi absensi, dan klaim lembur instan.</p>
-                </div>
-              </div>
-              <div class="hris-feature-card" onclick="showPage('attendance', document.querySelector('[onclick*=\'attendance\']'))">
-                <div class="hris-feature-icon" style="background:rgba(245,158,11,0.15); color:#F59E0B;"><i class="bi bi-clock-history"></i></div>
-                <div>
-                  <h4 style="margin:0; font-weight:800; font-size:14px; color:var(--text);">Monitoring Presensi</h4>
-                  <p style="margin:4px 0 0 0; font-size:11px; color:var(--text-muted); line-height:1.4;">Log aktivitas, geofencing titik koordinat, dan selfie verifikator.</p>
-                </div>
-              </div>
-              <div class="hris-feature-card" onclick="showPage('tasks', document.querySelector('[onclick*=\'tasks\']'))">
-                <div class="hris-feature-icon" style="background:rgba(139,92,246,0.15); color:#8B5CF6;"><i class="bi bi-list-task"></i></div>
-                <div>
-                  <h4 style="margin:0; font-weight:800; font-size:14px; color:var(--text);">Productivity Center</h4>
-                  <p style="margin:4px 0 0 0; font-size:11px; color:var(--text-muted); line-height:1.4;">Skor harian, upload dokumen laporan, dan audit tugas tim.</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div class="grid-4 stagger">
@@ -196,8 +172,8 @@
                 </div>
                 <div class="stat-icon stat-icon-success"><i class="bi bi-person-check-fill"></i></div>
               </div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:12px; display: none;">dari <strong id="s-total"
-                  class="text-primary">—</strong> karyawan aktif</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:12px; display: none;">dari <strong
+                  id="s-total" class="text-primary">—</strong> karyawan aktif</div>
             </div>
 
             <div class="stat-card">
@@ -247,13 +223,13 @@
               <div class="table-wrap"
                 style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
                 <table>
-                  <thead>
+                  <thead id="liveLogThead">
                     <tr>
-                      <th>Karyawan</th>
-                      <th>Masuk</th>
-                      <th>Pulang</th>
-                      <th>Jarak</th>
-                      <th>Status</th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('clock_in')" data-sort="clock_in">Masuk <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('clock_out')" data-sort="clock_out">Pulang <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('distance')" data-sort="distance">Jarak <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('status_in')" data-sort="status_in">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                       <th>Foto</th>
                     </tr>
                   </thead>
@@ -319,35 +295,35 @@
                 <input type="text" class="form-control" id="userSearch" placeholder="Cari nama / email..."
                   oninput="filterUsers()">
               </div>
-              <select class="form-control" id="userStatusFilter" onchange="filterUsers()" style="max-width:160px;">
-                <option value="">Semua Status</option>
-                <option value="Active">Aktif</option>
-                <option value="Inactive">Nonaktif</option>
-                <option value="Pending">Menunggu Persetujuan</option>
-              </select>
-              <select class="form-control" id="userRoleFilter" onchange="filterUsers()" style="max-width:140px;">
-                <option value="">Semua Role</option>
-                <option value="Employee">Employee Only</option>
-                <option value="Admin">Admin Only</option>
-              </select>
+              <div style="display:flex; gap:10px;">
+                <select class="form-control" id="userStatusFilter" onchange="filterUsers()" style="max-width:160px;">
+                  <option value="">Semua Status</option>
+                  <option value="Active">Aktif</option>
+                  <option value="Inactive">Nonaktif</option>
+                  <option value="Pending">Menunggu Persetujuan</option>
+                </select>
+                <select class="form-control" id="userRoleFilter" onchange="filterUsers()" style="max-width:140px;">
+                  <option value="">Semua Role</option>
+                  <option value="Employee">Employee Only</option>
+                  <option value="Admin">Admin Only</option>
+                </select>
+              </div>
             </div>
 
             <div class="table-wrap">
               <table>
-                <thead>
+                <thead id="usersThead">
                   <tr>
-                    <th>Karyawan</th>
-                    <th>Email</th>
-                    <th>Jabatan</th>
-                    <th>Divisi</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
+                    <th style="cursor:pointer;" onclick="sortUsersTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortUsersTable('email')" data-sort="email">Email <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortUsersTable('position')" data-sort="position">Jabatan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortUsersTable('status')" data-sort="status">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="text-align:center;">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="userTableBody">
                   <tr>
-                    <td colspan="7" style="text-align:center;padding:30px">Memuat data karyawan...</td>
+                    <td colspan="5" style="text-align:center;padding:30px">Memuat data karyawan...</td>
                   </tr>
                 </tbody>
               </table>
@@ -369,15 +345,15 @@
 
             <div class="table-wrap" style="max-height: 380px; overflow-y: auto;">
               <table>
-                <thead>
+                <thead id="approvalThead">
                   <tr>
-                    <th>Karyawan</th>
-                    <th>Jenis</th>
-                    <th>Dari Tanggal</th>
-                    <th>Hingga Tanggal</th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('user_name')" data-sort="user_name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('type')" data-sort="type">Jenis <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('start_date')" data-sort="start_date">Dari Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('end_date')" data-sort="end_date">Hingga Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th>Catatan</th>
                     <th>Dokumen</th>
-                    <th>Status</th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('status')" data-sort="status">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th>Keputusan</th>
                     <th>Hapus</th>
                   </tr>
@@ -396,7 +372,7 @@
         <section class="page-section fade-in" id="page-attendance">
           <!-- ANALYTICS CARDS (Top 3 Absent & Sick/Permit) -->
           <div id="attendanceAnalyticsContainer" class="analytics-row" style="margin-bottom: 24px;"></div>
-          
+
           <div class="card">
             <div class="card-header">
               <div>
@@ -422,14 +398,14 @@
 
             <div class="table-wrap">
               <table>
-                <thead>
+                <thead id="attendanceThead">
                   <tr>
-                    <th>Karyawan</th>
-                    <th>Tanggal</th>
-                    <th>Masuk</th>
-                    <th>Pulang</th>
-                    <th>Jarak</th>
-                    <th>Status</th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('date')" data-sort="date">Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_in')" data-sort="clock_in">Masuk <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_out')" data-sort="clock_out">Pulang <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('distance')" data-sort="distance">Jarak <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('status_in')" data-sort="status_in">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th>Foto</th>
                   </tr>
                 </thead>
@@ -471,17 +447,17 @@
 
             <div class="table-wrap">
               <table>
-                <thead>
+                <thead id="leaveReportThead">
                   <tr>
                     <th style="width: 70px; text-align: center;">Foto</th>
-                    <th>Karyawan</th>
-                    <th>Jabatan</th>
-                    <th>Jatah Cuti Tahunan</th>
-                    <th>Sisa Cuti</th>
-                    <th>Total Sakit (Periode)</th>
-                    <th>Total Izin (Periode)</th>
-                    <th>Total Cuti (Periode)</th>
-                    <th>Aksi</th>
+                    <th style="cursor:pointer;" onclick="sortLeaveReportTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortLeaveReportTable('position')" data-sort="position">Jabatan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('allowed_leave_quota')" data-sort="allowed_leave_quota">Jatah Cuti Tahunan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('remaining_leave_quota')" data-sort="remaining_leave_quota">Sisa Cuti <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('sick_count')" data-sort="sick_count">Total Sakit (Periode) <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('permit_count')" data-sort="permit_count">Total Izin (Periode) <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('cuti_count')" data-sort="cuti_count">Total Cuti (Periode) <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="text-align: center;">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="leaveReportBody">
@@ -496,39 +472,45 @@
 
         <!-- TASKS PAGE -->
         <section class="page-section fade-in" id="page-tasks">
-          
+
           <!-- Task Analytics Data Insight Banner -->
           <div class="insight-banner-wrapper fade-in">
             <div class="insight-metric-card">
               <div>
                 <div class="insight-metric-value text-primary" id="taskStatTotal">0</div>
-                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Total Laporan Tugas</div>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Total Laporan
+                  Tugas</div>
               </div>
               <div class="stat-icon stat-icon-primary" style="margin:0;"><i class="bi bi-journal-text"></i></div>
             </div>
-            
+
             <div class="insight-metric-card">
               <div>
                 <div class="insight-metric-value text-success" id="taskStatCompleted">0</div>
-                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Tugas Selesai</div>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Tugas Selesai
+                </div>
               </div>
               <div class="stat-icon stat-icon-success" style="margin:0;"><i class="bi bi-check-circle-fill"></i></div>
             </div>
-            
+
             <div class="insight-metric-card">
               <div>
                 <div class="insight-metric-value text-warn" id="taskStatPending">0</div>
-                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Pending Follow-up</div>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Pending Follow-up
+                </div>
               </div>
               <div class="stat-icon stat-icon-warn" style="margin:0;"><i class="bi bi-clock-fill"></i></div>
             </div>
-            
+
             <div class="insight-metric-card">
               <div>
-                <div class="insight-metric-value text-primary" id="taskStatAvgScore" style="color:#F59E0B !important;">0</div>
-                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Avg Skor Produktivitas</div>
+                <div class="insight-metric-value text-primary" id="taskStatAvgScore" style="color:#F59E0B !important;">0
+                </div>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:700; margin-top:2px;">Avg Skor
+                  Produktivitas</div>
               </div>
-              <div class="stat-icon stat-icon-primary" style="background:rgba(245,158,11,0.15); color:#F59E0B; margin:0;"><i class="bi bi-star-fill"></i></div>
+              <div class="stat-icon stat-icon-primary"
+                style="background:rgba(245,158,11,0.15); color:#F59E0B; margin:0;"><i class="bi bi-star-fill"></i></div>
             </div>
           </div>
 
@@ -536,16 +518,19 @@
             <div class="card-header">
               <div>
                 <h3 class="card-title">Manajemen Tugas &amp; Produktivitas</h3>
-                <p class="card-subtitle">Kelola daily task, status pengerjaan, skor produktivitas, dan dokumen pelaporan karyawan</p>
+                <p class="card-subtitle">Kelola daily task, status pengerjaan, skor produktivitas, dan dokumen pelaporan
+                  karyawan</p>
               </div>
-              <button class="btn btn-sm btn-primary" onclick="openAddTaskModal()"><i class="bi bi-plus-circle-fill"></i> Tambah Tugas</button>
+              <button class="btn btn-sm btn-primary" onclick="openAddTaskModal()"><i class="bi bi-plus-circle-fill"></i>
+                Tambah Tugas</button>
             </div>
 
             <!-- Filters -->
             <div class="filter-row">
               <input type="date" class="form-control" id="taskFilterStart" style="max-width:140px;">
               <input type="date" class="form-control" id="taskFilterEnd" style="max-width:140px;">
-              <input type="text" class="form-control" id="taskFilterName" placeholder="Nama karyawan..." style="flex:1;">
+              <input type="text" class="form-control" id="taskFilterName" placeholder="Nama karyawan..."
+                style="flex:1;">
               <select class="form-control" id="taskFilterCategory" style="max-width:140px;">
                 <option value="">Semua Kategori</option>
                 <option value="Development">Development</option>
@@ -570,19 +555,20 @@
             <!-- Simplified Table for High-Fidelity Retina & Mobile Layouts -->
             <div class="table-wrap">
               <table class="table-modern">
-                <thead>
+                <thead id="tasksThead">
                   <tr>
-                    <th>Karyawan</th>
-                    <th>Tanggal</th>
-                    <th>Nama Tugas</th>
-                    <th style="text-align:center;">Status</th>
-                    <th style="text-align:center;">Skor Produktivitas</th>
+                    <th style="cursor:pointer;" onclick="sortTasksTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortTasksTable('date')" data-sort="date">Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortTasksTable('task_name')" data-sort="task_name">Nama Tugas <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align:center;" onclick="sortTasksTable('status')" data-sort="status">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align:center;" onclick="sortTasksTable('score')" data-sort="score">Skor Produktivitas <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th style="text-align:center;">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="taskAdminBody">
                   <tr>
-                    <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Memuat data tugas...</td>
+                    <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Memuat data tugas...
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -684,7 +670,7 @@
 
         <!-- HOLIDAYS PAGE -->
         <section class="page-section fade-in" id="page-holidays">
-          <div class="card" style="margin: 0 auto;">
+          <div class="card">
             <h3 class="card-title" style="margin-bottom:20px"><i class="bi bi-calendar2-x-fill text-danger"
                 style="margin-right:8px"></i> Hari Libur Operasional</h3>
 
@@ -711,7 +697,8 @@
             <div class="holiday-layout-grid">
               <!-- Kolom Kiri: Daftar Hari Libur -->
               <div class="holiday-list-section">
-                <h3 class="card-title" style="margin-bottom:16px;"><i class="bi bi-list-task text-primary" style="margin-right:8px"></i> Daftar Hari Libur</h3>
+                <h3 class="card-title" style="margin-bottom:16px;"><i class="bi bi-list-task text-primary"
+                    style="margin-right:8px"></i> Daftar Hari Libur</h3>
                 <div class="holiday-list" id="holidayList" style="margin-top:0;">
                   <div style="text-align:center;padding:30px;color:var(--text-muted)">Memuat hari libur...</div>
                 </div>
@@ -885,8 +872,8 @@
       <div class="avatar-upload-group">
         <div class="avatar-preview-wrapper">
           <img id="mu_preview" class="avatar-preview-img"
-            src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>"
-            alt="Preview">
+            src="img/profile.png"
+            alt="Preview" onerror="this.src='img/profile.png'; this.onerror=null;">
           <label for="mu_file" class="avatar-edit-btn">
             <i class="bi bi-camera-fill"></i>
           </label>
@@ -935,7 +922,8 @@
   <div class="overlay hidden" id="modalTask">
     <div class="modal" style="max-width:500px">
       <div class="modal-header">
-        <h3 class="modal-title" id="modalTaskTitle"><i class="bi bi-list-task text-primary" style="margin-right:8px"></i> Tambah Tugas</h3>
+        <h3 class="modal-title" id="modalTaskTitle"><i class="bi bi-list-task text-primary"
+            style="margin-right:8px"></i> Tambah Tugas</h3>
         <button class="modal-close" onclick="closeModal('modalTask')"><i class="bi bi-x"></i></button>
       </div>
       <form id="adminTaskForm" onsubmit="saveAdminTask(event)">
@@ -967,7 +955,8 @@
           </div>
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label">Output Yang Dihasilkan*</label>
-            <input type="text" class="form-control" id="modalTaskOutput" required placeholder="Contoh: File Excel Laporan.xlsx">
+            <input type="text" class="form-control" id="modalTaskOutput" required
+              placeholder="Contoh: File Excel Laporan.xlsx">
           </div>
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label">Status Tugas*</label>
@@ -978,7 +967,8 @@
           </div>
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label">Catatan / Issue</label>
-            <textarea class="form-control" id="modalTaskNotes" rows="2" placeholder="Catatan issue jika ada..."></textarea>
+            <textarea class="form-control" id="modalTaskNotes" rows="2"
+              placeholder="Catatan issue jika ada..."></textarea>
           </div>
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label">Lainnya</label>
@@ -1001,11 +991,13 @@
           </div>
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label">Productivity Score (0 - 100)</label>
-            <input type="number" class="form-control" id="modalTaskScore" min="0" max="100" placeholder="Skor produktivitas (contoh: 85)">
+            <input type="number" class="form-control" id="modalTaskScore" min="0" max="100"
+              placeholder="Skor produktivitas (contoh: 85)">
           </div>
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label">Ganti Lampiran Dokumen/Gambar (Opsional)</label>
-            <input type="file" class="form-control" id="modalTaskFile" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <input type="file" class="form-control" id="modalTaskFile"
+              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
           </div>
         </div>
         <div class="modal-footer" style="padding-top:14px;">
@@ -1029,12 +1021,15 @@
 
   <!-- Modal Document -->
   <div class="overlay hidden" id="modalDoc">
-    <div class="modal modal-lg" style="max-width: 600px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
+    <div class="modal modal-lg"
+      style="max-width: 600px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
       <div class="modal-header" style="flex-shrink:0; margin-bottom:16px;">
-        <h3 class="modal-title"><i class="bi bi-file-earmark-text-fill text-primary" style="margin-right:8px"></i> Preview Lampiran</h3>
+        <h3 class="modal-title"><i class="bi bi-file-earmark-text-fill text-primary" style="margin-right:8px"></i>
+          Preview Lampiran</h3>
         <button class="modal-close" onclick="closeModal('modalDoc')"><i class="bi bi-x"></i></button>
       </div>
-      <div class="modal-body" id="modalDocBody" style="flex:1; overflow-y:auto; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.15); border-radius:12px; min-height:350px;">
+      <div class="modal-body" id="modalDocBody"
+        style="flex:1; overflow-y:auto; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.15); border-radius:12px; min-height:350px;">
         <!-- Embedded Content -->
       </div>
     </div>
@@ -1042,18 +1037,22 @@
 
   <!-- Modal View Task Admin -->
   <div class="overlay hidden" id="modalViewTaskAdmin">
-    <div class="modal modal-lg" style="max-width: 550px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
+    <div class="modal modal-lg"
+      style="max-width: 550px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
       <div class="modal-header" style="flex-shrink:0; margin-bottom:16px;">
         <h3 class="modal-title" id="modalViewTaskAdminTitle">
           <i class="bi bi-journal-text text-primary" style="margin-right:8px"></i> Detail Tugas &amp; Produktivitas
         </h3>
         <button class="modal-close" onclick="closeModal('modalViewTaskAdmin')"><i class="bi bi-x"></i></button>
       </div>
-      <div class="modal-body" id="modalViewTaskAdminBody" style="flex:1; overflow-y:auto; padding:0; display:flex; flex-direction:column; gap:16px;">
+      <div class="modal-body" id="modalViewTaskAdminBody"
+        style="flex:1; overflow-y:auto; padding:0; display:flex; flex-direction:column; gap:16px;">
         <!-- Filled dynamically by script.js -->
       </div>
-      <div class="modal-footer" style="padding-top:16px; margin-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
-        <button type="button" class="btn btn-primary" onclick="closeModal('modalViewTaskAdmin')" style="border-radius:50px; padding:8px 20px; font-weight:700;">Tutup</button>
+      <div class="modal-footer"
+        style="padding-top:16px; margin-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
+        <button type="button" class="btn btn-primary" onclick="closeModal('modalViewTaskAdmin')"
+          style="border-radius:50px; padding:8px 20px; font-weight:700;">Tutup</button>
       </div>
     </div>
   </div>
@@ -1168,8 +1167,8 @@
           <td>
             <div class="user-cell">
               ${u.profile_pic_url ?
-          `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
-          `<div class="avatar avatar-sm">${u.name?.substring(0, 2).toUpperCase()}</div>`
+          `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='img/profile.png'; this.onerror=null;">` :
+          `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
         }
               <div>
                 <strong>${u.name}</strong>
@@ -1182,6 +1181,15 @@
     }
   </script>
 
+  <script>
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('pageLoader');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+      }
+    });
+  </script>
 </body>
 
 </html>

@@ -505,19 +505,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.updateAdminAvatar = function (url) {
             if (!sidebarInitials) return;
             const finalUrl = getDirectDriveUrl(url);
-            if (finalUrl) {
-                const img = document.createElement('img');
-                img.src = finalUrl;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.borderRadius = '50%';
-                img.style.objectFit = 'cover';
-                img.onerror = () => { sidebarInitials.textContent = initials; };
-                sidebarInitials.textContent = '';
-                sidebarInitials.appendChild(img);
-            } else {
-                sidebarInitials.textContent = initials;
-            }
+            sidebarInitials.textContent = '';
+            const img = document.createElement('img');
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.borderRadius = '50%';
+            img.style.objectFit = 'cover';
+            img.onerror = () => { img.src = 'img/profile.png'; img.onerror = null; };
+            img.src = finalUrl || 'img/profile.png';
+            sidebarInitials.appendChild(img);
         };
 
         // Init avatar
@@ -632,7 +628,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 document.getElementById('s-absent').textContent = data.stats?.absen ?? 0;
                 document.getElementById('pendingBadge').textContent = data.pending_count ?? 0;
                 document.getElementById('pendingBadge').style.display = data.pending_count > 0 ? 'block' : 'none';
-                renderLiveLog(data.live_log || []);
+                window.allLiveLogs = data.live_log || [];
+                renderLiveLog(window.allLiveLogs);
 
                 if (window.renderChart && data.stats) {
                     window.lastChartStats = data.stats;
@@ -664,8 +661,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
       <td>
         <div class="user-cell">
           ${l.profile_pic ?
-                    `<img src="${getDirectDriveUrl(l.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${l.initials}</div>'">` :
-                    `<div class="avatar avatar-sm">${l.initials}</div>`
+                    `<img src="${getDirectDriveUrl(l.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='img/profile.png'; this.onerror=null;">` :
+                    `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
                 }
           <div class="user-cell-info">
             <span class="user-cell-name">${l.name}</span>
@@ -706,7 +703,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const body = document.getElementById('userTableBody');
             if (!body) return;
             if (!users.length) {
-                body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data</td></tr>';
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada data</td></tr>';
                 return;
             }
 
@@ -734,7 +731,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const roleUsers = groups[role];
                 html += `
                     <tr class="group-header-row" style="background:rgba(255,146,0,0.06); font-weight:800; border-bottom:1.5px solid rgba(255,146,0,0.15)">
-                        <td colspan="7" style="padding: 14px 18px; text-align:left; font-size:12px; color:var(--primary); letter-spacing:1px; text-transform:uppercase; font-family:var(--font-head);">
+                        <td colspan="5" style="padding: 14px 18px; text-align:left; font-size:12px; color:var(--primary); letter-spacing:1px; text-transform:uppercase; font-family:var(--font-head);">
                             <i class="bi bi-people-fill" style="margin-right:8px;"></i> ${role} &mdash; <span style="opacity:0.75; font-size:11px; text-transform:none;">${roleUsers.length} Karyawan</span>
                         </td>
                     </tr>
@@ -746,16 +743,14 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                           <td>
                             <div class="user-cell">
                               ${u.profile_pic_url ?
-                            `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;" onerror="this.outerHTML='<div class=\'avatar avatar-sm\' style=\'width:36px; height:36px; font-weight:800;\'>${u.name?.substring(0, 2).toUpperCase()}</div>'">` :
-                            `<div class="avatar avatar-sm" style="width:36px; height:36px; font-weight:800;">${u.name?.substring(0, 2).toUpperCase()}</div>`
+                            `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;" onerror="this.src='img/profile.png'; this.onerror=null;">` :
+                            `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;">`
                         }
                               <span class="user-cell-name" style="font-weight:700; color:var(--text);">${u.name}</span>
                             </div>
                           </td>
                           <td style="color:var(--text-muted); font-size:13px;">${u.email}</td>
-                          <td style="font-weight:600; color:var(--text); font-size:13px;">${u.position}</td>
-                          <td style="font-weight:600; font-size:13px;"><span class="status-chip chip-ok" style="background:rgba(255,146,0,0.08); color:var(--primary); border:1px solid rgba(255,146,0,0.15); font-size:10px; font-weight:800; padding:2px 8px; border-radius:50px;">${u.division || 'Umum'}</span></td>
-                          <td><span class="badge ${u.role === 'Admin' ? 'badge-primary' : 'badge-muted'}" style="font-size:10px; font-weight:800; padding:3px 8px; border-radius:50px;">${u.role}</span></td>
+                          <td style="font-weight:600; color:var(--text); font-size:13px; width: 100%;">${u.position}</td>
                           <td><span class="badge ${u.status === 'Active' ? 'badge-success' : (u.status === 'Pending' ? 'badge-warn' : 'badge-danger')}" style="font-size:10px; font-weight:800; padding:3px 8px; border-radius:50px;">${u.status === 'Pending' ? 'Menunggu Approval' : (u.status === 'Active' ? 'Aktif' : 'Nonaktif')}</span></td>
                           <td>
                             <div class="action-btns" style="display:flex; gap:6px; justify-content:center;">
@@ -828,7 +823,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             if (document.getElementById('mu_division')) {
                 document.getElementById('mu_division').value = u.division || 'Umum';
             }
-            document.getElementById('mu_preview').src = u.profile_pic_url ? getDirectDriveUrl(u.profile_pic_url) : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+            document.getElementById('mu_preview').src = u.profile_pic_url ? getDirectDriveUrl(u.profile_pic_url) : 'img/profile.png';
             document.getElementById('mu_file').value = '';
             document.getElementById('modalUser').classList.remove('hidden');
         }
@@ -905,7 +900,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getPendingLeaves`);
                 const data = await res.json();
-                renderApprovals(data.requests || []);
+                window.allApprovals = data.requests || [];
+                renderApprovals(window.allApprovals);
             } catch (e) {
                 console.error('Error loading approvals:', e);
                 showToast('Gagal memuat data pengajuan', 'error');
@@ -996,7 +992,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&start_date=${start}&end_date=${end}&name=${encodeURIComponent(name)}&status=${status}`);
                 const data = await res.json();
-                renderAtt(data.records || []);
+                window.allAttendance = data.records || [];
+                renderAtt(window.allAttendance);
                 renderAttendanceAnalytics(data.analytics);
             } catch (e) {
                 console.error('Error loading attendance:', e);
@@ -1020,8 +1017,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 }
                 return list.map((emp, idx) => {
                     const avatarHTML = emp.profile_pic_url ?
-                        `<img src="${getDirectDriveUrl(emp.profile_pic_url)}" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;" onerror="this.outerHTML='<div class=\'avatar avatar-sm\' style=\'width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-weight:700;\'>${emp.name?.substring(0, 2).toUpperCase()}</div>'">` :
-                        `<div class="avatar avatar-sm" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-weight:700;">${emp.name?.substring(0, 2).toUpperCase()}</div>`;
+                        `<img src="${getDirectDriveUrl(emp.profile_pic_url)}" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;" onerror="this.src='img/profile.png'; this.onerror=null;">` :
+                        `<img src="img/profile.png" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;">`;
                     
                     const statValue = isAbsent ? `${emp.absent_days} Hari` : `${emp.sick_permit_days} Hari`;
                     const statClass = isAbsent ? 'stat-absent' : 'stat-sick-permit';
@@ -1080,8 +1077,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
       <td>
         <div class="user-cell">
           ${r.profile_pic ?
-                        `<img src="${getDirectDriveUrl(r.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${r.name?.substring(0, 2).toUpperCase()}</div>'">` :
-                        `<div class="avatar avatar-sm">${r.name?.substring(0, 2).toUpperCase()}</div>`
+                        `<img src="${getDirectDriveUrl(r.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='img/profile.png'; this.onerror=null;">` :
+                        `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
                     }
           <strong>${r.name}</strong>
         </div>
@@ -1400,13 +1397,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 <tr style="border-bottom:1px solid var(--border)">
                   <td style="font-weight:700; color:var(--text); padding:12px; border-right:1px solid var(--border);">${p.position}</td>
                   <td style="font-weight:600; color:var(--text-muted); padding:12px; border-right:1px solid var(--border);">${p.division || 'Unassigned'}</td>
-                  <td style="text-align:center; padding:12px; display:flex; justify-content:center; gap:8px;">
-                    <button class="btn btn-sm btn-ghost text-primary btn-neu-3d" onclick="editPositionAdmin('${p.position}', '${p.division || 'Umum'}')" title="Edit Jabatan" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
-                      <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <button class="btn btn-sm btn-ghost text-danger btn-neu-3d" onclick="deletePositionAdmin('${p.position}')" title="Hapus Jabatan" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
-                      <i class="bi bi-trash-fill"></i>
-                    </button>
+                  <td style="text-align:center; padding:12px;">
+                    <div style="display:flex; justify-content:center; gap:8px;">
+                      <button class="btn btn-sm btn-ghost text-primary btn-neu-3d" onclick="editPositionAdmin('${p.position}', '${p.division || 'Umum'}')" title="Edit Jabatan" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
+                        <i class="bi bi-pencil-fill"></i>
+                      </button>
+                      <button class="btn btn-sm btn-ghost text-danger btn-neu-3d" onclick="deletePositionAdmin('${p.position}')" title="Hapus Jabatan" style="border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0;">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
             `).join('');
@@ -1492,7 +1491,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getLeaveReport&start_date=${start}&end_date=${end}`);
                 const data = await res.json();
                 if (data.success && data.report) {
-                    renderLeaveReport(data.report);
+                    window.allLeaveReports = data.report;
+                    renderLeaveReport(window.allLeaveReports);
                 } else {
                     if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat laporan</td></tr>';
                 }
@@ -1509,21 +1509,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 return;
             }
             tbody.innerHTML = report.map(r => {
-                let imgHTML = '';
-                if (r.profile_pic_url) {
-                    const directUrl = getDirectDriveUrl(r.profile_pic_url);
-                    imgHTML = `<img src="${directUrl}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--primary); display:block; margin:0 auto;" alt="${r.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
-                }
-                const initial = r.name ? r.name.charAt(0).toUpperCase() : '?';
-                const backupHTML = `<div style="width:36px; height:36px; border-radius:50%; background:var(--primary-grad); color:#000; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; margin:0 auto;">${initial}</div>`;
+                const profileSrc = r.profile_pic_url ? getDirectDriveUrl(r.profile_pic_url) : 'img/profile.png';
 
                 return `
                     <tr>
                         <td style="text-align:center; padding: 6px 12px;">
-                            <div style="position:relative; width:36px; height:36px; margin:0 auto;">
-                                ${imgHTML}
-                                <div style="display:${r.profile_pic_url ? 'none' : 'flex'}; position:absolute; inset:0;">${backupHTML}</div>
-                            </div>
+                            <img src="${profileSrc}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--primary); display:block; margin:0 auto;" alt="${r.name}" onerror="this.src='img/profile.png'; this.onerror=null;">
                         </td>
                         <td><strong>${r.name}</strong></td>
                         <td><span class="badge badge-info">${r.position}</span></td>
@@ -2808,6 +2799,205 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         renderDivisionsTable(sorted);
     };
 
+    // Helper comparison function for robust sorting
+    function compareValues(a, b, col, asc) {
+        let valA = a[col];
+        let valB = b[col];
+
+        if (valA === undefined || valA === null) valA = '';
+        if (valB === undefined || valB === null) valB = '';
+
+        const numericCols = [
+            'distance', 'distance_meters', 'allowed_leave_quota', 
+            'remaining_leave_quota', 'sick_count', 'permit_count', 
+            'cuti_count', 'score', 'absent_days', 'sick_permit_days'
+        ];
+
+        if (numericCols.includes(col)) {
+            let numA = parseFloat(valA) || 0;
+            let numB = parseFloat(valB) || 0;
+            return asc ? numA - numB : numB - numA;
+        }
+
+        const strA = String(valA).trim();
+        const strB = String(valB).trim();
+
+        return asc ? strA.localeCompare(strB, undefined, { numeric: true, sensitivity: 'base' }) : strB.localeCompare(strA, undefined, { numeric: true, sensitivity: 'base' });
+    }
+
+    // Helper function to update header icons based on active sort
+    window.updateSortIcons = function (theadId, activeCol, asc) {
+        const thead = document.getElementById(theadId);
+        if (!thead) return;
+        const headers = thead.querySelectorAll('th[data-sort]');
+        headers.forEach(th => {
+            const col = th.getAttribute('data-sort');
+            const icon = th.querySelector('i.bi-sort-icon');
+            if (icon) {
+                if (col === activeCol) {
+                    icon.className = asc ? 'bi bi-sort-up-alt text-primary bi-sort-icon' : 'bi bi-sort-down text-primary bi-sort-icon';
+                    icon.style.opacity = '1';
+                } else {
+                    icon.className = 'bi bi-arrow-down-up bi-sort-icon';
+                    icon.style.opacity = '0.35';
+                }
+            }
+        });
+    };
+
+    // Live Logs Table (Dashboard)
+    window.liveLogsSortOrder = { col: '', asc: true };
+    window.sortLiveLogsTable = function (col) {
+        if (!window.allLiveLogs || !window.allLiveLogs.length) return;
+        const order = window.liveLogsSortOrder;
+        if (order.col === col) {
+            order.asc = !order.asc;
+        } else {
+            order.col = col;
+            order.asc = true;
+        }
+        window.allLiveLogs.sort((a, b) => compareValues(a, b, col, order.asc));
+        renderLiveLog(window.allLiveLogs);
+        window.updateSortIcons('liveLogThead', col, order.asc);
+    };
+
+    // Employees / Users Table
+    window.usersSortOrder = { col: '', asc: true };
+    window.sortUsersTable = function (col) {
+        if (!window.allUsers || !window.allUsers.length) return;
+        const order = window.usersSortOrder;
+        if (order.col === col) {
+            order.asc = !order.asc;
+        } else {
+            order.col = col;
+            order.asc = true;
+        }
+        window.allUsers.sort((a, b) => compareValues(a, b, col, order.asc));
+        renderUsers(window.allUsers);
+        window.updateSortIcons('usersThead', col, order.asc);
+    };
+
+    // Approvals Table
+    window.approvalsSortOrder = { col: '', asc: true };
+    window.sortApprovalsTable = function (col) {
+        if (!window.allApprovals || !window.allApprovals.length) return;
+        const order = window.approvalsSortOrder;
+        if (order.col === col) {
+            order.asc = !order.asc;
+        } else {
+            order.col = col;
+            order.asc = true;
+        }
+        window.allApprovals.sort((a, b) => compareValues(a, b, col, order.asc));
+        renderApprovals(window.allApprovals);
+        window.updateSortIcons('approvalThead', col, order.asc);
+    };
+
+    // Attendance History Table
+    window.attendanceSortOrder = { col: '', asc: true };
+    window.sortAttendanceTable = function (col) {
+        if (!window.allAttendance || !window.allAttendance.length) return;
+        const order = window.attendanceSortOrder;
+        if (order.col === col) {
+            order.asc = !order.asc;
+        } else {
+            order.col = col;
+            order.asc = true;
+        }
+
+        let sortCol = col;
+        if (col === 'clock_in') sortCol = 'clock_in_time';
+        if (col === 'clock_out') sortCol = 'clock_out_time';
+        if (col === 'distance') sortCol = 'distance_meters';
+
+        window.allAttendance.sort((a, b) => compareValues(a, b, sortCol, order.asc));
+        renderAtt(window.allAttendance);
+        window.updateSortIcons('attendanceThead', col, order.asc);
+    };
+
+    // Leave Report Table
+    window.leaveReportSortOrder = { col: '', asc: true };
+    window.sortLeaveReportTable = function (col) {
+        if (!window.allLeaveReports || !window.allLeaveReports.length) return;
+        const order = window.leaveReportSortOrder;
+        if (order.col === col) {
+            order.asc = !order.asc;
+        } else {
+            order.col = col;
+            order.asc = true;
+        }
+        window.allLeaveReports.sort((a, b) => compareValues(a, b, col, order.asc));
+        renderLeaveReport(window.allLeaveReports);
+        window.updateSortIcons('leaveReportThead', col, order.asc);
+    };
+
+    // Tasks Table Renderer (Standalone)
+    window.renderAdminTasksTable = function (filtered) {
+        const body = document.getElementById('taskAdminBody');
+        if (!body) return;
+        if (filtered.length === 0) {
+            body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Tidak ada data tugas ditemukan</td></tr>';
+            return;
+        }
+        
+        body.innerHTML = filtered.map(t => {
+            const statusBadge = t.status === 'Completed' ? 'badge-success' : 'badge-warn';
+            const statusTranslation = t.status === 'Completed' ? 'Selesai' : 'Belum Selesai';
+            const scoreDisp = t.score ? `<span class="badge badge-success" style="font-weight:800; font-size:12px;"><i class="bi bi-star-fill" style="color:#F59E0B; margin-right:4px;"></i> ${t.score}</span>` : '<span style="color:var(--text-muted)">—</span>';
+            const taskJsonStr = encodeURIComponent(JSON.stringify(t));
+
+            return `
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            ${t.profile_pic_url ?
+                                `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='img/profile.png'; this.onerror=null;">` :
+                                `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
+                            }
+                            <div>
+                                <strong>${t.name}</strong>
+                                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${t.position}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="white-space:nowrap">${t.date}</td>
+                    <td>
+                        <strong style="font-size:13px; color:var(--text);">${t.task_name}</strong>
+                        <div style="font-size:10px; color:var(--text-muted); margin-top:3px; display:flex; gap:8px; align-items:center;">
+                            <span class="badge badge-info" style="font-size:9px; padding:2px 6px;">${t.category}</span>
+                            <span><i class="bi bi-clock-fill" style="margin-right:2px;"></i> ${t.start_time || '—'} - ${t.end_time || '—'}</span>
+                        </div>
+                    </td>
+                    <td style="text-align:center;"><span class="badge ${statusBadge}">${statusTranslation}</span></td>
+                    <td style="text-align:center;">${scoreDisp}</td>
+                    <td>
+                        <div style="display:flex; gap:6px; justify-content:center;">
+                            <button class="btn btn-sm btn-ghost" onclick="viewAdminTaskDetail('${taskJsonStr}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-eye"></i> Detail</button>
+                            <button class="btn btn-sm btn-primary" onclick="openEditTaskModal('${taskJsonStr}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-pencil-square"></i> Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteAdminTask('${t.task_id}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-trash-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    };
+
+    // Tasks Table Sorting
+    window.tasksSortOrder = { col: '', asc: true };
+    window.sortTasksTable = function (col) {
+        if (!window.allAdminTasks || !window.allAdminTasks.length) return;
+        const order = window.tasksSortOrder;
+        if (order.col === col) {
+            order.asc = !order.asc;
+        } else {
+            order.col = col;
+            order.asc = true;
+        }
+        window.allAdminTasks.sort((a, b) => compareValues(a, b, col, order.asc));
+        window.renderAdminTasksTable(window.allAdminTasks);
+        window.updateSortIcons('tasksThead', col, order.asc);
+    };
+
     // ============ DYNAMIC CALENDAR WIDGET ============
     window.calendarCurrentDate = new Date();
     window.prevCalendarMonth = function () {
@@ -3102,58 +3292,8 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                         : '—';
                 }
 
-                if (filtered.length === 0) {
-                    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Tidak ada data tugas ditemukan</td></tr>';
-                    return;
-                }
-                
-                body.innerHTML = filtered.map(t => {
-                    const statusBadge = t.status === 'Completed' ? 'badge-success' : 'badge-warn';
-                    const statusTranslation = t.status === 'Completed' ? 'Selesai' : 'Belum Selesai';
-                    const scoreDisp = t.score ? `<span class="badge badge-success" style="font-weight:800; font-size:12px;"><i class="bi bi-star-fill" style="color:#F59E0B; margin-right:4px;"></i> ${t.score}</span>` : '<span style="color:var(--text-muted)">—</span>';
-                    
-                    const attachmentHTML = t.attachment_url ? `
-                        <button onclick="previewAdminAttachment('${t.attachment_url}')" class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:11px; display:inline-flex; align-items:center; gap:4px; border-radius:30px; cursor:pointer;">
-                            <i class="bi bi-file-earmark-arrow-up-fill text-primary" style="font-size:12px;"></i> Preview
-                        </button>
-                    ` : '<span style="color:var(--text-muted)">—</span>';
-
-                    const taskJsonStr = encodeURIComponent(JSON.stringify(t));
-
-                    return `
-                        <tr>
-                            <td>
-                                <div class="user-cell">
-                                    ${t.profile_pic_url ?
-                                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.outerHTML='<div class=\'avatar avatar-sm\'>${t.name?.substring(0, 2).toUpperCase()}</div>'">` :
-                                        `<div class="avatar avatar-sm">${t.name?.substring(0, 2).toUpperCase()}</div>`
-                                    }
-                                    <div>
-                                        <strong>${t.name}</strong>
-                                        <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${t.position}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="white-space:nowrap">${t.date}</td>
-                            <td>
-                                <strong style="font-size:13px; color:var(--text);">${t.task_name}</strong>
-                                <div style="font-size:10px; color:var(--text-muted); margin-top:3px; display:flex; gap:8px; align-items:center;">
-                                    <span class="badge badge-info" style="font-size:9px; padding:2px 6px;">${t.category}</span>
-                                    <span><i class="bi bi-clock-fill" style="margin-right:2px;"></i> ${t.start_time || '—'} - ${t.end_time || '—'}</span>
-                                </div>
-                            </td>
-                            <td style="text-align:center;"><span class="badge ${statusBadge}">${statusTranslation}</span></td>
-                            <td style="text-align:center;">${scoreDisp}</td>
-                            <td>
-                                <div style="display:flex; gap:6px; justify-content:center;">
-                                    <button class="btn btn-sm btn-ghost" onclick="viewAdminTaskDetail('${taskJsonStr}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-eye"></i> Detail</button>
-                                    <button class="btn btn-sm btn-primary" onclick="openEditTaskModal('${taskJsonStr}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-pencil-square"></i> Edit</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteAdminTask('${t.task_id}')" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600;"><i class="bi bi-trash-fill"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
+                window.allAdminTasks = filtered;
+                window.renderAdminTasksTable(window.allAdminTasks);
             } else {
                 body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Gagal memuat tugas</td></tr>';
             }
@@ -3203,8 +3343,8 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             <div class="bento-detail-grid">
                 <div style="display:flex; gap:12px; padding-bottom:16px; border-bottom:1px dashed var(--border); margin-bottom:4px;">
                     ${t.profile_pic_url ?
-                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;" onerror="this.outerHTML='<div class=\'avatar\' style=\'width:50px; height:50px; border-radius:14px;\'>${t.name?.substring(0, 2).toUpperCase()}</div>'">` :
-                        `<div class="avatar" style="width:50px; height:50px; border-radius:14px; font-size:18px;">${t.name?.substring(0, 2).toUpperCase()}</div>`
+                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;" onerror="this.src='img/profile.png'; this.onerror=null;">` :
+                        `<img src="img/profile.png" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;">`
                     }
                     <div style="display:flex; flex-direction:column; justify-content:center;">
                         <h4 style="margin:0; font-size:18px; font-weight:800; color:var(--text);">${t.name}</h4>
