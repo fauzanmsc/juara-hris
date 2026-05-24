@@ -839,6 +839,7 @@ select.form-control option {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: auto;
   box-sizing: border-box;
   max-height: 400px;
   -webkit-overflow-scrolling: touch;
@@ -897,9 +898,6 @@ thead th {
     font-size: 12px;
   }
 
-  .table-wrap table thead th {
-    white-space: normal !important;
-  }
 }
 
 tbody td {
@@ -933,7 +931,7 @@ tbody tr:hover td {
 .stat-card {
   background: var(--bg-glass);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md) !important;
   padding: 20px;
   transition: all var(--transition)
 }
@@ -1327,40 +1325,69 @@ html[data-theme="dark"] .sidebar-link.active {
   }
 
   .admin-topbar {
-    padding: 0 16px;
-    height: auto;
-    min-height: 64px;
-    align-items: flex-start;
-    gap: 10px;
-    flex-wrap: wrap;
+    padding: 10px 12px !important;
+    height: auto !important;
+    min-height: auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .admin-topbar > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .topbar-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
   }
 
   .topbar-actions {
-    width: 100%;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 8px;
+    width: auto !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    margin-left: auto !important;
+  }
+
+  .sidebar-toggle-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
   }
 
   .theme-toggle-btn,
   .refresh-toggle-btn,
   .header-logout-btn {
-    width: 30px !important;
-    height: 30px !important;
-    font-size: 14px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 13px !important;
     padding: 0 !important;
+    flex-shrink: 0 !important;
   }
 
   .clock-chip {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
-    gap: 6px !important;
+    padding: 5px 8px !important;
+    font-size: 10px !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .clock-chip i {
+    font-size: 10px !important;
   }
 
   .clock-chip span {
-    font-size: 11px !important;
+    font-size: 10px !important;
   }
 }
+
 
 .topbar-actions {
   display: flex;
@@ -1930,7 +1957,7 @@ html[data-theme="dark"] .sidebar-link.active {
   }
 
   .admin-topbar {
-    padding: 0 16px !important;
+    padding: 10px 16px !important;
     width: 100% !important;
     max-width: 100% !important;
   }
@@ -4293,10 +4320,13 @@ body.history-page .spinner-lg {
 
 .admin-layout .photo-preview {
   width: 100%;
-  border-radius: var(--radius-md);
-  max-height: 400px;
-  object-fit: contain;
+  height: 300px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  object-fit: cover;
   background: #000;
+  display: block;
+  margin: 0 auto;
 }
 
 .admin-layout .avatar-upload-group {
@@ -5833,7 +5863,7 @@ table.table-modern tbody td:last-child {
   position: relative;
   background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(251, 133, 0, 0.04) 50%, rgba(0, 0, 0, 0) 100%);
   border: 1px solid rgba(255, 183, 3, 0.2);
-  border-radius: 24px;
+  border-radius: var(--radius-md) !important;
   padding: 32px;
   margin-bottom: 30px;
   overflow: hidden;
@@ -6035,13 +6065,13 @@ table.table-modern tbody td:last-child {
   max-height: none !important;
 }
 
-/* Prevent outer scrolling and force full screen for table layout pages */
+/* Allow scrolling for table layout pages */
 .admin-content:has(#page-users.active),
 .admin-content:has(#page-approval.active),
 .admin-content:has(#page-attendance.active),
 .admin-content:has(#page-leave-report.active),
 .admin-content:has(#page-tasks.active) {
-  overflow-y: hidden !important;
+  overflow-y: auto !important;
 }
 
 #page-users,
