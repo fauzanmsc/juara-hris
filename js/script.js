@@ -415,6 +415,99 @@ window.hasProfilePic = function (url) {
     return true;
 };
 
+window.imagePreviewState = {
+    zoom: 1
+};
+
+window.ensureImagePreviewModal = function () {
+    let modal = document.getElementById('globalImagePreviewModal');
+    if (modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'globalImagePreviewModal';
+    modal.className = 'image-preview-modal hidden';
+    modal.innerHTML = `
+        <div class="image-preview-backdrop" onclick="closeImagePreview()"></div>
+        <div class="image-preview-shell" role="dialog" aria-modal="true" aria-label="Preview gambar">
+            <div class="image-preview-toolbar">
+                <button class="image-preview-btn" type="button" onclick="zoomImagePreview(-0.2)" aria-label="Zoom out" title="Zoom out">
+                    <i class="bi bi-zoom-out"></i>
+                </button>
+                <button class="image-preview-btn" type="button" onclick="resetImagePreviewZoom()" aria-label="Reset zoom" title="Reset zoom">
+                    <i class="bi bi-arrows-angle-contract"></i>
+                </button>
+                <button class="image-preview-btn" type="button" onclick="zoomImagePreview(0.2)" aria-label="Zoom in" title="Zoom in">
+                    <i class="bi bi-zoom-in"></i>
+                </button>
+                <button class="image-preview-btn image-preview-close" type="button" onclick="closeImagePreview()" aria-label="Tutup preview" title="Tutup">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="image-preview-stage">
+                <img id="globalImagePreviewImg" src="" alt="Preview gambar">
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+};
+
+window.setImagePreviewZoom = function (zoom) {
+    const img = document.getElementById('globalImagePreviewImg');
+    window.imagePreviewState.zoom = Math.min(3, Math.max(0.5, zoom));
+    if (img) {
+        img.style.transform = `scale(${window.imagePreviewState.zoom})`;
+    }
+};
+
+window.zoomImagePreview = function (delta) {
+    window.setImagePreviewZoom((window.imagePreviewState?.zoom || 1) + delta);
+};
+
+window.resetImagePreviewZoom = function () {
+    window.setImagePreviewZoom(1);
+};
+
+window.openImagePreview = function (src) {
+    if (!src) return;
+    const modal = window.ensureImagePreviewModal();
+    const img = document.getElementById('globalImagePreviewImg');
+    if (!img) return;
+
+    img.src = getDirectDriveUrl(src);
+    img.onerror = () => {
+        img.src = '/img/profile.png';
+        img.onerror = null;
+    };
+    modal.classList.remove('hidden');
+    document.body.classList.add('image-preview-open');
+    window.resetImagePreviewZoom();
+};
+
+window.closeImagePreview = function () {
+    const modal = document.getElementById('globalImagePreviewModal');
+    if (modal) modal.classList.add('hidden');
+    document.body.classList.remove('image-preview-open');
+};
+
+document.addEventListener('click', event => {
+    if (!(event.target instanceof Element)) return;
+    const img = event.target.closest('.user-cell img.avatar, #sidebarInitials img, #avatarEl img');
+    if (!img) return;
+    event.preventDefault();
+    event.stopPropagation();
+    window.openImagePreview(img.currentSrc || img.src);
+});
+
+document.addEventListener('keydown', event => {
+    const modal = document.getElementById('globalImagePreviewModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+
+    if (event.key === 'Escape') window.closeImagePreview();
+    if (event.key === '+' || event.key === '=') window.zoomImagePreview(0.2);
+    if (event.key === '-') window.zoomImagePreview(-0.2);
+});
+
 if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index.js')) {
     (function () {
         const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
@@ -917,8 +1010,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.viewPhoto = function (url) {
-            document.getElementById('modalPhotoImg').src = getDirectDriveUrl(url);
-            document.getElementById('modalPhoto').classList.remove('hidden');
+            window.openImagePreview(url);
         }
 
         // ==== USERS ====
