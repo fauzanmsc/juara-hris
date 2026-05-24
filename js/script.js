@@ -42,6 +42,129 @@ window.getRedirectUrl = function (page) {
     return '/' + page + '.html';
 };
 
+window.renderAdminLayout = function () {
+    const sidebarMount = document.getElementById('adminSidebarMount');
+    const topbarMount = document.getElementById('adminTopbarMount');
+
+    if (sidebarMount && !document.getElementById('sidebar')) {
+        sidebarMount.innerHTML = `
+            <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-logo" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <div class="sidebar-brand" style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <img src="../img/logomark.png" alt="JEF" class="sidebar-brand-icon">
+                        <div class="sidebar-brand-text">
+                            <h3>JEF HRIS</h3>
+                            <p>HC Admin Panel</p>
+                        </div>
+                    </div>
+                    <button class="btn-compact-sidebar" id="btnCompactSidebar" onclick="toggleCompactSidebar()"
+                        title="Minimize Sidebar"
+                        style="background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:auto; transition:all var(--transition); flex-shrink:0;">
+                        <i class="bi bi-chevron-left" id="compactIcon"></i>
+                    </button>
+                    <button class="btn-close-sidebar" onclick="toggleSidebar()" aria-label="Close Sidebar" style="flex-shrink:0;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <nav class="sidebar-nav">
+                    <div class="nav-section-label">CORE HUB</div>
+                    <a class="sidebar-link" href="/admin/dashboard.html">
+                        <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
+                    </a>
+
+                    <div class="nav-section-label">WORKFORCE</div>
+                    <a class="sidebar-link" href="/admin/users.html">
+                        <i class="bi bi-people-fill"></i><span>Talents</span>
+                        <span class="nav-badge" id="inactiveTalentsBadge" style="display:none;">0</span>
+                    </a>
+                    <a class="sidebar-link" href="/admin/approval.html">
+                        <i class="bi bi-clipboard-check-fill"></i><span>Approvals</span>
+                        <span class="nav-badge" id="pendingBadge">0</span>
+                    </a>
+                    <a class="sidebar-link" href="/admin/attendance.html">
+                        <i class="bi bi-clock-history"></i><span>Attendance</span>
+                    </a>
+                    <a class="sidebar-link" href="/admin/leave-report.html">
+                        <i class="bi bi-file-earmark-bar-graph-fill"></i><span>Leaves</span>
+                    </a>
+                    <a class="sidebar-link" href="/admin/positions.html">
+                        <i class="bi bi-briefcase-fill"></i><span>Structure</span>
+                    </a>
+                    <a class="sidebar-link" href="/admin/tasks.html">
+                        <i class="bi bi-list-task"></i><span>Tasks</span>
+                    </a>
+
+                    <div class="nav-section-label">SYSTEM</div>
+                    <a class="sidebar-link" href="/admin/holidays.html">
+                        <i class="bi bi-calendar2-x-fill"></i><span>Holidays</span>
+                    </a>
+                    <a class="sidebar-link" href="/admin/config.html">
+                        <i class="bi bi-gear-fill"></i><span>Settings</span>
+                    </a>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <div class="sidebar-user" onclick="logout()">
+                        <div class="avatar-wrapper" style="position: relative; width: 38px; height: 38px; flex-shrink: 0;">
+                            <div class="avatar avatar-sm" id="sidebarInitials" style="width: 100%; height: 100%;">HR</div>
+                            <div class="status-indicator-dot online" id="connectionStatusDot" title="Online Jaringan"
+                                style="position: absolute; bottom: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--bg-surface); box-shadow: 0 0 8px rgba(0,0,0,0.3); z-index: 10; transition: all var(--transition);">
+                            </div>
+                        </div>
+                        <div class="sidebar-user-info">
+                            <h4 id="sidebarName">—</h4>
+                            <p>Administrator</p>
+                        </div>
+                        <i class="bi bi-box-arrow-right text-danger" style="margin-left:auto"></i>
+                    </div>
+                </div>
+            </aside>
+        `;
+    }
+
+    if (topbarMount && !document.getElementById('topbarTitle')) {
+        topbarMount.innerHTML = `
+            <header class="admin-topbar">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div>
+                        <h2 class="topbar-title" id="topbarTitle">Dashboard</h2>
+                        <p class="topbar-subtitle" id="topbarSub">Overview kehadiran real-time</p>
+                    </div>
+                </div>
+                <div class="topbar-actions" style="display:flex; align-items:center; gap:12px;">
+                    <button class="refresh-toggle-btn hide-on-mobile" onclick="window.location.reload()" title="Refresh Halaman"
+                        style="background:var(--bg-deep); border:1px solid var(--border); box-shadow:inset 2px 2px 5px rgba(0,0,0,0.08), inset -2px -2px 5px rgba(255,255,255,0.3); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+                        <i class="bi bi-arrow-clockwise text-primary"></i>
+                    </button>
+                    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
+                        style="background:var(--bg-deep); border:1px solid var(--border); box-shadow:inset 2px 2px 5px rgba(0,0,0,0.08), inset -2px -2px 5px rgba(255,255,255,0.3); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
+                        <i class="bi bi-sun-fill text-primary"></i>
+                    </button>
+                    <button class="header-logout-btn" onclick="logout()" title="Keluar"
+                        style="background:rgba(220,53,69,0.1); border:1px solid rgba(220,53,69,0.2); border-radius:50%; width: 36px; height: 36px; display:none; align-items:center; justify-content:center; color:var(--danger); font-size:16px; transition: all var(--transition); cursor:pointer;">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                    <div class="clock-chip">
+                        <i class="bi bi-clock-fill text-primary" style="font-size:11px;"></i>
+                        <span id="liveTopClock">--:--:--</span>
+                    </div>
+                </div>
+            </header>
+        `;
+        if (typeof window.updateThemeToggleBtn === 'function') {
+            updateThemeToggleBtn();
+        }
+    }
+};
+
+if (isInsideAdmin) {
+    renderAdminLayout();
+}
+
 // Register Service Worker globally for caching and instant performance updates
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(reg => {
@@ -3752,4 +3875,3 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
     }
 })();
-
