@@ -134,7 +134,7 @@ window.showModalAlert = function (title, message, type = 'info', actionBtn = nul
     }
 
     overlay.innerHTML = `
-        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative;">
+        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; width: 95%; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); overflow-y: auto;">
             <div class="card-border-glow"></div>
             <button onclick="document.getElementById('globalModalOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
             <div style="position:relative; z-index:2;">
@@ -161,7 +161,7 @@ window.showModalConfirm = function (title, message, onConfirm) {
     }
 
     overlay.innerHTML = `
-        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative;">
+        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; width: 95%; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); overflow-y: auto;">
             <div class="card-border-glow"></div>
             <button onclick="document.getElementById('globalConfirmOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
             <div style="position:relative; z-index:2;">
@@ -640,9 +640,17 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         // Navigation
         window.showPage = function (page, el) {
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
             if (el) {
-                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
                 el.classList.add('active');
+            } else {
+                // Auto-highlight the correct sidebar link based on page name
+                document.querySelectorAll('.sidebar-link').forEach(l => {
+                    const href = l.getAttribute('href') || '';
+                    if (href.includes('/' + page + '.html') || (page === 'dashboard' && href.includes('/dashboard.html'))) {
+                        l.classList.add('active');
+                    }
+                });
             }
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             const pageEl = document.getElementById(`page-${page}`);
