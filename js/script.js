@@ -75,7 +75,7 @@ window.renderAdminLayout = function () {
 
                     <div class="nav-section-label">WORKFORCE</div>
                     <a class="sidebar-link" href="/admin/users.html">
-                        <i class="bi bi-people-fill"></i><span>Talents</span>
+                        <i class="bi bi-people-fill"></i><span>Employees</span>
                         <span class="nav-badge" id="inactiveTalentsBadge" style="display:none;">0</span>
                     </a>
                     <a class="sidebar-link" href="/admin/approval.html">
