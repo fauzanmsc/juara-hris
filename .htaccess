@@ -20,5 +20,5 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{DOCUMENT_ROOT}/$1.php -f
 RewriteRule ^([^/]+)/?$ $1.php [L,QSA]
 
-# If someone visits the root directory, let Apache serve index.php automatically
-DirectoryIndex index.php index.html
+# If someone visits the root directory, let Apache serve index.html automatically
+DirectoryIndex index.html

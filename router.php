@@ -45,9 +45,10 @@ if (preg_match('#^/employee/([^/]+)/?$#', $uri, $matches)) {
 // Root Pages Routing
 $page = ltrim($uri, '/');
 if ($page === '') {
-    $_SERVER['PHP_SELF'] = '/index.php';
-    include __DIR__ . '/index.php';
-    exit;
+    if (file_exists(__DIR__ . '/index.html')) {
+        readfile(__DIR__ . '/index.html');
+        exit;
+    }
 }
 
 if (file_exists(__DIR__ . "/$page.php")) {
@@ -56,7 +57,8 @@ if (file_exists(__DIR__ . "/$page.php")) {
     exit;
 }
 
-// Fallback to index.php if path is not resolved
-$_SERVER['PHP_SELF'] = '/index.php';
-include __DIR__ . '/index.php';
-exit;
+// Fallback to index.html if path is not resolved
+if (file_exists(__DIR__ . '/index.html')) {
+    readfile(__DIR__ . '/index.html');
+    exit;
+}
