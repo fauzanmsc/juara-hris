@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2026-05-25-2';
+const CACHE_VERSION = 'v2026-05-25-3';
 const CACHE_NAME = `jef-hris-cache-${CACHE_VERSION}`;
 const APP_SHELL = [
   '/',

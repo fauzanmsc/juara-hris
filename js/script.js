@@ -2272,7 +2272,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         window.checkReady = function () {
             const btn = document.getElementById('mainBtn');
             if (isLockedOut) { btn.disabled = true; return; }
-            btn.disabled = !photoOk;
+            btn.disabled = !(photoOk && geoOk);
         }
 
         // ---- PRE-FLIGHT CHECK ----
@@ -2356,6 +2356,10 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         // ---- SUBMIT ----
         window.submitAttendance = async function () {
             if (!photoOk) { showToast('Pastikan foto selfie sudah siap', 'warn'); return; }
+            if (!geoOk) {
+                showToast(`Anda berada di luar radius ${MAX_RADIUS} meter dari kantor`, 'error');
+                return;
+            }
 
             if (!currentLat || !currentLng) {
 
@@ -2367,7 +2371,13 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 return;
             }
 
-            // Geofence radius check is bypassed when photo is taken, allowing submission from outside office area.
+            if (Number(currentDist) > Number(MAX_RADIUS)) {
+                geoOk = false;
+                updateGeoUI(currentDist, false);
+                checkReady();
+                showToast(`Jarak ${Math.round(currentDist)}m melebihi batas ${MAX_RADIUS}m`, 'error');
+                return;
+            }
 
             const btn = document.getElementById('mainBtn');
             const origText = btn.textContent;

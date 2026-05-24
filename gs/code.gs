@@ -235,6 +235,59 @@ function getConfigVal(key, defaultVal) {
   return val;
 }
 
+function parseConfigNumber(value, defaultVal) {
+  const fallback = Number(defaultVal);
+  if (value === '' || value === null || value === undefined) return fallback;
+
+  const cleaned = String(value).trim().replace(/,/g, '.');
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? fallback : parsed;
+}
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = function (value) { return value * Math.PI / 180; };
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function validateAttendanceLocation(lat, lng) {
+  const userLat = parseConfigNumber(lat, NaN);
+  const userLng = parseConfigNumber(lng, NaN);
+  const officeLat = parseConfigNumber(getConfigVal('office_latitude', '-6.4063219'), NaN);
+  const officeLng = parseConfigNumber(getConfigVal('office_longitude', '106.7731088'), NaN);
+  const maxRadius = parseConfigNumber(getConfigVal('max_radius_meters', '200'), 200);
+
+  if ([userLat, userLng, officeLat, officeLng, maxRadius].some(function (value) { return isNaN(value); })) {
+    return {
+      valid: false,
+      distance: null,
+      maxRadius: maxRadius,
+      message: 'Konfigurasi lokasi kantor atau GPS tidak valid. Hubungi HR.'
+    };
+  }
+
+  const distance = haversineMeters(userLat, userLng, officeLat, officeLng);
+  if (distance > maxRadius) {
+    return {
+      valid: false,
+      distance: distance,
+      maxRadius: maxRadius,
+      message: `Jarak ${Math.round(distance)}m melebihi batas ${Math.round(maxRadius)}m dari kantor`
+    };
+  }
+
+  return {
+    valid: true,
+    distance: distance,
+    maxRadius: maxRadius
+  };
+}
+
 // ============ AUTH ============
 
 function login(body) {
@@ -337,18 +390,16 @@ function preflightCheck(params) {
 // ============ CLOCK IN ============
 
 function clockIn(body) {
-  const { user_id, lat, lng, distance_meters, photo_base64 } = body;
+  const { user_id, lat, lng, photo_base64 } = body;
   const today = getTodayString();
   const now = new Date();
   const timeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
   const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
   const isSaturday = (dayName === 'Saturday');
 
-  // Validasi radius (Dilewati jika ada foto / sudah take-photo)
-  const maxRadius = parseFloat(getConfigVal('max_radius_meters', '200'));
-  if (parseFloat(distance_meters) > maxRadius && (!photo_base64 || photo_base64 === 'NO_PHOTO_PROVIDED_BY_FRONTEND')) {
-    return { success: false, message: `Jarak ${Math.round(distance_meters)}m melebihi batas ${maxRadius}m` };
-  }
+  const locationCheck = validateAttendanceLocation(lat, lng);
+  if (!locationCheck.valid) return { success: false, message: locationCheck.message };
+  const distanceMeters = Math.round(locationCheck.distance);
 
   // Cek sudah clock in hari ini
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
@@ -389,7 +440,7 @@ function clockIn(body) {
     timeStr, '',
     lat, lng,
     '', '',
-    distance_meters, '',
+    distanceMeters, '',
     photoData.url, '',
     statusIn, '', ''
   ]);
@@ -408,18 +459,16 @@ function clockIn(body) {
 // ============ CLOCK OUT ============
 
 function clockOut(body) {
-  const { user_id, lat, lng, distance_meters, photo_base64 } = body;
+  const { user_id, lat, lng, photo_base64 } = body;
   const today = getTodayString();
   const now = new Date();
   const timeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
   const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
   const isSaturday = (dayName === 'Saturday');
 
-  // Validasi radius (Dilewati jika ada foto / sudah take-photo)
-  const maxRadius = parseFloat(getConfigVal('max_radius_meters', '200'));
-  if (parseFloat(distance_meters) > maxRadius && (!photo_base64 || photo_base64 === 'NO_PHOTO_PROVIDED_BY_FRONTEND')) {
-    return { success: false, message: `Jarak ${Math.round(distance_meters)}m melebihi batas ${maxRadius}m` };
-  }
+  const locationCheck = validateAttendanceLocation(lat, lng);
+  if (!locationCheck.valid) return { success: false, message: locationCheck.message };
+  const distanceMeters = Math.round(locationCheck.distance);
 
   const sheet = getSheet(SHEET.ATTENDANCE);
   const data = sheet.getDataRange().getValues();
@@ -430,6 +479,7 @@ function clockOut(body) {
     clock_out_time: headers.indexOf('clock_out_time'),
     lat_out: headers.indexOf('lat_out'),
     lng_out: headers.indexOf('lng_out'),
+    distance_out_meters: headers.indexOf('distance_out_meters'),
     photo_out_url: headers.indexOf('photo_out_url'),
     status_out: headers.indexOf('status_out')
   };
@@ -465,6 +515,9 @@ function clockOut(body) {
   sheet.getRange(rowIndex, idx.clock_out_time + 1).setValue(timeStr);
   sheet.getRange(rowIndex, idx.lat_out + 1).setValue(lat);
   sheet.getRange(rowIndex, idx.lng_out + 1).setValue(lng);
+  if (idx.distance_out_meters !== -1) {
+    sheet.getRange(rowIndex, idx.distance_out_meters + 1).setValue(distanceMeters);
+  }
   sheet.getRange(rowIndex, idx.photo_out_url + 1).setValue(photoData.url);
   sheet.getRange(rowIndex, idx.status_out + 1).setValue(statusOut);
 
