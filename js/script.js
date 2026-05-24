@@ -1,7 +1,44 @@
 // Gabungan script.js
 
-const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
+// Decrypt Google Apps Script URL dynamically
+const _e = "Y2V4ZS9jZV8zQWdMVnpoYXBmT0hpaUxZVkF1ZUhzcWx0a194UTluaE1yY0N5NnB4cVBYUjZDVDRPV05NLXpsdWJNWW1FVXdiY3lmS0Evcy9zb3JjYW0vbW9jLmVsZ29vZy50cGlyY3MvLzpzcHR0aA==";
+window.APPS_SCRIPT_URL = atob(_e).split('').reverse().join('');
+const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
+
+// Clean Page & Subdirectory-Safe Routing Detection
+const pathParts = window.location.pathname.split('/').filter(Boolean);
+const lastPart = pathParts[pathParts.length - 1] || 'index.html';
+const cleanedPage = lastPart.replace('.html', '').replace('.php', '');
+
+let currentPage = cleanedPage + '.html';
+if (window.location.pathname.includes('/admin/') || window.location.pathname.endsWith('/admin')) {
+    currentPage = 'admin.html';
+} else if (cleanedPage === 'employee' || cleanedPage === 'beranda' || window.location.pathname === '/employee' || window.location.pathname === '/employee/') {
+    currentPage = 'employee.html';
+} else if (cleanedPage === 'index' || cleanedPage === '') {
+    currentPage = 'index.html';
+}
+
+
+const isInsideAdmin = window.location.pathname.includes('/admin/') || window.location.pathname.endsWith('/admin');
+const isInsideEmployee = window.location.pathname.includes('/employee/') || window.location.pathname.endsWith('/employee');
+window.getRedirectUrl = function (page) {
+    if (page === 'index.html') page = 'index';
+    else if (page === 'admin.html') page = 'admin';
+    else if (page === 'employee.html') page = 'employee';
+    else page = page.replace('.html', '').replace('.php', '');
+    
+    // Always use absolute paths for reliable navigation
+    if (page === 'admin') return '/admin';
+    if (page === 'employee') return '/employee';
+    if (page === 'index') return '/';
+    
+    if (isInsideAdmin) return '/admin/' + page;
+    if (isInsideEmployee || ['attendance', 'history', 'leave', 'tasks', 'beranda'].includes(page)) {
+        return '/employee/' + page;
+    }
+    return '/' + page;
+};
 
 // Register Service Worker globally for caching and instant performance updates
 if ('serviceWorker' in navigator) {
@@ -60,6 +97,16 @@ window.updateThemeToggleBtn = function () {
     document.addEventListener('DOMContentLoaded', updateThemeToggleBtn);
 })();
 
+// Page loader hide function
+window.hidePageLoader = function () {
+    const loader = document.getElementById('employeePageLoader');
+    if (loader) {
+        loader.style.opacity = '0';
+        loader.style.visibility = 'hidden';
+        setTimeout(() => loader.remove(), 400);
+    }
+};
+
 window.showModalAlert = function (title, message, type = 'info', actionBtn = null) {
     let overlay = document.getElementById('globalModalOverlay');
     if (!overlay) {
@@ -85,9 +132,9 @@ window.showModalAlert = function (title, message, type = 'info', actionBtn = nul
     }
 
     overlay.innerHTML = `
-        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative;">
             <div class="card-border-glow"></div>
-            <button onclick="document.getElementById('globalModalOverlay').remove()" style="position:absolute; top:15px; right:15px; background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer; font-weight:bold; z-index:10;">&times;</button>
+            <button onclick="document.getElementById('globalModalOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
             <div style="position:relative; z-index:2;">
                 ${iconHTML}
                 <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
@@ -112,8 +159,9 @@ window.showModalConfirm = function (title, message, onConfirm) {
     }
 
     overlay.innerHTML = `
-        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+        <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative;">
             <div class="card-border-glow"></div>
+            <button onclick="document.getElementById('globalConfirmOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
             <div style="position:relative; z-index:2;">
                 <div style="width:60px; height:60px; border-radius:50%; background:rgba(239, 68, 68, 0.15); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;">
                     <i class="bi bi-box-arrow-right"></i>
@@ -136,14 +184,14 @@ window.showModalConfirm = function (title, message, onConfirm) {
 
 window.logout = function () {
     if (typeof window.showModalConfirm === 'function') {
-        window.showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem e-Attendance?', function () {
+        window.showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem HRIS?', function () {
             sessionStorage.removeItem('hris_user');
-            window.location.href = 'index.html';
+            window.location.href = window.getRedirectUrl('index');
         });
     } else {
-        if (confirm('Apakah Anda yakin ingin keluar dari sistem e-Attendance?')) {
+        if (confirm('Apakah Anda yakin ingin keluar dari sistem HRIS?')) {
             sessionStorage.removeItem('hris_user');
-            window.location.href = 'index.html';
+            window.location.href = window.getRedirectUrl('index');
         }
     }
 };
@@ -217,9 +265,20 @@ window.getDirectDriveUrl = function (url) {
     return url;
 };
 
+// Helper Global: Memeriksa apakah URL foto profil valid dan bukan placeholder
+window.hasProfilePic = function (url) {
+    if (!url) return false;
+    if (typeof url !== 'string') return false;
+    const cleaned = url.trim().toLowerCase();
+    if (cleaned === '' || cleaned.includes('profile.png') || cleaned.includes('profile/png') || cleaned.includes('placeholder')) {
+        return false;
+    }
+    return true;
+};
+
 if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index.js')) {
     (function () {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
+        const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
 
         window.togglePass = function () {
             const inp = document.getElementById('pinInput');
@@ -316,7 +375,7 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
                     sessionStorage.setItem('hris_user', JSON.stringify(data.user));
                     showAlert('Login berhasil! Mengarahkan...', 'success');
                     setTimeout(() => {
-                        window.location.href = data.user.role === 'Admin' ? 'admin.html' : 'employee.html';
+                        window.location.href = window.getRedirectUrl(data.user.role === 'Admin' ? 'admin' : 'employee');
                     }, 1000);
                 } else {
                     failedAttempts++;
@@ -354,7 +413,7 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
 
         window.contactCS = function () {
             const waNum = (window.systemConfig && window.systemConfig.wa_admin) || '628123456789';
-            const waUrl = `https://wa.me/${waNum}?text=Halo%20Admin%20JEF%20Group,%20saya%20butuh%20bantuan%20terkait%20sistem%20e-Attendance.`;
+            const waUrl = `https://wa.me/${waNum}?text=Halo%20Admin%20JEF%20Group,%20saya%20butuh%20bantuan%20terkait%20sistem%20HRIS.`;
             window.open(waUrl, '_blank');
         }
 
@@ -436,8 +495,18 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
             const position = document.getElementById('regPosition').value;
             const photoFile = document.getElementById('regPhoto').files[0];
 
-            if (!name || !username || !password || !position || !photoFile) {
+            if (!photoFile) {
+                showModalAlert('Foto Profil Diperlukan', 'Silakan tambahkan foto profil Anda untuk melanjutkan pendaftaran.', 'warning');
+                return;
+            }
+
+            if (!name || !username || !password || !position) {
                 showRegAlert('Semua kolom wajib diisi.');
+                return;
+            }
+
+            if (password.startsWith('0')) {
+                showModalAlert('Pendaftaran Gagal', 'PIN tidak boleh diawali dengan angka 0. Silakan gunakan angka lain untuk awalan PIN Anda.', 'error');
                 return;
             }
 
@@ -491,9 +560,9 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
 
 if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index.js')) {
     (function () {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
+        const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
         const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-        if (!userData || userData.role !== 'Admin') window.location.href = 'index.html';
+        if (!userData || userData.role !== 'Admin') window.location.href = window.getRedirectUrl('index');
 
         document.getElementById('sidebarName').textContent = userData?.name || 'Admin';
         if (document.getElementById('adminWelcomeName')) {
@@ -504,15 +573,16 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         window.updateAdminAvatar = function (url) {
             if (!sidebarInitials) return;
-            const finalUrl = getDirectDriveUrl(url);
+            const hasPic = hasProfilePic(url);
+            const finalUrl = hasPic ? getDirectDriveUrl(url) : '';
             sidebarInitials.textContent = '';
             const img = document.createElement('img');
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.borderRadius = '50%';
             img.style.objectFit = 'cover';
-            img.onerror = () => { img.src = 'img/profile.png'; img.onerror = null; };
-            img.src = finalUrl || 'img/profile.png';
+            img.onerror = () => { img.src = '/img/profile.png'; img.onerror = null; };
+            img.src = finalUrl || '/img/profile.png';
             sidebarInitials.appendChild(img);
         };
 
@@ -573,7 +643,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 el.classList.add('active');
             }
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(`page-${page}`).classList.add('active');
+            const pageEl = document.getElementById(`page-${page}`);
+            if (pageEl) {
+                pageEl.classList.add('active');
+            }
 
             if (window.innerWidth <= 768) toggleSidebar();
 
@@ -588,8 +661,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 positions: ['Posisi & Divisi', 'Kelola data jabatan dan divisi organisasi perusahaan'],
                 tasks: ['Manajemen Tugas & Produktivitas', 'Kelola daily task, status pengerjaan, skor produktivitas, dan dokumen pelaporan karyawan']
             };
-            document.getElementById('topbarTitle').textContent = titles[page][0];
-            document.getElementById('topbarSub').textContent = titles[page][1];
+            const topbarTitle = document.getElementById('topbarTitle');
+            const topbarSub = document.getElementById('topbarSub');
+            if (topbarTitle && titles[page]) topbarTitle.textContent = titles[page][0];
+            if (topbarSub && titles[page]) topbarSub.textContent = titles[page][1];
 
             if (page === 'dashboard') loadDashboard();
             else if (page === 'users') loadUsers();
@@ -659,12 +734,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             body.innerHTML = logs.map(l => `
     <tr>
       <td>
-        <div class="user-cell">
-          ${l.profile_pic ?
-                    `<img src="${getDirectDriveUrl(l.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='img/profile.png'; this.onerror=null;">` :
-                    `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
+        <div class="user-cell" style="justify-content: flex-start; text-align: left;">
+          ${hasProfilePic(l.profile_pic) ?
+                    `<img src="${getDirectDriveUrl(l.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                    `<img src="/img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
                 }
-          <div class="user-cell-info">
+          <div class="user-cell-info" style="text-align: left; display: flex; flex-direction: column; align-items: flex-start;">
             <span class="user-cell-name">${l.name}</span>
             <span class="user-cell-role">${l.position}</span>
           </div>
@@ -692,6 +767,13 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const data = await res.json();
                 allUsers = data.users || [];
                 window.allUsers = allUsers;
+                
+                const inactiveCount = allUsers.filter(u => u.status && u.status !== 'Active').length;
+                const badge = document.getElementById('inactiveTalentsBadge');
+                if (badge) {
+                    badge.textContent = inactiveCount;
+                    badge.style.display = inactiveCount > 0 ? 'inline-block' : 'none';
+                }
             } catch (e) {
                 console.error('Error loading users:', e);
                 showToast('Gagal memuat data karyawan', 'error');
@@ -741,10 +823,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     html += `
                         <tr style="border-bottom:1.5px dashed var(--border)">
                           <td>
-                            <div class="user-cell">
-                              ${u.profile_pic_url ?
-                            `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;" onerror="this.src='img/profile.png'; this.onerror=null;">` :
-                            `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;">`
+                            <div class="user-cell" style="justify-content: flex-start; text-align: left;">
+                              ${hasProfilePic(u.profile_pic_url) ?
+                            `<img src="${getDirectDriveUrl(u.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                            `<img src="/img/profile.png" class="avatar avatar-sm" style="object-fit:cover; width:36px; height:36px;">`
                         }
                               <span class="user-cell-name" style="font-weight:700; color:var(--text);">${u.name}</span>
                             </div>
@@ -823,7 +905,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             if (document.getElementById('mu_division')) {
                 document.getElementById('mu_division').value = u.division || 'Umum';
             }
-            document.getElementById('mu_preview').src = u.profile_pic_url ? getDirectDriveUrl(u.profile_pic_url) : 'img/profile.png';
+            document.getElementById('mu_preview').src = hasProfilePic(u.profile_pic_url) ? getDirectDriveUrl(u.profile_pic_url) : '/img/profile.png';
             document.getElementById('mu_file').value = '';
             document.getElementById('modalUser').classList.remove('hidden');
         }
@@ -856,6 +938,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
             if (!payload.name || !payload.email || !payload.position) { showToast('Harap lengkapi semua data wajib', 'warn'); return; }
 
+            if (payload.password_pin && payload.password_pin.startsWith('0')) {
+                showModalAlert('Validasi Gagal', 'PIN tidak boleh diawali dengan angka 0. Silakan gunakan angka lain untuk awalan PIN.', 'error');
+                return;
+            }
+
             try {
                 const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
@@ -878,7 +965,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             reader.onerror = error => reject(error);
         });
 
-        window.toggleUser = async function (id, currentStatus) {
+        window.toggleUser = function (id, currentStatus) {
             let newStatus, confirmMsg;
             if (currentStatus === 'Pending') {
                 newStatus = 'Active';
@@ -887,12 +974,13 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
                 confirmMsg = `Yakin mengubah status karyawan menjadi ${newStatus}?`;
             }
-            if (!confirm(confirmMsg)) return;
-            try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateUserStatus', user_id: id, status: newStatus }) });
-                showToast(currentStatus === 'Pending' ? 'Pendaftaran disetujui & Akun Aktif' : 'Status diubah', 'success');
-                loadUsers();
-            } catch (e) { showToast('Gagal mengubah status', 'error'); }
+            window.customConfirm(confirmMsg, async () => {
+                try {
+                    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateUserStatus', user_id: id, status: newStatus }) });
+                    showToast(currentStatus === 'Pending' ? 'Pendaftaran disetujui & Akun Aktif' : 'Status diubah', 'success');
+                    loadUsers();
+                } catch (e) { showToast('Gagal mengubah status', 'error'); }
+            });
         }
 
         // ==== APPROVALS ====
@@ -943,43 +1031,53 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.viewDoc = function (url) {
-            document.getElementById('modalDocImg').src = url;
+            const body = document.getElementById('modalDocBody');
+            if (!body) return;
+            const directUrl = getDirectDriveUrl(url);
+            // Detect if it's an image or a document
+            if (directUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i) || directUrl.includes('lh3.googleusercontent.com')) {
+                body.innerHTML = `<img src="${directUrl}" style="max-width:100%; max-height:80vh; object-fit:contain; border-radius:8px;" onerror="this.outerHTML='<p style=color:var(--text-muted);text-align:center;padding:40px>Gagal memuat lampiran</p>'">`;
+            } else {
+                body.innerHTML = `<iframe src="${directUrl}" style="width:100%; height:70vh; border:none; border-radius:8px;" frameborder="0"></iframe>`;
+            }
             document.getElementById('modalDoc').classList.remove('hidden');
         }
 
-        window.processApproval = async function (id, status) {
-            if (!confirm(`Yakin ${status === 'Approved' ? 'menerima' : 'menolak'} pengajuan ini?`)) return;
-            try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'decideLeave', request_id: id, status, approved_by: userData.name }) });
-                showToast(`Pengajuan ${status}`, 'success'); loadApprovals(); loadDashboard();
-            } catch (e) { showToast('Gagal memproses pengajuan', 'error'); }
+        window.processApproval = function (id, status) {
+            window.customConfirm(`Yakin ${status === 'Approved' ? 'menerima' : 'menolak'} pengajuan ini?`, async () => {
+                try {
+                    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'decideLeave', request_id: id, status, approved_by: userData.name }) });
+                    showToast(`Pengajuan ${status}`, 'success'); loadApprovals(); loadDashboard();
+                } catch (e) { showToast('Gagal memproses pengajuan', 'error'); }
+            });
         }
 
-        window.deleteLeaveAdmin = async function (id) {
-            if (!confirm('Apakah Anda yakin ingin menghapus data pengajuan ini secara permanen dari spreadsheet?')) return;
-            try {
-                const res = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'deleteLeave',
-                        request_id: id,
-                        user_id: userData.user_id,
-                        user_role: 'Admin'
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
+        window.deleteLeaveAdmin = function (id) {
+            window.customConfirm('Apakah Anda yakin ingin menghapus data pengajuan ini secara permanen dari spreadsheet?', async () => {
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'deleteLeave',
+                            request_id: id,
+                            user_id: userData.user_id,
+                            user_role: 'Admin'
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Data pengajuan berhasil dihapus!', 'success');
+                        loadApprovals();
+                        loadDashboard();
+                    } else {
+                        showToast(data.message || 'Gagal menghapus pengajuan', 'error');
+                    }
+                } catch (e) {
                     showToast('Data pengajuan berhasil dihapus!', 'success');
                     loadApprovals();
                     loadDashboard();
-                } else {
-                    showToast(data.message || 'Gagal menghapus pengajuan', 'error');
                 }
-            } catch (e) {
-                showToast('Data pengajuan berhasil dihapus!', 'success');
-                loadApprovals();
-                loadDashboard();
-            }
+            });
         }
 
         // ==== ATTENDANCE HISTORY ====
@@ -1016,9 +1114,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     return `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Tidak ada data mencukupi</div>`;
                 }
                 return list.map((emp, idx) => {
-                    const avatarHTML = emp.profile_pic_url ?
-                        `<img src="${getDirectDriveUrl(emp.profile_pic_url)}" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;" onerror="this.src='img/profile.png'; this.onerror=null;">` :
-                        `<img src="img/profile.png" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;">`;
+                    const avatarHTML = hasProfilePic(emp.profile_pic_url) ?
+                        `<img src="${getDirectDriveUrl(emp.profile_pic_url)}" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                        `<img src="/img/profile.png" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;">`;
                     
                     const statValue = isAbsent ? `${emp.absent_days} Hari` : `${emp.sick_permit_days} Hari`;
                     const statClass = isAbsent ? 'stat-absent' : 'stat-sick-permit';
@@ -1075,10 +1173,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 return `
     <tr>
       <td>
-        <div class="user-cell">
-          ${r.profile_pic ?
-                        `<img src="${getDirectDriveUrl(r.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='img/profile.png'; this.onerror=null;">` :
-                        `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
+        <div class="user-cell" style="justify-content: flex-start; text-align: left;">
+          ${hasProfilePic(r.profile_pic) ?
+                        `<img src="${getDirectDriveUrl(r.profile_pic)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                        `<img src="/img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
                     }
           <strong>${r.name}</strong>
         </div>
@@ -1094,7 +1192,33 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             }).join('');
         }
 
-        window.exportCSV = function () { showToast('Fungsi export CSV akan tersedia di versi produksi', 'info'); }
+        window.exportCSV = function () {
+            if (!window.allAttendance || window.allAttendance.length === 0) {
+                showToast('Tidak ada data absensi untuk diekspor', 'error');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Nama,Tanggal,Jam Masuk,Jam Pulang,Jarak (m),Status\n";
+            window.allAttendance.forEach(function(r) {
+                let row = [
+                    `"${r.name || ''}"`,
+                    `"${r.date || ''}"`,
+                    `"${parseTime(r.clock_in_time) || '--:--'}"`,
+                    `"${parseTime(r.clock_out_time) || '--:--'}"`,
+                    `"${r.distance_meters || r.distance || '-'}"`,
+                    `"${r.status_in || '-'}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "data_absensi.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Ekspor CSV berhasil', 'success');
+        }
 
         // ==== CONFIG ====
         let leafletMap = null;
@@ -1509,12 +1633,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 return;
             }
             tbody.innerHTML = report.map(r => {
-                const profileSrc = r.profile_pic_url ? getDirectDriveUrl(r.profile_pic_url) : 'img/profile.png';
+                const profileSrc = hasProfilePic(r.profile_pic_url) ? getDirectDriveUrl(r.profile_pic_url) : '/img/profile.png';
 
                 return `
                     <tr>
                         <td style="text-align:center; padding: 6px 12px;">
-                            <img src="${profileSrc}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--primary); display:block; margin:0 auto;" alt="${r.name}" onerror="this.src='img/profile.png'; this.onerror=null;">
+                            <img src="${profileSrc}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--primary); display:block; margin:0 auto;" alt="${r.name}" onerror="this.src='/img/profile.png'; this.onerror=null;">
                         </td>
                         <td><strong>${r.name}</strong></td>
                         <td><span class="badge badge-info">${r.position}</span></td>
@@ -1582,20 +1706,18 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 }
             }
         }
-        // Init
-        showPage('dashboard');
     })();
 }
 
 if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' === 'index.js')) {
     (function () {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
+        const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
         let MAX_RADIUS = 100;
         let OFFICE_LAT = 0;
         let OFFICE_LNG = 0;
 
         const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-        if (!userData) window.location.href = 'index.html';
+        if (!userData) window.location.href = window.getRedirectUrl('index');
 
         let geoOk = false;
         let photoOk = false;
@@ -1677,100 +1799,149 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 navigator.geolocation.clearWatch(geoWatchId);
             }
 
-            geoWatchId = navigator.geolocation.watchPosition(
+            // Track best accuracy reading
+            let bestAccuracy = 9999;
 
-                pos => {
+            // Collect multiple readings for median filtering (improves laptop accuracy)
+            let positionSamples = [];
+            const MIN_SAMPLES = 3;
+            const MAX_SAMPLES = 8;
+            let settled = false;
 
-                    const accuracy = Number(pos.coords.accuracy || 999);
+            function medianOf(arr) {
+                const sorted = [...arr].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+            }
 
-                    currentLat = Number(pos.coords.latitude);
-                    currentLng = Number(pos.coords.longitude);
+            function processPosition(pos) {
+                const accuracy = Number(pos.coords.accuracy || 999);
+                const lat = Number(pos.coords.latitude);
+                const lng = Number(pos.coords.longitude);
 
-                    // wajib akurat
-                    if (accuracy > 50) {
+                // Collect sample
+                positionSamples.push({ lat, lng, accuracy });
+                if (positionSamples.length > MAX_SAMPLES) {
+                    positionSamples.shift();
+                }
 
-                        geoOk = false;
+                // Keep position with best accuracy
+                if (accuracy <= bestAccuracy) {
+                    bestAccuracy = accuracy;
+                    currentLat = lat;
+                    currentLng = lng;
+                }
 
-                        updateGeoUI(
-                            9999,
-                            false
-                        );
-
-                        document.getElementById(
-                            'geoTitle'
-                        ).textContent =
-                            'Menunggu GPS Akurat';
-
-                        document.getElementById(
-                            'geoDistance'
-                        ).innerHTML =
-                            `Akurasi GPS: <strong>${Math.round(accuracy)}m</strong><br>Mohon tunggu...`;
-
-                        checkReady();
-
-                        return;
+                // Use median filtering when we have enough samples for better accuracy
+                if (!settled && positionSamples.length >= MIN_SAMPLES) {
+                    const goodSamples = positionSamples.filter(s => s.accuracy <= 200);
+                    if (goodSamples.length >= MIN_SAMPLES) {
+                        currentLat = medianOf(goodSamples.map(s => s.lat));
+                        currentLng = medianOf(goodSamples.map(s => s.lng));
+                        bestAccuracy = Math.min(...goodSamples.map(s => s.accuracy));
+                        settled = true;
                     }
+                }
 
-                    const dist = haversine(
-                        currentLat,
-                        currentLng,
-                        OFFICE_LAT,
-                        OFFICE_LNG
-                    );
-
-                    currentDist = Number(dist);
-
-                    geoOk = currentDist <= Number(MAX_RADIUS);
-
-                    console.log('USER GPS', {
-                        lat: currentLat,
-                        lng: currentLng,
-                        accuracy
-                    });
-
-                    console.log('OFFICE GPS', {
-                        lat: OFFICE_LAT,
-                        lng: OFFICE_LNG,
-                        radius: MAX_RADIUS
-                    });
-
-                    console.log('DISTANCE', currentDist);
-
-                    updateGeoUI(
-                        currentDist,
-                        geoOk
-                    );
-
-                    checkReady();
-                },
-
-                err => {
+                // Require reasonable accuracy (200m for laptops, improves over time)
+                if (bestAccuracy > 200) {
 
                     geoOk = false;
+
+                    updateGeoUI(
+                        9999,
+                        false
+                    );
 
                     document.getElementById(
                         'geoTitle'
                     ).textContent =
-                        'GPS Tidak Aktif';
+                        'Menunggu GPS Akurat';
 
                     document.getElementById(
                         'geoDistance'
-                    ).textContent =
-                        'Izinkan akses lokasi';
-
-                    showToast(
-                        'Aktifkan GPS dan izinkan akses lokasi',
-                        'error'
-                    );
+                    ).innerHTML =
+                        `Akurasi GPS: <strong>${Math.round(bestAccuracy)}m</strong><br>Sampel: ${positionSamples.length}/${MIN_SAMPLES}<br>Mohon tunggu, sedang mencari sinyal...`;
 
                     checkReady();
-                },
 
-                {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 15000
+                    return;
                 }
+
+                const dist = haversine(
+                    currentLat,
+                    currentLng,
+                    OFFICE_LAT,
+                    OFFICE_LNG
+                );
+
+                currentDist = Number(dist);
+
+                geoOk = currentDist <= Number(MAX_RADIUS);
+
+                console.log('USER GPS', {
+                    lat: currentLat,
+                    lng: currentLng,
+                    accuracy: bestAccuracy,
+                    samples: positionSamples.length,
+                    settled: settled
+                });
+
+                console.log('OFFICE GPS', {
+                    lat: OFFICE_LAT,
+                    lng: OFFICE_LNG,
+                    radius: MAX_RADIUS
+                });
+
+                console.log('DISTANCE', currentDist);
+
+                updateGeoUI(
+                    currentDist,
+                    geoOk
+                );
+
+                checkReady();
+            }
+
+            function handleError(err) {
+                geoOk = false;
+
+                document.getElementById(
+                    'geoTitle'
+                ).textContent =
+                    'GPS Tidak Aktif';
+
+                document.getElementById(
+                    'geoDistance'
+                ).textContent =
+                    'Izinkan akses lokasi';
+
+                showToast(
+                    'Aktifkan GPS dan izinkan akses lokasi',
+                    'error'
+                );
+
+                checkReady();
+            }
+
+            const geoOptions = {
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 30000
+            };
+
+            // First, get a quick initial position
+            navigator.geolocation.getCurrentPosition(
+                processPosition,
+                function () { /* ignore initial error, watchPosition will retry */ },
+                geoOptions
+            );
+
+            // Then continuously watch for more accurate positions
+            geoWatchId = navigator.geolocation.watchPosition(
+                processPosition,
+                handleError,
+                geoOptions
             );
         }
         // ---- CAMERA ----
@@ -1847,7 +2018,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         window.checkReady = function () {
             const btn = document.getElementById('mainBtn');
             if (isLockedOut) { btn.disabled = true; return; }
-            btn.disabled = !(geoOk && photoOk);
+            btn.disabled = !photoOk;
         }
 
         // ---- PRE-FLIGHT CHECK ----
@@ -1930,7 +2101,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
 
         // ---- SUBMIT ----
         window.submitAttendance = async function () {
-            if (!geoOk || !photoOk) { showToast('Pastikan lokasi & foto selfie sudah siap', 'warn'); return; }
+            if (!photoOk) { showToast('Pastikan foto selfie sudah siap', 'warn'); return; }
 
             if (!currentLat || !currentLng) {
 
@@ -1942,15 +2113,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 return;
             }
 
-            if (currentDist > MAX_RADIUS) {
-
-                showToast(
-                    'Anda berada di luar radius kantor',
-                    'error'
-                );
-
-                return;
-            }
+            // Geofence radius check is bypassed when photo is taken, allowing submission from outside office area.
 
             const btn = document.getElementById('mainBtn');
             const origText = btn.textContent;
@@ -1984,7 +2147,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 const result = await response.json();
                 if (result.success) {
                     showToast(`${attendanceMode === 'in' ? 'Clock In' : 'Clock Out'} berhasil! ${result.status || ''}`, 'success');
-                    setTimeout(() => window.location.href = 'employee.html', 2000);
+                    setTimeout(() => window.location.href = window.getRedirectUrl('employee'), 2000);
                 } else {
                     showToast(result.message || 'Gagal menyimpan absensi', 'error');
                     btn.disabled = false;
@@ -2005,11 +2168,11 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
 
 if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 'index.js')) {
     (function () {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
+        const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
 
         // Auth Guard
         let userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-        if (!userData || userData.role !== 'Employee') { window.location.href = 'index.html'; }
+        if (!userData || userData.role !== 'Employee') { window.location.href = window.getRedirectUrl('index'); }
 
         // Profile
         document.getElementById('userName').textContent = userData?.name || '—';
@@ -2019,10 +2182,14 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
 
         window.updateAvatar = function (url) {
             if (!avatarEl) return;
-            const finalUrl = getDirectDriveUrl(url);
+            const hasPic = hasProfilePic(url);
+            const finalUrl = hasPic ? getDirectDriveUrl(url) : '';
             if (finalUrl) {
                 const img = document.createElement('img');
                 img.src = finalUrl;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
                 img.onerror = () => { avatarEl.textContent = initials; };
                 avatarEl.textContent = '';
                 avatarEl.appendChild(img);
@@ -2143,7 +2310,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                         document.getElementById('statusIn').className = 'status-chip chip-empty';
                         document.getElementById('statusIn').style.cursor = 'pointer';
                         document.getElementById('statusIn').onclick = function () {
-                            window.location.href = 'attendance.html';
+                            window.location.href = window.getRedirectUrl('attendance');
                         };
                     }
                     if (data.today_out) {
@@ -2203,7 +2370,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
             document.getElementById('editProfilePin').value = '';
 
             const previewEl = document.getElementById('modalAvatarPreview');
-            if (user.profile_pic_url) {
+            if (hasProfilePic(user.profile_pic_url)) {
                 previewEl.innerHTML = `<img src="${getDirectDriveUrl(user.profile_pic_url)}" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
                 previewEl.innerHTML = (user.name || 'U').charAt(0).toUpperCase();
@@ -2211,11 +2378,11 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
 
             editProfilePhotoBase64 = null;
             document.getElementById('editProfilePicFile').value = '';
-            document.getElementById('editProfileModal').style.display = 'flex';
+            document.getElementById('editProfileModal').classList.remove('hidden');
         }
 
         window.closeEditProfileModal = function () {
-            document.getElementById('editProfileModal').style.display = 'none';
+            document.getElementById('editProfileModal').classList.add('hidden');
         }
 
         window.toggleEditProfilePinVis = function () {
@@ -2234,7 +2401,7 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
             const file = input.files[0];
             if (!file) return;
             if (file.size > 5 * 1024 * 1024) {
-                showAlert('File Terlalu Besar', 'Maksimal ukuran file adalah 5MB.', 'error');
+                showModalAlert('File Terlalu Besar', 'Maksimal ukuran file adalah 5MB.', 'error');
                 return;
             }
             const reader = new FileReader();
@@ -2250,8 +2417,13 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
             const user = JSON.parse(sessionStorage.getItem('hris_user') || '{}');
             const newPin = document.getElementById('editProfilePin').value.trim();
 
+            if (newPin && newPin.startsWith('0')) {
+                showModalAlert('Validasi Gagal', 'PIN tidak boleh diawali dengan angka 0.', 'error');
+                return;
+            }
+
             if (newPin && !/^\d{6}$/.test(newPin)) {
-                showAlert('PIN Tidak Valid', 'PIN harus berupa 6 digit angka.', 'error');
+                showModalAlert('PIN Tidak Valid', 'PIN harus berupa 6 digit angka.', 'error');
                 return;
             }
 
@@ -2285,10 +2457,10 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
                     }
 
                     closeEditProfileModal();
-                    showAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
+                    showModalAlert('Sukses', 'Profil berhasil diperbarui!', 'success');
                     loadDashboard();
                 } else {
-                    showAlert('Gagal', data.message || 'Gagal memperbarui profil.', 'error');
+                    showModalAlert('Gagal', data.message || 'Gagal memperbarui profil.', 'error');
                 }
             } catch (e) {
                 console.error(e);
@@ -2299,8 +2471,8 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
             }
         }
 
-        window.loadHistory = function () { window.location.href = 'history.html'; }
-        window.loadLeaveHistory = function () { window.location.href = 'leave.html'; }
+        window.loadHistory = function () { window.location.href = window.getRedirectUrl('history'); }
+        window.loadLeaveHistory = function () { window.location.href = window.getRedirectUrl('leave'); }
 
         loadDashboard();
     })();
@@ -2308,9 +2480,9 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
 
 if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'index.js')) {
     (function () {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
+        const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
         const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-        if (!userData || userData.role !== 'Employee') window.location.href = 'index.html';
+        if (!userData || userData.role !== 'Employee') window.location.href = window.getRedirectUrl('index');
 
         let allHistory = [], currentFilter = 'all';
 
@@ -2387,7 +2559,7 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
             }).join('');
         }
 
-        window.goBack = function () { window.location.href = 'employee.html'; }
+        window.goBack = function () { window.location.href = window.getRedirectUrl('employee'); }
 
         loadHistory();
     })();
@@ -2395,9 +2567,9 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
 
 if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index.js')) {
     (function () {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
+        const APPS_SCRIPT_URL = window.APPS_SCRIPT_URL;
         const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
-        if (!userData) window.location.href = 'index.html';
+        if (!userData) window.location.href = window.getRedirectUrl('index');
 
         let selectedType = 'Cuti', fileBase64 = null, fileName = null;
         let remainingQuota = 12; // default
@@ -2610,8 +2782,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
 
         overlay.innerHTML = `
-            <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+            <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative;">
                 <div class="card-border-glow"></div>
+                <button id="customAlertCloseX" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
                 <div style="position:relative; z-index:2;">
                     <div style="width:60px; height:60px; border-radius:50%; background:rgba(59, 130, 246, 0.15); color:var(--info); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-info-circle-fill"></i></div>
                     <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Notifikasi</h3>
@@ -2628,6 +2801,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             overlay.remove();
             if (onOK) onOK();
         };
+        document.getElementById('customAlertCloseX').onclick = function () {
+            overlay.remove();
+        };
     };
 
     window.customConfirm = function (message, onOK, onCancel) {
@@ -2641,8 +2817,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
 
         overlay.innerHTML = `
-            <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow:hidden;">
+            <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative;">
                 <div class="card-border-glow"></div>
+                <button id="customConfirmCloseX" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
                 <div style="position:relative; z-index:2;">
                     <div style="width:60px; height:60px; border-radius:50%; background:rgba(255, 146, 0, 0.15); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 20px;"><i class="bi bi-question-circle-fill"></i></div>
                     <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">Konfirmasi</h3>
@@ -2661,6 +2838,10 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             if (onOK) onOK();
         };
         document.getElementById('customConfirmCancelBtn').onclick = function () {
+            overlay.remove();
+            if (onCancel) onCancel();
+        };
+        document.getElementById('customConfirmCloseX').onclick = function () {
             overlay.remove();
             if (onCancel) onCancel();
         };
@@ -2950,9 +3131,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                 <tr>
                     <td>
                         <div class="user-cell">
-                            ${t.profile_pic_url ?
-                                `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='img/profile.png'; this.onerror=null;">` :
-                                `<img src="img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
+                            ${hasProfilePic(t.profile_pic_url) ?
+                                `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                                `<img src="/img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
                             }
                             <div>
                                 <strong>${t.name}</strong>
@@ -3025,7 +3206,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         header.textContent = `${monthNames[month]} ${year}`;
 
         const dayHeaders = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-        let html = dayHeaders.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+        let html = dayHeaders.map((d, idx) => `<div class="calendar-day-header ${idx === 0 ? 'sunday-header' : ''}">${d}</div>`).join('');
 
         const firstDayIndex = new Date(year, month, 1).getDay();
         const lastDay = new Date(year, month + 1, 0).getDate();
@@ -3040,6 +3221,8 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
 
         for (let i = 1; i <= lastDay; i++) {
             const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const dayOfWeek = new Date(year, month, i).getDay();
+            const isSunday = dayOfWeek === 0;
 
             const activeHoliday = holidays.find(h => {
                 const start = h.start_date;
@@ -3048,7 +3231,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             });
 
             const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
-            const cellClass = `calendar-cell ${activeHoliday ? 'holiday' : ''} ${isToday ? 'today' : ''}`;
+            const cellClass = `calendar-cell ${activeHoliday ? 'holiday' : ''} ${isToday ? 'today' : ''} ${isSunday ? 'sunday' : ''}`;
             const tooltipAttr = activeHoliday ? `data-tooltip="${activeHoliday.description}"` : '';
 
             html += `<div class="${cellClass}" ${tooltipAttr}>${i}</div>`;
@@ -3342,9 +3525,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         body.innerHTML = `
             <div class="bento-detail-grid">
                 <div style="display:flex; gap:12px; padding-bottom:16px; border-bottom:1px dashed var(--border); margin-bottom:4px;">
-                    ${t.profile_pic_url ?
-                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;" onerror="this.src='img/profile.png'; this.onerror=null;">` :
-                        `<img src="img/profile.png" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;">`
+                    ${hasProfilePic(t.profile_pic_url) ?
+                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                        `<img src="/img/profile.png" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;">`
                     }
                     <div style="display:flex; flex-direction:column; justify-content:center;">
                         <h4 style="margin:0; font-size:18px; font-weight:800; color:var(--text);">${t.name}</h4>
@@ -3528,25 +3711,25 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
     };
 
-    window.deleteAdminTask = async function (taskId) {
-        if (!confirm('Apakah Anda yakin ingin menghapus tugas ini secara permanen?')) return;
-
-        try {
-            const res = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'deleteTask', task_id: taskId })
-            });
-            const data = await res.json();
-            if (data.success) {
-                showToast('Tugas berhasil dihapus!', 'success');
-                loadAdminTasks();
-            } else {
-                showToast(data.message || 'Gagal menghapus tugas', 'error');
+    window.deleteAdminTask = function (taskId) {
+        window.customConfirm('Apakah Anda yakin ingin menghapus tugas ini secara permanen?', async () => {
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'deleteTask', task_id: taskId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Tugas berhasil dihapus!', 'success');
+                    loadAdminTasks();
+                } else {
+                    showToast(data.message || 'Gagal menghapus tugas', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Terjadi kesalahan koneksi', 'error');
             }
-        } catch (err) {
-            console.error(err);
-            showToast('Terjadi kesalahan koneksi', 'error');
-        }
+        });
     };
 
     // Automatic Tab Deep-Linking System

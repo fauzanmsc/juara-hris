@@ -1,0 +1,24 @@
+RewriteEngine On
+
+# Rewrite `/admin` or `/admin/` to `admin/dashboard.php`
+RewriteRule ^admin/?$ admin/dashboard.php [L,QSA]
+
+# Rewrite `/admin/X` to `admin/X.php` if `admin/X.php` exists
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/admin/$1.php -f
+RewriteRule ^admin/([^/]+)/?$ admin/$1.php [L,QSA]
+
+# Fallback: if they go to `/admin/X` and it's not a physical file/directory, direct it to admin/dashboard.php or let it handle routing
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^admin/([^/]+)/?$ admin/$1.php [L,QSA]
+
+# Rewrite top-level clean URLs (e.g. `/employee`, `/attendance`)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L,QSA]
+
+# If someone visits the root directory, let Apache serve index.php automatically
+DirectoryIndex index.php index.html

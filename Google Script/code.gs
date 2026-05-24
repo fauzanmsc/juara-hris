@@ -344,9 +344,9 @@ function clockIn(body) {
   const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
   const isSaturday = (dayName === 'Saturday');
 
-  // Validasi radius
+  // Validasi radius (Dilewati jika ada foto / sudah take-photo)
   const maxRadius = parseFloat(getConfigVal('max_radius_meters', '200'));
-  if (parseFloat(distance_meters) > maxRadius) {
+  if (parseFloat(distance_meters) > maxRadius && (!photo_base64 || photo_base64 === 'NO_PHOTO_PROVIDED_BY_FRONTEND')) {
     return { success: false, message: `Jarak ${Math.round(distance_meters)}m melebihi batas ${maxRadius}m` };
   }
 
@@ -415,9 +415,9 @@ function clockOut(body) {
   const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
   const isSaturday = (dayName === 'Saturday');
 
-  // Validasi radius
+  // Validasi radius (Dilewati jika ada foto / sudah take-photo)
   const maxRadius = parseFloat(getConfigVal('max_radius_meters', '200'));
-  if (parseFloat(distance_meters) > maxRadius) {
+  if (parseFloat(distance_meters) > maxRadius && (!photo_base64 || photo_base64 === 'NO_PHOTO_PROVIDED_BY_FRONTEND')) {
     return { success: false, message: `Jarak ${Math.round(distance_meters)}m melebihi batas ${maxRadius}m` };
   }
 

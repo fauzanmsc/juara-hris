@@ -12,15 +12,15 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="manifest" href="json/manifest.json">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/json/manifest.json">
 </head>
 
 <body class="leave-page">
   <div class="wrap-employee">
     <div class="header">
       <div style="display:flex; align-items:center; gap:14px;">
-        <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <a href="/employee" class="back-btn"><i class="bi bi-arrow-left"></i></a>
         <div class="header-info">
           <h2>Pengajuan</h2>
           <p>Cuti, Sakit &amp; Izin</p>
@@ -133,25 +133,25 @@
 
     <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-      <a href="employee.html" class="nav-item">
+      <a href="/employee" class="nav-item">
         <i class="bi bi-house-fill"></i>Beranda
       </a>
-      <a href="attendance.html" class="nav-item">
+      <a href="/employee/attendance" class="nav-item">
         <i class="bi bi-person-check-fill"></i>Absensi
       </a>
-      <a href="tasks.html" class="nav-item">
+      <a href="/employee/tasks" class="nav-item">
         <i class="bi bi-list-task"></i>Tugas
       </a>
-      <a href="leave.html" class="nav-item active">
+      <a href="/employee/leave" class="nav-item active">
         <i class="bi bi-calendar-check-fill"></i>Pengajuan
       </a>
-      <a href="history.html" class="nav-item">
+      <a href="/employee/history" class="nav-item">
         <i class="bi bi-clock-fill"></i>Riwayat
       </a>
     </nav>
 
   </div>
-  <script src="js/script.js"></script>
+  <script src="/js/script.js"></script>
 
 </body>
 

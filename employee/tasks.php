@@ -12,8 +12,8 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="manifest" href="json/manifest.json">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/json/manifest.json">
   <style>
     /* Premium iOS-style Toggle Switch */
     .toggle-switch-wrapper {
@@ -107,7 +107,23 @@
     /* Modern 24h input */
     input[type="time"] {
       font-weight: 700 !important;
-      color-scheme: dark;
+      color-scheme: light dark;
+    }
+
+    [data-theme="light"] input[type="time"] {
+      color-scheme: light;
+      color: #1a1a2e;
+    }
+
+    [data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.15);
+      opacity: 0.85;
+      cursor: pointer;
+    }
+
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.7;
     }
 
     /* In-app Document Preview Modal */
@@ -149,7 +165,7 @@
   <div class="wrap-employee">
     <div class="header">
       <div style="display:flex; align-items:center; gap:14px;">
-        <a href="employee.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <a href="/employee" class="back-btn"><i class="bi bi-arrow-left"></i></a>
         <div class="header-info">
           <h2>Tugas Daily</h2>
           <p>Productivity Monitoring</p>
@@ -303,19 +319,19 @@
 
     <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-      <a href="employee.html" class="nav-item">
+      <a href="/employee" class="nav-item">
         <i class="bi bi-house-fill"></i>Beranda
       </a>
-      <a href="attendance.html" class="nav-item">
+      <a href="/employee/attendance" class="nav-item">
         <i class="bi bi-person-check-fill"></i>Absensi
       </a>
-      <a href="tasks.html" class="nav-item active">
+      <a href="/employee/tasks" class="nav-item active">
         <i class="bi bi-list-task"></i>Tugas
       </a>
-      <a href="leave.html" class="nav-item">
+      <a href="/employee/leave" class="nav-item">
         <i class="bi bi-calendar-check-fill"></i>Pengajuan
       </a>
-      <a href="history.html" class="nav-item">
+      <a href="/employee/history" class="nav-item">
         <i class="bi bi-clock-fill"></i>Riwayat
       </a>
     </nav>
@@ -325,12 +341,13 @@
 
   <!-- Modal Preview Lampiran -->
   <div class="overlay hidden" id="modalPreview">
-    <div class="modal modal-lg" style="max-width: 600px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
-      <div class="modal-header" style="flex-shrink:0; margin-bottom:16px;">
+    <div class="modal border-animated-modal modal-lg" style="max-width: 600px; width: 95%;">
+      <div class="card-border-glow"></div>
+      <div class="modal-header" style="position:relative; z-index:2;">
         <h3 class="modal-title"><i class="bi bi-file-earmark-text-fill text-primary" style="margin-right:8px"></i> Preview Lampiran</h3>
         <button class="modal-close" onclick="closeModal('modalPreview')"><i class="bi bi-x"></i></button>
       </div>
-      <div class="modal-body" id="previewBody" style="flex:1; overflow-y:auto; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.15); border-radius:12px; min-height:350px;">
+      <div class="modal-body" id="previewBody" style="position:relative; z-index:2; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.15); border-radius:12px; min-height:350px;">
         <!-- Embedded Content -->
       </div>
     </div>
@@ -338,15 +355,16 @@
 
   <!-- Modal Detail Tugas -->
   <div class="overlay hidden" id="modalViewTask">
-    <div class="modal" style="max-width: 500px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
-      <div class="modal-header" style="flex-shrink:0; margin-bottom:16px;">
+    <div class="modal border-animated-modal" style="max-width: 500px; width: 95%;">
+      <div class="card-border-glow"></div>
+      <div class="modal-header" style="position:relative; z-index:2;">
         <h3 class="modal-title"><i class="bi bi-info-circle-fill text-primary" style="margin-right:8px"></i> Detail Tugas</h3>
         <button class="modal-close" onclick="closeModal('modalViewTask')"><i class="bi bi-x"></i></button>
       </div>
-      <div class="modal-body" id="viewTaskBody" style="flex:1; overflow-y:auto; padding:0; display:flex; flex-direction:column; gap:14px;">
+      <div class="modal-body" id="viewTaskBody" style="position:relative; z-index:2; display:flex; flex-direction:column; gap:14px;">
         <!-- Filled Dynamically -->
       </div>
-      <div class="modal-footer" style="flex-shrink:0; margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
+      <div class="modal-footer" style="position:relative; z-index:2;">
         <button class="btn btn-primary" onclick="closeModal('modalViewTask')" style="width:100%; border-radius:50px; font-weight:700;">Tutup</button>
       </div>
     </div>
@@ -354,81 +372,84 @@
 
   <!-- Modal Edit Tugas -->
   <div class="overlay hidden" id="modalEditTask">
-    <div class="modal" style="max-width: 500px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
-      <div class="modal-header" style="flex-shrink:0; margin-bottom:16px;">
+    <div class="modal border-animated-modal" style="max-width: 500px; width: 95%;">
+      <div class="card-border-glow"></div>
+      <div class="modal-header" style="position:relative; z-index:2;">
         <h3 class="modal-title"><i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Tugas</h3>
         <button class="modal-close" onclick="closeModal('modalEditTask')"><i class="bi bi-x"></i></button>
       </div>
-      <form id="editTaskForm" onsubmit="submitEditTask(event)" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; padding-right:4px;">
+      <form id="editTaskForm" onsubmit="submitEditTask(event)" style="display:contents;">
         <input type="hidden" id="editTaskId">
         
-        <div class="form-group">
-          <label class="form-label">Nama / Judul Tugas*</label>
-          <input type="text" id="editTaskName" required class="form-control" placeholder="Nama tugas...">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Target / Goals*</label>
-          <input type="text" id="editTaskTarget" required class="form-control" placeholder="Target pencapaian...">
-        </div>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="modal-body" style="position:relative; z-index:2;">
           <div class="form-group">
-            <label class="form-label">Mulai Jam*</label>
-            <input type="time" id="editTaskStartTime" required class="form-control">
+            <label class="form-label">Nama / Judul Tugas*</label>
+            <input type="text" id="editTaskName" required class="form-control" placeholder="Nama tugas...">
           </div>
+          
           <div class="form-group">
-            <label class="form-label">Selesai Jam*</label>
-            <input type="time" id="editTaskEndTime" required class="form-control">
+            <label class="form-label">Target / Goals*</label>
+            <input type="text" id="editTaskTarget" required class="form-control" placeholder="Target pencapaian...">
+          </div>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Mulai Jam*</label>
+              <input type="time" id="editTaskStartTime" required class="form-control">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Selesai Jam*</label>
+              <input type="time" id="editTaskEndTime" required class="form-control">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Output Yang Dihasilkan*</label>
+            <input type="text" id="editTaskOutput" required class="form-control" placeholder="Output yang dihasilkan...">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Status Tugas*</label>
+            <div class="toggle-switch-wrapper">
+              <span class="toggle-label" id="edit-status-label-left">Belum</span>
+              <label class="switch">
+                <input type="checkbox" id="editTaskStatusToggle" onchange="updateToggleLabel(this, 'edit-status-label-left', 'edit-status-label-right')">
+                <span class="slider round"></span>
+              </label>
+              <span class="toggle-label" id="edit-status-label-right">Selesai</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Catatan / Issue (Opsional)</label>
+            <textarea id="editTaskNotes" class="form-control" rows="2" placeholder="Catatan issue jika ada..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Lainnya (Opsional)</label>
+            <textarea id="editTaskOthers" class="form-control" rows="2" placeholder="Info lainnya..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Ganti Lampiran (Opsional)</label>
+            <input type="file" id="editTaskFile" class="form-control" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
           </div>
         </div>
         
-        <div class="form-group">
-          <label class="form-label">Output Yang Dihasilkan*</label>
-          <input type="text" id="editTaskOutput" required class="form-control" placeholder="Output yang dihasilkan...">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Status Tugas*</label>
-          <div class="toggle-switch-wrapper">
-            <span class="toggle-label" id="edit-status-label-left">Belum</span>
-            <label class="switch">
-              <input type="checkbox" id="editTaskStatusToggle" onchange="updateToggleLabel(this, 'edit-status-label-left', 'edit-status-label-right')">
-              <span class="slider round"></span>
-            </label>
-            <span class="toggle-label" id="edit-status-label-right">Selesai</span>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Catatan / Issue (Opsional)</label>
-          <textarea id="editTaskNotes" class="form-control" rows="2" placeholder="Catatan issue jika ada..."></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Lainnya (Opsional)</label>
-          <textarea id="editTaskOthers" class="form-control" rows="2" placeholder="Info lainnya..."></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Ganti Lampiran (Opsional)</label>
-          <input type="file" id="editTaskFile" class="form-control" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-        </div>
-        
-        <div class="modal-footer" style="flex-shrink:0; margin-top:16px; border-top:1px solid var(--border); padding-top:16px; display:flex; gap:10px;">
-          <button type="button" class="btn btn-ghost" onclick="closeModal('modalEditTask')" style="flex:1; border-radius:50px;">Batal</button>
-          <button type="submit" class="btn btn-primary" id="editSubmitBtn" style="flex:1; border-radius:50px; font-weight:700;">Simpan</button>
+        <div class="modal-footer" style="position:relative; z-index:2;">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modalEditTask')">Batal</button>
+          <button type="submit" class="btn btn-primary" id="editSubmitBtn">Simpan</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="js/script.js"></script>
+  <script src="/js/script.js"></script>
   <script>
     // Ensure active user is logged in
     const currentUser = JSON.parse(sessionStorage.getItem('hris_user')) || JSON.parse(localStorage.getItem('hris_user'));
     if (!currentUser || currentUser.role !== 'Employee') {
-      window.location.href = 'index.html';
+      window.location.href = window.getRedirectUrl('index');
     }
 
     // Active States

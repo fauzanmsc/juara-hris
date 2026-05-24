@@ -6,18 +6,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>JEF HRIS — Portal Karyawan</title>
   <meta name="theme-color" content="#FFB703">
-  <link rel="manifest" href="json/manifest.json">
+  <link rel="manifest" href="/json/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 
 </head>
 
 <body class="employee-page">
+
+  <!-- PAGE LOADER -->
+  <div id="employeePageLoader" style="position:fixed; inset:0; z-index:999999; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; transition:opacity 0.4s ease, visibility 0.4s ease;">
+    <div style="width:48px; height:48px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+    <p style="font-size:13px; font-weight:700; color:var(--text-muted); font-family:var(--font-head); letter-spacing:0.5px;">Memuat Dashboard...</p>
+  </div>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 
   <div class="wrap-employee">
     <div class="header">
@@ -133,7 +142,7 @@
             <div class="time-lbl">Masuk</div>
             <div class="time-val" id="clockInTime">--:--</div>
             <div><span class="status-chip chip-empty" id="statusIn"
-                onclick="if(this.textContent.trim() === 'Belum absen') window.location.href='attendance.html'">Belum
+                onclick="if(this.textContent.trim() === 'Belum absen') window.location.href=window.getRedirectUrl('attendance')">Belum
                 absen</span></div>
           </div>
           <div class="time-divider"></div>
@@ -148,22 +157,22 @@
       <!-- MENU -->
       <div class="section-label">Menu Utama</div>
       <div class="menu-grid stagger fade-in">
-        <a href="attendance.html" class="menu-card">
+        <a href="/employee/attendance" class="menu-card">
           <div class="menu-icon icon-yellow"><i class="bi bi-person-check-fill"></i></div>
           <h4>Absensi</h4>
           <p>Clock In &amp; Clock Out harian</p>
         </a>
-        <a href="leave.html" class="menu-card">
+        <a href="/employee/leave" class="menu-card">
           <div class="menu-icon icon-success"><i class="bi bi-calendar-check-fill"></i></div>
           <h4>Pengajuan</h4>
           <p>Cuti, Sakit &amp; Izin</p>
         </a>
-        <a href="history.html" class="menu-card">
+        <a href="/employee/history" class="menu-card">
           <div class="menu-icon icon-blue"><i class="bi bi-clock-fill"></i></div>
           <h4>Riwayat</h4>
           <p>Histori kehadiran Anda</p>
         </a>
-        <a href="leave.html?tab=history" class="menu-card">
+        <a href="/employee/leave?tab=history" class="menu-card">
           <div class="menu-icon icon-danger"><i class="bi bi-folder-fill"></i></div>
           <h4>Status Ajuan</h4>
           <p>Tracking pengajuan</p>
@@ -187,84 +196,73 @@
 
     <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-      <a href="employee.html" class="nav-item active">
+      <a href="/employee" class="nav-item active">
         <i class="bi bi-house-fill"></i>Beranda
       </a>
-      <a href="attendance.html" class="nav-item">
+      <a href="/employee/attendance" class="nav-item">
         <i class="bi bi-person-check-fill"></i>Absensi
       </a>
-      <a href="tasks.html" class="nav-item">
+      <a href="/employee/tasks" class="nav-item">
         <i class="bi bi-list-task"></i>Tugas
       </a>
-      <a href="leave.html" class="nav-item">
+      <a href="/employee/leave" class="nav-item">
         <i class="bi bi-calendar-check-fill"></i>Pengajuan
       </a>
-      <a href="history.html" class="nav-item">
+      <a href="/employee/history" class="nav-item">
         <i class="bi bi-clock-fill"></i>Riwayat
       </a>
     </nav>
   </div>
   <!-- EDIT PROFILE MODAL -->
-  <div id="editProfileModal"
-    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-    <div class="modal-content"
-      style="background:var(--bg-modal-gradient); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:400px; padding:24px; box-shadow:var(--shadow-neu-flat); position:relative; animation:slideUp var(--transition);">
-      <button onclick="closeEditProfileModal()"
-        style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; font-size:14px; transition:all var(--transition);">
-        <i class="bi bi-x-lg"></i>
-      </button>
-      <h3
-        style="font-family:var(--font-head); font-weight:800; font-size:18px; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
-        <i class="bi bi-person-gear" style="color:var(--primary);"></i> Edit Profil Karyawan
-      </h3>
-
-      <!-- Preview Avatar -->
-      <div style="text-align:center; margin-bottom:20px;">
-        <div id="modalAvatarPreview"
-          style="width:72px; height:72px; border-radius:50%; background:var(--bg-disabled); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; font-family:var(--font-head); margin:0 auto 10px; overflow:hidden;">
-          U</div>
-        <label class="btn-ghost"
-          style="display:inline-block; font-size:12px; padding:6px 14px; border-radius:50px; cursor:pointer; font-weight:600; border:1px solid var(--border); background:rgba(255,255,255,0.04); transition:all var(--transition);">
-          <i class="bi bi-image"></i> Pilih Foto Baru
-          <input type="file" id="editProfilePicFile" accept="image/*" onchange="previewEditProfilePic(this)"
-            style="display:none;">
-        </label>
+  <div class="overlay hidden" id="editProfileModal">
+    <div class="modal border-animated-modal" style="max-width: 400px; width: 95%;">
+      <div class="card-border-glow"></div>
+      <div class="modal-header" style="position:relative; z-index:2;">
+        <h3 class="modal-title"><i class="bi bi-person-gear text-primary" style="margin-right:8px"></i> Edit Profil Karyawan</h3>
+        <button class="modal-close" onclick="closeEditProfileModal()"><i class="bi bi-x"></i></button>
       </div>
+      
+      <div class="modal-body" style="position:relative; z-index:2;">
+        <!-- Preview Avatar -->
+        <div style="text-align:center; margin-bottom:20px;">
+          <div id="modalAvatarPreview"
+            style="width:72px; height:72px; border-radius:50%; background:var(--bg-disabled); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; font-family:var(--font-head); margin:0 auto 10px; overflow:hidden;">
+            U</div>
+          <label class="btn-ghost"
+            style="display:inline-block; font-size:12px; padding:6px 14px; border-radius:50px; cursor:pointer; font-weight:600; border:1px solid var(--border); background:rgba(255,255,255,0.04); transition:all var(--transition);">
+            <i class="bi bi-image"></i> Pilih Foto Baru
+            <input type="file" id="editProfilePicFile" accept="image/*" onchange="previewEditProfilePic(this)"
+              style="display:none;">
+          </label>
+        </div>
 
-      <div class="form-group" style="margin-bottom:16px;">
-        <label class="form-label"
-          style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">Nama</label>
-        <input type="text" id="editProfileName" class="form-input"
-          style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none;"
-          readonly disabled>
-        <span style="font-size:10px; color:var(--text-muted); margin-top:4px; display:block;">Nama hanya dapat diubah
-          oleh administrator</span>
-      </div>
+        <div class="form-group">
+          <label class="form-label">Nama</label>
+          <input type="text" id="editProfileName" class="form-control" readonly disabled>
+          <span style="font-size:10px; color:var(--text-muted); margin-top:4px; display:block;">Nama hanya dapat diubah oleh administrator</span>
+        </div>
 
-      <div class="form-group" style="margin-bottom:20px;">
-        <label class="form-label"
-          style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:block;">PIN
-          Keamanan / Password (6 Digit)</label>
-        <div style="position:relative;">
-          <input type="password" id="editProfilePin" class="form-input" maxlength="6" pattern="[0-9]*"
-            inputmode="numeric"
-            style="width:100%; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; color:var(--text); outline:none; padding-right:40px;"
-            placeholder="Masukkan 6 digit PIN baru">
-          <button type="button" onclick="toggleEditProfilePinVis()"
-            style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">
-            <i class="bi bi-eye-fill" id="editProfilePinEye"></i>
-          </button>
+        <div class="form-group">
+          <label class="form-label">PIN Keamanan / Password (6 Digit)</label>
+          <div style="position:relative;">
+            <input type="password" id="editProfilePin" class="form-control" maxlength="6" pattern="[0-9]*"
+              inputmode="numeric" style="padding-right:40px;" placeholder="Masukkan 6 digit PIN baru">
+            <button type="button" onclick="toggleEditProfilePinVis()"
+              style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">
+              <i class="bi bi-eye-fill" id="editProfilePinEye"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <button class="btn-submit" id="btnSaveProfile" onclick="submitEditProfile()"
-        style="width:100%; padding:14px; background:linear-gradient(135deg, var(--primary), var(--primary-dark)); border:none; border-radius:50px; color:#FFF; font-family:var(--font-head); font-weight:900; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(255,183,3,0.3);">
-        <i class="bi bi-check-circle-fill"></i> SIMPAN PERUBAHAN
-      </button>
+      <div class="modal-footer" style="position:relative; z-index:2;">
+        <button class="btn btn-ghost" onclick="closeEditProfileModal()">Batal</button>
+        <button class="btn btn-primary" id="btnSaveProfile" onclick="submitEditProfile()"><i class="bi bi-check-circle-fill" style="margin-right:6px;"></i> Simpan</button>
+      </div>
     </div>
   </div>
 
-  <script src="js/script.js"></script>
+  <script src="/js/script.js"></script>
 </body>
 
 </html>

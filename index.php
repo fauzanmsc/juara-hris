@@ -55,13 +55,13 @@
   <!-- LEFT PANEL -->
   <div class="left-panel">
     <div class="brand" onclick="window.location.reload()" style="cursor: pointer;">
-      <div class="brand-logo">JG</div>
-      <div class="brand-name">JEF <span>GROUP</span></div>
+      <img src="img/logo-jef.png" alt="JEF GROUP" class="logo-dark" style="height: 46px; width: auto; object-fit: contain;">
+      <img src="img/logo-jef-light.png" alt="JEF GROUP" class="logo-light" style="height: 46px; width: auto; object-fit: contain;">
     </div>
 
     <div class="hero">
       <h1 class="animate-h1">Human Capital <span class="hc-pulse-badge">⚡</span><br><span
-          class="grad">e-Attendance</span></h1>
+          class="grad">HRIS Platform</span></h1>
       <p class="animate-p">Platform manajemen kehadiran karyawan berbasis Google Workspace untuk seluruh tim JEF Group.
       </p>
 
@@ -94,8 +94,8 @@
   <div class="right-panel">
     <!-- MOBILE BRAND LOGO (Shown only on Mobile) -->
     <div class="brand mobile-brand" onclick="window.location.reload()" style="cursor: pointer;">
-      <div class="brand-logo">JG</div>
-      <div class="brand-name">JEF <span>GROUP</span></div>
+      <img src="img/logo-jef.png" alt="JEF GROUP" class="logo-dark" style="height: 46px; width: auto; object-fit: contain;">
+      <img src="img/logo-jef-light.png" alt="JEF GROUP" class="logo-light" style="height: 46px; width: auto; object-fit: contain;">
     </div>
 
     <div id="loginFormSection">
@@ -153,13 +153,13 @@
       <!-- Registration Card Neumorphisme -->
       <div class="reg-modal-card">
         <div class="card-border-glow"></div>
-        <button class="reg-modal-close" onclick="showLogin()" type="button" style="display: none;">&times;</button>
+        <button class="reg-modal-close" onclick="showLogin()" type="button">&times;</button>
 
         <div class="form-header" style="margin-bottom: 20px; text-align:center;">
           <h2 style="font-size:22px; font-weight:800; color:var(--text); font-family:var(--font-head); margin: 0;">
-            Registrasi Karyawan <span class="reg-pencil-anim">📝</span></h2>
+            Registrasi Karyawan</h2>
           <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Lengkapi data diri Anda untuk akses
-            e-Attendance</p>
+            HRIS Platform</p>
         </div>
 
         <div class="alert-box" id="registerAlertBox">
@@ -259,7 +259,7 @@
   <!-- WA CHAT POPUP WINDOW -->
   <div class="wa-chat-popup hidden" id="waChatPopup">
     <div class="wa-chat-header">
-      <div class="wa-chat-avatar">JG</div>
+      <div class="wa-chat-avatar"><i class="bi bi-person-fill-gear" style="font-size:18px;"></i></div>
       <div class="wa-chat-header-info">
         <h4>HC Support</h4>
         <p><span class="wa-chat-dot"></span> Online</p>
@@ -305,11 +305,11 @@
       setInterval(updateLoginClock, 1000);
       updateLoginClock();
 
-      // Typewriter typing animation for e-Attendance header & descriptions
+      // Typewriter typing animation for HRIS Platform header & descriptions
       const h1El = document.querySelector('.animate-h1');
       const pEl = document.querySelector('.animate-p');
       if (h1El) {
-        const originalH1 = `Human Capital <span class="hc-pulse-badge">⚡</span><br><span class="grad">e-Attendance</span>`;
+        const originalH1 = `Human Capital <span class="hc-pulse-badge">⚡</span><br><span class="grad">HRIS Platform</span>`;
         h1El.innerHTML = '';
         let index = 0;
         const speed = 40;

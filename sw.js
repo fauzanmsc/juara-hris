@@ -1,13 +1,21 @@
-const CACHE_NAME = 'jef-hris-cache-v9';
+const CACHE_NAME = 'jef-hris-cache-v10';
 const urlsToCache = [
   '/',
-  '/index.html',
-  '/employee.html',
-  '/attendance.html',
-  '/tasks.html',
-  '/leave.html',
-  '/history.html',
-  '/admin.html',
+  '/index',
+  '/employee',
+  '/attendance',
+  '/tasks',
+  '/leave',
+  '/history',
+  '/admin/dashboard',
+  '/admin/users',
+  '/admin/approval',
+  '/admin/attendance',
+  '/admin/leave-report',
+  '/admin/positions',
+  '/admin/tasks',
+  '/admin/holidays',
+  '/admin/config',
   '/css/style.css',
   '/js/script.js'
 ];
