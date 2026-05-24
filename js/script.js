@@ -418,6 +418,21 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
             }
         }
 
+        window.toggleRegPass = function () {
+            const inp = document.getElementById('regPassword');
+            const icon = document.getElementById('toggleRegPassIcon');
+            const btn = document.getElementById('toggleRegPassBtn');
+            if (!inp || !icon) return;
+
+            const isHidden = inp.type === 'password';
+            inp.type = isHidden ? 'text' : 'password';
+            icon.className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+            if (btn) {
+                btn.setAttribute('aria-label', isHidden ? 'Sembunyikan PIN registrasi' : 'Tampilkan PIN registrasi');
+                btn.title = isHidden ? 'Sembunyikan PIN' : 'Tampilkan PIN';
+            }
+        }
+
         window.showAlert = function (msg, type = 'error') {
             const box = document.getElementById('alertBox');
             if (box) {

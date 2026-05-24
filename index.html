@@ -213,6 +213,10 @@
                 <i class="bi bi-shield-lock input-icon"></i>
                 <input type="password" id="regPassword" placeholder="Buat PIN" required maxlength="6" pattern="\d{6}"
                   inputmode="numeric">
+                <button class="toggle-pass reg-toggle-pass" id="toggleRegPassBtn" onclick="toggleRegPass()" type="button"
+                  aria-label="Tampilkan PIN registrasi" title="Tampilkan PIN">
+                  <i class="bi bi-eye" id="toggleRegPassIcon"></i>
+                </button>
               </div>
             </div>
           </div>
