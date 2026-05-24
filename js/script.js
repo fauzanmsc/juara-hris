@@ -29,15 +29,17 @@ window.getRedirectUrl = function (page) {
     else page = page.replace('.html', '').replace('.php', '');
     
     // Always use absolute paths for reliable navigation
-    if (page === 'admin') return '/admin';
-    if (page === 'employee') return '/employee';
-    if (page === 'index') return '/';
+    if (page === 'admin' || page === 'dashboard') return '/admin/dashboard.html';
+    if (page === 'employee' || page === 'beranda') return '/employee/beranda.html';
+    if (page === 'index') return '/index.html';
     
-    if (isInsideAdmin) return '/admin/' + page;
-    if (isInsideEmployee || ['attendance', 'history', 'leave', 'tasks', 'beranda'].includes(page)) {
-        return '/employee/' + page;
+    if (isInsideAdmin || ['users', 'approval', 'attendance', 'leave-report', 'positions', 'tasks', 'holidays', 'config'].includes(page)) {
+        return '/admin/' + page + '.html';
     }
-    return '/' + page;
+    if (isInsideEmployee || ['attendance', 'history', 'leave', 'tasks', 'beranda'].includes(page)) {
+        return '/employee/' + page + '.html';
+    }
+    return '/' + page + '.html';
 };
 
 // Register Service Worker globally for caching and instant performance updates
