@@ -167,7 +167,17 @@ if (isInsideAdmin) {
 
 // Register Service Worker globally for caching and instant performance updates
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => {
+    let refreshingForUpdate = false;
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshingForUpdate) return;
+        refreshingForUpdate = true;
+        window.location.reload();
+    });
+
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+        reg.update();
+
         reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing;
             if (newWorker) {
@@ -177,13 +187,16 @@ if ('serviceWorker' in navigator) {
                         caches.keys().then(names => {
                             return Promise.all(names.map(name => caches.delete(name)));
                         }).then(() => {
-                            console.log('Cache dikosongkan. Memuat ulang halaman...');
-                            window.location.reload();
+                            newWorker.postMessage('SKIP_WAITING');
                         });
                     }
                 });
             }
         });
+
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage('CLEAR_CACHE');
+        }
     }).catch(() => { });
 }
 

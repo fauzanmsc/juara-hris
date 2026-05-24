@@ -1,82 +1,105 @@
-const CACHE_NAME = 'jef-hris-cache-v8';
-const urlsToCache = [
+const CACHE_VERSION = 'v2026-05-25-1';
+const CACHE_NAME = `jef-hris-cache-${CACHE_VERSION}`;
+const APP_SHELL = [
   '/',
-  '/index',
-  '/employee',
-  '/attendance',
-  '/tasks',
-  '/leave',
-  '/history',
-  '/admin/dashboard',
-  '/admin/users',
-  '/admin/approval',
-  '/admin/attendance',
-  '/admin/leave-report',
-  '/admin/positions',
-  '/admin/tasks',
-  '/admin/holidays',
-  '/admin/config',
+  '/index.html',
+  '/employee/beranda.html',
+  '/employee/attendance.html',
+  '/employee/tasks.html',
+  '/employee/leave.html',
+  '/employee/history.html',
+  '/admin/dashboard.html',
+  '/admin/users.html',
+  '/admin/approval.html',
+  '/admin/attendance.html',
+  '/admin/leave-report.html',
+  '/admin/positions.html',
+  '/admin/tasks.html',
+  '/admin/holidays.html',
+  '/admin/config.html',
   '/css/style.css',
-  '/js/script.js'
+  '/js/script.js',
+  '/img/logomark.png',
+  '/img/profile.png'
 ];
+
+const isSameOrigin = request => new URL(request.url).origin === self.location.origin;
+const isApiRequest = request => {
+  const url = request.url;
+  return url.includes('script.google.com') || url.includes('action=');
+};
+
+async function clearOldCaches() {
+  const cacheNames = await caches.keys();
+  await Promise.all(cacheNames.map(cacheName => {
+    if (cacheName !== CACHE_NAME) {
+      return caches.delete(cacheName);
+    }
+    return Promise.resolve();
+  }));
+}
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+      .then(cache => cache.addAll(APP_SHELL.map(url => new Request(url, { cache: 'reload' }))))
+      .catch(() => undefined)
   );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      caches.keys().then(cacheNames => {
-        return Promise.all(
-          cacheNames.map(cacheName => {
-            if (cacheName !== CACHE_NAME) {
-              console.log('Clearing old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-    ])
+    clearOldCaches().then(() => self.clients.claim())
   );
 });
 
-// Stale-While-Revalidate Caching Strategy
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+
+  if (event.data === 'CLEAR_CACHE') {
+    event.waitUntil(clearOldCaches());
+  }
+});
+
 self.addEventListener('fetch', event => {
-  // Only cache GET requests
-  if (event.request.method !== 'GET') {
-    event.respondWith(fetch(event.request));
+  const { request } = event;
+
+  if (request.method !== 'GET' || !isSameOrigin(request) || isApiRequest(request)) {
     return;
   }
 
-  // Bypass caching for Apps Script API requests to prevent stale API responses
-  if (event.request.url.includes('script.google.com') || event.request.url.includes('action=')) {
-    event.respondWith(fetch(event.request));
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(request);
+          return cached || caches.match('/index.html');
+        })
+    );
     return;
   }
 
   event.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.match(event.request).then(cachedResponse => {
-        const fetchedResponse = fetch(event.request).then(networkResponse => {
-          if (networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
+    caches.open(CACHE_NAME).then(async cache => {
+      const cached = await cache.match(request);
+      const networkFetch = fetch(request)
+        .then(response => {
+          if (response && response.status === 200) {
+            cache.put(request, response.clone());
           }
-          return networkResponse;
-        }).catch(() => {
-          // Swallow network errors silently
-        });
+          return response;
+        })
+        .catch(() => cached);
 
-        // Return cached response immediately if available, otherwise fetch from network
-        return cachedResponse || fetchedResponse;
-      });
+      return cached || networkFetch;
     })
   );
 });
