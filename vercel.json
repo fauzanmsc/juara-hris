@@ -1,19 +1,12 @@
 {
   "version": 2,
   "functions": {
-    "**/*.php": {
+    "api/index.php": {
       "runtime": "vercel-php@0.9.0"
     }
   },
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/admin/?", "dest": "/admin/dashboard.php" },
-    { "src": "/admin/([^/.]+)/?", "dest": "/admin/$1.php" },
-    { "src": "/employee/?", "dest": "/employee/beranda.php" },
-    { "src": "/employee/beranda/?", "dest": "/employee/beranda.php" },
-    { "src": "/employee/([^/.]+)/?", "dest": "/employee/$1.php" },
-    { "src": "/index/?", "dest": "/index.php" },
-    { "src": "/$", "dest": "/index.php" },
-    { "src": "/([^/.]+)/?", "dest": "/$1.php" }
+    { "src": "/(.*)", "dest": "/api/index.php" }
   ]
 }
