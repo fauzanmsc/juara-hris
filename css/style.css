@@ -850,7 +850,8 @@ select.form-control option {
 
 .table-wrap table {
   width: 100%;
-  min-width: 900px;
+  min-width: 100%;
+  table-layout: auto;
 }
 
 table {
@@ -875,6 +876,30 @@ thead th {
   border-bottom: none !important;
   white-space: nowrap;
   border-radius: 10px;
+}
+
+@media (max-width: 992px) {
+  .table-wrap table {
+    min-width: 100% !important;
+  }
+
+  .table-wrap {
+    max-height: none;
+  }
+
+  thead th,
+  tbody td {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .table-wrap table {
+    font-size: 12px;
+  }
+
+  .table-wrap table thead th {
+    white-space: normal !important;
+  }
 }
 
 tbody td {
@@ -1299,6 +1324,41 @@ html[data-theme="dark"] .sidebar-link.active {
 @media (max-width: 768px) {
   .topbar-subtitle {
     display: none !important;
+  }
+
+  .admin-topbar {
+    padding: 0 16px;
+    height: auto;
+    min-height: 64px;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .theme-toggle-btn,
+  .refresh-toggle-btn,
+  .header-logout-btn {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 14px !important;
+    padding: 0 !important;
+  }
+
+  .clock-chip {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    gap: 6px !important;
+  }
+
+  .clock-chip span {
+    font-size: 11px !important;
   }
 }
 
