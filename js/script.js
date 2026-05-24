@@ -2410,8 +2410,13 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showToast(`${attendanceMode === 'in' ? 'Clock In' : 'Clock Out'} berhasil! ${result.status || ''}`, 'success');
-                    setTimeout(() => window.location.href = window.getRedirectUrl('employee'), 2000);
+                    const actionLabel = attendanceMode === 'in' ? 'Clock In' : 'Clock Out';
+                    const successMessage = `${actionLabel} berhasil${result.status ? ` dengan status ${result.status}` : ''}.`;
+                    showToast(successMessage, 'success');
+                    if (typeof window.showModalAlert === 'function') {
+                        window.showModalAlert('Absensi Berhasil', successMessage, 'success');
+                    }
+                    setTimeout(() => window.location.href = window.getRedirectUrl('employee'), 2800);
                 } else {
                     showToast(result.message || 'Gagal menyimpan absensi', 'error');
                     btn.disabled = false;
