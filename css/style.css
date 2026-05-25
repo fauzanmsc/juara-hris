@@ -33,25 +33,33 @@
   --radius-lg: 24px;
   --radius-xl: 32px;
 
-/* Reduce card border-radius on small screens for a less rounded look */
-@media (max-width: 640px) {
-  :root {
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 14px;
+  /* Reduce card border-radius on small screens for a less rounded look */
+  @media (max-width: 640px) {
+    :root {
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 14px;
+    }
+
+    /* Ensure modals and cards apply the new radii */
+    .modal,
+    .card,
+    .reg-modal-card,
+    .reg-modal-container,
+    .reg-modal-card .card-border-glow {
+      border-radius: var(--radius-md) !important;
+    }
   }
 
-  /* Ensure modals and cards apply the new radii */
-  .modal, .card, .reg-modal-card, .reg-modal-container, .reg-modal-card .card-border-glow {
-    border-radius: var(--radius-md) !important;
-  }
-}
   --shadow-glow: 0 4px 16px rgba(255, 146, 0, 0.15);
   --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.25);
-  --shadow-neu-flat: 4px 4px 12px rgba(0, 0, 0, 0.25), -4px -4px 12px rgba(255, 255, 255, 0.02);
-  --shadow-neu-inset: inset 2px 2px 6px rgba(0, 0, 0, 0.25), inset -2px -2px 6px rgba(255, 255, 255, 0.02);
-  --shadow-neu-soft: 2px 2px 8px rgba(0, 0, 0, 0.2), -2px -2px 8px rgba(255, 255, 255, 0.01);
+  --shadow-neu-flat: 4px 4px 12px rgba(0, 0, 0, 0.25),
+  -4px -4px 12px rgba(255, 255, 255, 0.02);
+  --shadow-neu-inset: inset 2px 2px 6px rgba(0, 0, 0, 0.25),
+  inset -2px -2px 6px rgba(255, 255, 255, 0.02);
+  --shadow-neu-soft: 2px 2px 8px rgba(0, 0, 0, 0.2),
+  -2px -2px 8px rgba(255, 255, 255, 0.01);
   --transition: 0.15s ease-out;
   --sidebar-w: 260px;
 
@@ -797,7 +805,7 @@ body.image-preview-open {
 
 /* Employee page loader blur overlay */
 #employeePageLoader {
-  background: rgba(14,14,16,0.45);
+  background: rgba(14, 14, 16, 0.45);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 99999;
@@ -911,10 +919,11 @@ body.image-preview-open {
 
 
 /* Ensure modal stays visually centered on devices (including when mobile browser UI changes) */
-.overlay > .modal {
+.overlay>.modal {
   margin: auto;
   transform: translateZ(0);
 }
+
 .modal-body::-webkit-scrollbar-thumb {
   background: rgba(255, 146, 0, 0.2);
   border-radius: 10px;
@@ -1460,7 +1469,7 @@ html[data-theme="dark"] .sidebar-link.active {
     flex-wrap: nowrap !important;
   }
 
-  .admin-topbar > div:first-child {
+  .admin-topbar>div:first-child {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1545,7 +1554,7 @@ html[data-theme="dark"] .sidebar-link.active {
 .theme-toggle-btn {
   border: 1px solid var(--border) !important;
   /* softer, subtler shadow for header icons */
-  box-shadow: 0 6px 12px rgba(2,6,23,0.04) !important;
+  box-shadow: 0 6px 12px rgba(2, 6, 23, 0.04) !important;
   border-radius: 50% !important;
   width: 32px !important;
   height: 32px !important;
@@ -1560,16 +1569,16 @@ html[data-theme="dark"] .sidebar-link.active {
 
 .theme-toggle-btn:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 18px rgba(2,6,23,0.05) !important;
+  box-shadow: 0 10px 18px rgba(2, 6, 23, 0.05) !important;
 }
 
 /* Apply same subtle shadow to generic topbar buttons */
 .topbar-btn {
-  box-shadow: 0 6px 12px rgba(2,6,23,0.03);
+  box-shadow: 0 6px 12px rgba(2, 6, 23, 0.03);
 }
 
 .topbar-btn:hover {
-  box-shadow: 0 10px 18px rgba(2,6,23,0.04);
+  box-shadow: 0 10px 18px rgba(2, 6, 23, 0.04);
 }
 
 .clock-chip {
@@ -1684,6 +1693,7 @@ html[data-theme="dark"] .sidebar-link.active {
   padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
   z-index: 100;
   box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12);
+  border-radius: 20px 20px 0 0;
 }
 
 .nav-item {
@@ -2099,7 +2109,7 @@ html[data-theme="dark"] .sidebar-link.active {
   }
 
   .filter-row .input-group,
-  .filter-row > div {
+  .filter-row>div {
     max-width: 100% !important;
   }
 
@@ -3036,7 +3046,7 @@ body.employee-page .val-primary {
 body.employee-page .today-card {
   background: var(--bg-glass);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: 20px;
 }
 
@@ -4733,7 +4743,7 @@ html[data-theme="light"] body.employee-page .radial-bg-ring {
 body.employee-page .date-bar {
   background: var(--bg-card) !important;
   border: 1px solid var(--border) !important;
-  border-radius: var(--radius-lg) !important;
+  border-radius: var(--radius-md) !important;
   padding: 16px 20px !important;
   display: flex !important;
   justify-content: space-between !important;
@@ -5869,16 +5879,21 @@ table td .avatar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--border);
+  border-radius: 0;
+  padding: 8px 4px;
   transition: all 0.2s ease;
 }
 
+.top-emp-item:last-child {
+  border-bottom: none;
+}
+
 .top-emp-item:hover {
-  border-color: var(--primary);
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  transform: translateX(4px);
 }
 
 .top-emp-left {
@@ -5940,6 +5955,12 @@ table td .avatar {
   .analytics-row {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+  
+  .wrap-employee .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
 }
 

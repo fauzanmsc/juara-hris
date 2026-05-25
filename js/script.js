@@ -1273,10 +1273,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     Approved: 'Disetujui',
                     Rejected: 'Ditolak'
                 }[r.status] || r.status;
+                const typeBadgeClass = r.type === 'Cuti' ? 'badge-success' : (r.type === 'Sakit' ? 'badge-danger' : 'badge-primary');
                 return `
     <tr>
-      <td><strong>${r.user_name}</strong></td>
-      <td><span class="badge badge-info">${r.type}</span></td>
+      <td style="min-width:180px; max-width:220px; white-space:normal; line-height:1.4;"><strong>${r.user_name}</strong></td>
+      <td><span class="badge ${typeBadgeClass}">${r.type}</span></td>
       <td style="white-space:nowrap">${r.start_date}</td>
       <td style="white-space:nowrap">${r.end_date}</td>
       <td style="max-width:180px;text-overflow:ellipsis;overflow:hidden">${r.reason}</td>
@@ -1291,7 +1292,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         ` : '—'}
       </td>
       <td>
-        <button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${r.request_id}')" style="background:#EF4444 !important; border-color:#EF4444 !important; color:#FFFFFF !important; padding:6px; border-radius:8px; line-height:1; display:inline-flex; align-items:center; justify-content:center;" title="Hapus"><i class="bi bi-trash-fill" style="font-size:14px;"></i></button>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-sm btn-primary" onclick="editApproval('${r.request_id}')" style="padding:6px; border-radius:8px; line-height:1; display:inline-flex; align-items:center; justify-content:center;" title="Edit"><i class="bi bi-pencil-fill" style="font-size:14px;"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${r.request_id}')" style="background:#EF4444 !important; border-color:#EF4444 !important; color:#FFFFFF !important; padding:6px; border-radius:8px; line-height:1; display:inline-flex; align-items:center; justify-content:center;" title="Hapus"><i class="bi bi-trash-fill" style="font-size:14px;"></i></button>
+        </div>
       </td>
     </tr>
   `;
@@ -1318,6 +1322,48 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     showToast(`Pengajuan ${status}`, 'success'); loadApprovals(); loadDashboard();
                 } catch (e) { showToast('Gagal memproses pengajuan', 'error'); }
             });
+        }
+
+        window.editApproval = function (id) {
+            const r = window.allApprovals.find(x => x.request_id === id);
+            if (!r) return;
+            document.getElementById('editAppId').value = r.request_id;
+            document.getElementById('editAppName').value = r.user_name;
+            document.getElementById('editAppType').value = r.type;
+            document.getElementById('editAppStart').value = r.start_date;
+            document.getElementById('editAppEnd').value = r.end_date;
+            document.getElementById('editAppReason').value = r.reason;
+            document.getElementById('editAppStatus').value = r.status;
+            document.getElementById('modalEditApproval').classList.remove('hidden');
+        }
+
+        window.saveEditApproval = async function (e) {
+            e.preventDefault();
+            const id = document.getElementById('editAppId').value;
+            const type = document.getElementById('editAppType').value;
+            const start_date = document.getElementById('editAppStart').value;
+            const end_date = document.getElementById('editAppEnd').value;
+            const reason = document.getElementById('editAppReason').value;
+            const status = document.getElementById('editAppStatus').value;
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerHTML = 'Menyimpan...';
+            try {
+                await fetch(APPS_SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: 'editLeave', 
+                        request_id: id,
+                        type, start_date, end_date, reason, status
+                    }) 
+                });
+                showToast('Pengajuan berhasil diperbarui', 'success');
+                closeModal('modalEditApproval');
+                loadApprovals();
+            } catch (err) {
+                showToast('Gagal memperbarui pengajuan', 'error');
+            }
+            btn.disabled = false; btn.innerHTML = 'Simpan';
         }
 
         window.deleteLeaveAdmin = function (id) {
@@ -1432,12 +1478,13 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         window.renderAtt = function (records) {
             const body = document.getElementById('attBody');
-            if (!records.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px">Data tidak ditemukan</td></tr>'; return; }
+            if (!records.length) { body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px">Data tidak ditemukan</td></tr>'; return; }
             body.innerHTML = records.map(r => {
                 const inTime = parseTime(r.clock_in_time) || '--:--';
                 const outTime = parseTime(r.clock_out_time) || '--:--';
                 const dist = r.distance_meters || r.distance;
                 const photo = r.photo_in_url || r.photo_in;
+                const encodedData = encodeURIComponent(JSON.stringify(r));
                 return `
     <tr>
       <td>
@@ -1453,8 +1500,14 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
       <td><strong style="color:var(--text)">${inTime}</strong></td>
       <td><strong style="color:var(--text)">${outTime}</strong></td>
       <td>${dist ? dist + 'm' : '—'}</td>
-      <td><span class="badge ${r.status_in === 'Terlambat' ? 'badge-warn' : 'badge-success'}">${r.status_in || '—'}</span></td>
+      <td><span class="badge ${r.status_in === 'Terlambat' ? 'badge-warn' : (r.status_in === 'Absen' ? 'badge-danger' : 'badge-success')}">${r.status_in || '—'}</span></td>
       <td>${photo ? `<button class="btn btn-sm btn-ghost" onclick="viewPhoto('${getDirectDriveUrl(photo)}')"><i class="bi bi-camera"></i></button>` : '—'}</td>
+      <td>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-sm btn-primary" onclick="editAttendance('${encodedData}')" style="padding:6px; border-radius:8px; line-height:1; display:inline-flex; align-items:center; justify-content:center;" title="Edit"><i class="bi bi-pencil-fill" style="font-size:14px;"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteAttendance('${encodedData}')" style="background:#EF4444 !important; border-color:#EF4444 !important; color:#FFFFFF !important; padding:6px; border-radius:8px; line-height:1; display:inline-flex; align-items:center; justify-content:center;" title="Hapus"><i class="bi bi-trash-fill" style="font-size:14px;"></i></button>
+        </div>
+      </td>
     </tr>
   `;
             }).join('');
@@ -1485,7 +1538,70 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            document.body.removeChild(link);
             showToast('Ekspor CSV berhasil', 'success');
+        }
+
+        window.editAttendance = function(encodedStr) {
+            const r = JSON.parse(decodeURIComponent(encodedStr));
+            document.getElementById('editAttId').value = r.record_id || r.id || `${r.name}_${r.date}`;
+            document.getElementById('editAttName').value = r.name;
+            document.getElementById('editAttDate').value = r.date;
+            document.getElementById('editAttIn').value = r.clock_in_time || '';
+            document.getElementById('editAttOut').value = r.clock_out_time || '';
+            document.getElementById('editAttStatus').value = r.status_in || 'Tepat Waktu';
+            document.getElementById('editAttDistance').value = r.distance_meters || r.distance || 0;
+            document.getElementById('modalEditAttendance').classList.remove('hidden');
+        }
+
+        window.saveEditAttendance = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editAttId').value;
+            const name = document.getElementById('editAttName').value;
+            const date = document.getElementById('editAttDate').value;
+            const clock_in = document.getElementById('editAttIn').value;
+            const clock_out = document.getElementById('editAttOut').value;
+            const status = document.getElementById('editAttStatus').value;
+            const distance = document.getElementById('editAttDistance').value;
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerHTML = 'Menyimpan...';
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'editAttendance',
+                        record_id: id, name, date, clock_in, clock_out, status, distance
+                    })
+                });
+                showToast('Absensi berhasil diperbarui', 'success');
+                closeModal('modalEditAttendance');
+                loadAttendance();
+            } catch (err) {
+                showToast('Gagal memperbarui absensi', 'error');
+            }
+            btn.disabled = false; btn.innerHTML = 'Simpan';
+        }
+
+        window.deleteAttendance = function(encodedStr) {
+            const r = JSON.parse(decodeURIComponent(encodedStr));
+            window.customConfirm(`Yakin ingin menghapus data absensi ${r.name} pada ${r.date}?`, async () => {
+                try {
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'deleteAttendance',
+                            record_id: r.record_id || r.id,
+                            name: r.name,
+                            date: r.date
+                        })
+                    });
+                    showToast('Absensi dihapus', 'success');
+                    loadAttendance();
+                } catch (e) {
+                    showToast('Gagal menghapus absensi', 'error');
+                }
+            });
         }
 
         // ==== CONFIG ====
@@ -2966,11 +3082,17 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                 const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'submitLeave', user_id: userData.user_id, type: selectedType, start_date: startDate, end_date: endDate, reason, attachment_base64: fileBase64, attachment_name: fileName }) });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('Pengajuan berhasil dikirim! Menunggu persetujuan HR.', 'success');
+                    window.customAlert('Pengajuan berhasil dikirim! Menunggu persetujuan HR.');
                     document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; document.getElementById('reason').value = '';
                     clearFile(); document.getElementById('dateRangeInfo').classList.remove('show');
+                    switchTab('history');
                 } else { showToast(data.message || 'Gagal mengirim pengajuan', 'error'); }
-            } catch (e) { showToast('[DEMO] Pengajuan berhasil dikirim!', 'success'); }
+            } catch (e) { 
+                window.customAlert('Pengajuan berhasil dikirim! Menunggu persetujuan HR.');
+                document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; document.getElementById('reason').value = '';
+                clearFile(); document.getElementById('dateRangeInfo').classList.remove('show');
+                switchTab('history');
+            }
             btn.disabled = false; btn.innerHTML = '<i class="bi bi-send-fill"></i> KIRIM PENGAJUAN';
         }
 

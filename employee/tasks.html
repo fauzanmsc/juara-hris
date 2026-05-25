@@ -28,6 +28,7 @@
       border: 1px solid var(--border);
       width: fit-content;
     }
+
     .toggle-label {
       font-size: 12px;
       font-weight: 700;
@@ -36,21 +37,25 @@
       letter-spacing: 0.5px;
       color: var(--text-muted);
     }
+
     .toggle-label.active {
       color: var(--primary) !important;
       text-shadow: 0 0 8px rgba(255, 183, 3, 0.4);
     }
+
     .switch {
       position: relative;
       display: inline-block;
       width: 48px;
       height: 24px;
     }
-    .switch input { 
+
+    .switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
+
     .slider {
       position: absolute;
       cursor: pointer;
@@ -62,6 +67,7 @@
       border: 1px solid var(--border);
       transition: .4s;
     }
+
     .slider:before {
       position: absolute;
       content: "";
@@ -71,18 +77,22 @@
       bottom: 3px;
       background-color: white;
       transition: .4s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
-    input:checked + .slider {
+
+    input:checked+.slider {
       background-color: var(--success);
       border-color: rgba(34, 197, 94, 0.4);
     }
-    input:checked + .slider:before {
+
+    input:checked+.slider:before {
       transform: translateX(24px);
     }
+
     .slider.round {
       border-radius: 34px;
     }
+
     .slider.round:before {
       border-radius: 50%;
     }
@@ -97,6 +107,7 @@
       position: relative;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
+
     .progress-bar {
       width: 0%;
       height: 100%;
@@ -140,7 +151,7 @@
     .task-minimal-card {
       background: var(--bg-glass, rgba(255, 255, 255, 0.05));
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       padding: 16px;
       display: flex;
       flex-direction: column;
@@ -149,6 +160,7 @@
       position: relative;
       overflow: hidden;
     }
+
     .task-minimal-card:hover {
       border-color: var(--border-hover);
       transform: translateY(-2px);
@@ -186,37 +198,46 @@
       <div class="tab-item" id="tab-history" onclick="switchTab('history')">Daftar Tugas</div>
     </div>
 
-    <div class="toast-lv" id="toastEl" style="display:none; position:fixed; top:20px; right:20px; z-index:9999; background:var(--primary); color:#000; padding:12px 24px; border-radius:50px; font-weight:700; box-shadow:var(--shadow-lg);"></div>
+    <div class="toast-lv" id="toastEl"
+      style="display:none; position:fixed; top:20px; right:20px; z-index:9999; background:var(--primary); color:#000; padding:12px 24px; border-radius:50px; font-weight:700; box-shadow:var(--shadow-lg);">
+    </div>
 
     <div class="content" style="padding: 20px; overflow-y: auto; height: calc(100vh - 190px);">
       <!-- TAB FORM -->
       <div id="section-form">
-        <div class="card" style="background:var(--card-bg, rgba(255,255,255,0.05)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px;">
+        <div class="card"
+          style="background:var(--card-bg, rgba(255,255,255,0.05)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px;">
           <form id="taskForm" onsubmit="submitTask(event)">
             <div class="form-group" style="margin-bottom:16px;">
               <label class="form-label">Nama / Judul Tugas*</label>
-              <input type="text" id="taskName" required class="form-control" placeholder="Contoh: Menyusun Laporan Keuangan Mingguan" style="width:100%; box-sizing:border-box;">
+              <input type="text" id="taskName" required class="form-control"
+                placeholder="Contoh: Menyusun Laporan Keuangan Mingguan" style="width:100%; box-sizing:border-box;">
             </div>
 
             <div class="form-group" style="margin-bottom:16px;">
               <label class="form-label">Target / Goals*</label>
-              <input type="text" id="taskTarget" required class="form-control" placeholder="Contoh: Menyelesaikan 100% input jurnal transaksi" style="width:100%; box-sizing:border-box;">
+              <input type="text" id="taskTarget" required class="form-control"
+                placeholder="Contoh: Menyelesaikan 100% input jurnal transaksi"
+                style="width:100%; box-sizing:border-box;">
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
               <div class="form-group" style="margin-bottom:0;">
                 <label class="form-label">Mulai Jam*</label>
-                <input type="time" id="taskStartTime" required class="form-control" style="width:100%; box-sizing:border-box;">
+                <input type="time" id="taskStartTime" required class="form-control"
+                  style="width:100%; box-sizing:border-box;">
               </div>
               <div class="form-group" style="margin-bottom:0;">
                 <label class="form-label">Selesai Jam*</label>
-                <input type="time" id="taskEndTime" required class="form-control" style="width:100%; box-sizing:border-box;">
+                <input type="time" id="taskEndTime" required class="form-control"
+                  style="width:100%; box-sizing:border-box;">
               </div>
             </div>
 
             <div class="form-group" style="margin-bottom:16px;">
               <label class="form-label">Output Yang Dihasilkan*</label>
-              <input type="text" id="taskOutput" required class="form-control" placeholder="Contoh: File Excel Laporan Keuangan.xlsx" style="width:100%; box-sizing:border-box;">
+              <input type="text" id="taskOutput" required class="form-control"
+                placeholder="Contoh: File Excel Laporan Keuangan.xlsx" style="width:100%; box-sizing:border-box;">
             </div>
 
             <div class="form-group" style="margin-bottom:16px;">
@@ -224,7 +245,8 @@
               <div class="toggle-switch-wrapper">
                 <span class="toggle-label active" id="form-status-label-left">Belum</span>
                 <label class="switch">
-                  <input type="checkbox" id="taskStatusToggle" onchange="updateToggleLabel(this, 'form-status-label-left', 'form-status-label-right')">
+                  <input type="checkbox" id="taskStatusToggle"
+                    onchange="updateToggleLabel(this, 'form-status-label-left', 'form-status-label-right')">
                   <span class="slider round"></span>
                 </label>
                 <span class="toggle-label" id="form-status-label-right">Selesai</span>
@@ -239,18 +261,24 @@
 
             <div class="form-group" style="margin-bottom:16px;">
               <label class="form-label">Catatan / Issue (Opsional)</label>
-              <textarea id="taskNotes" class="form-control" rows="2" placeholder="Catatan issue, hambatan atau kendala pekerjaan jika ada..." style="width:100%; box-sizing:border-box; resize:none; font-family:inherit;"></textarea>
+              <textarea id="taskNotes" class="form-control" rows="2"
+                placeholder="Catatan issue, hambatan atau kendala pekerjaan jika ada..."
+                style="width:100%; box-sizing:border-box; resize:none; font-family:inherit;"></textarea>
             </div>
 
             <div class="form-group" style="margin-bottom:16px;">
               <label class="form-label">Lainnya (Opsional)</label>
-              <textarea id="taskOthers" class="form-control" rows="2" placeholder="Informasi tambahan lainnya..." style="width:100%; box-sizing:border-box; resize:none; font-family:inherit;"></textarea>
+              <textarea id="taskOthers" class="form-control" rows="2" placeholder="Informasi tambahan lainnya..."
+                style="width:100%; box-sizing:border-box; resize:none; font-family:inherit;"></textarea>
             </div>
 
             <div class="form-group" style="margin-bottom:20px;">
               <label class="form-label">Dokumen / Gambar Pendukung (Opsional)</label>
-              <input type="file" id="taskFile" class="form-control" style="width:100%; box-sizing:border-box; padding:6px 12px;" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Format yang didukung: Gambar, PDF, Word, Excel.</span>
+              <input type="file" id="taskFile" class="form-control"
+                style="width:100%; box-sizing:border-box; padding:6px 12px;"
+                accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Format yang
+                didukung: Gambar, PDF, Word, Excel.</span>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; gap:8px;">
@@ -263,42 +291,57 @@
       <!-- TAB HISTORY -->
       <div id="section-history" style="display:none;">
         <!-- Insight Card -->
-        <div class="stat-card fade-in" style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(255, 183, 3, 0.1), rgba(255, 146, 0, 0.05)); border: 1px solid rgba(255, 183, 3, 0.25);">
+        <div class="stat-card fade-in"
+          style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(255, 183, 3, 0.1), rgba(255, 146, 0, 0.05)); border: 1px solid rgba(255, 183, 3, 0.25);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div>
-              <div style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.8px;">Insight Hari Ini</div>
-              <h3 style="font-size:18px; font-weight:800; color:var(--text); margin:4px 0 0 0;" id="insightText">0 / 0 Tugas Selesai</h3>
+              <div
+                style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.8px;">
+                Insight Hari Ini</div>
+              <h3 style="font-size:18px; font-weight:800; color:var(--text); margin:4px 0 0 0;" id="insightText">0 / 0
+                Tugas Selesai</h3>
             </div>
-            <div class="stat-icon stat-icon-primary" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 183, 3, 0.15); color: var(--primary);">
+            <div class="stat-icon stat-icon-primary"
+              style="width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 183, 3, 0.15); color: var(--primary);">
               <i class="bi bi-pie-chart-fill" style="font-size:18px;"></i>
             </div>
           </div>
           <div class="progress-bar-wrapper">
             <div class="progress-bar" id="insightProgress"></div>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:var(--text-muted);">
+          <div
+            style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:var(--text-muted);">
             <span id="insightPercent" style="font-weight:700; color:var(--text)">0% Selesai</span>
             <span id="insightMotivation">Tetap produktif! 💪</span>
           </div>
         </div>
 
         <!-- Compact Date Navigator -->
-        <div class="card" style="background:var(--card-bg, rgba(255,255,255,0.03)); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px; margin-bottom:16px; display:flex; flex-direction:column; gap:12px;">
+        <div class="card"
+          style="background:var(--card-bg, rgba(255,255,255,0.03)); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; margin-bottom:16px; display:flex; flex-direction:column; gap:12px;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <button class="btn btn-sm btn-ghost" onclick="shiftActiveDate(-1)" style="border-radius:50%; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <button class="btn btn-sm btn-ghost" onclick="shiftActiveDate(-1)"
+              style="border-radius:50%; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
               <i class="bi bi-chevron-left" style="font-size:16px;"></i>
             </button>
             <div style="text-align:center; flex:1;">
-              <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:0.8px;">Tanggal Tugas</div>
-              <div style="font-size:15px; font-weight:800; color:var(--text); margin-top:2px;" id="activeDateDisplay">-</div>
+              <div
+                style="font-size:10px; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:0.8px;">
+                Tanggal Tugas</div>
+              <div style="font-size:15px; font-weight:800; color:var(--text); margin-top:2px;" id="activeDateDisplay">-
+              </div>
             </div>
-            <button class="btn btn-sm btn-ghost" onclick="shiftActiveDate(1)" style="border-radius:50%; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <button class="btn btn-sm btn-ghost" onclick="shiftActiveDate(1)"
+              style="border-radius:50%; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
               <i class="bi bi-chevron-right" style="font-size:16px;"></i>
             </button>
           </div>
           <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px; align-items:center;">
-            <input type="date" id="activeDateInput" class="form-control" style="font-size:13px; font-weight:700; padding:8px 12px; height:38px; border-radius:12px;" onchange="handleDateInputChange(this)">
-            <button onclick="loadMyTasks()" class="btn btn-primary btn-sm" style="height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:700; gap:6px;">
+            <input type="date" id="activeDateInput" class="form-control"
+              style="font-size:13px; font-weight:700; padding:8px 12px; height:38px; border-radius:12px;"
+              onchange="handleDateInputChange(this)">
+            <button onclick="loadMyTasks()" class="btn btn-primary btn-sm"
+              style="height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:700; gap:6px;">
               <i class="bi bi-arrow-clockwise" style="font-size:14px;"></i> Load
             </button>
           </div>
@@ -306,9 +349,12 @@
 
         <!-- Dynamic Status Filter Button Group -->
         <div style="display:flex; gap:8px; margin-bottom:18px;">
-          <button class="btn btn-sm btn-primary filter-status-btn" onclick="filterByStatus('all')" id="filter-status-all" style="flex:1; border-radius:12px; font-weight:700;">Semua</button>
-          <button class="btn btn-sm btn-ghost filter-status-btn" onclick="filterByStatus('Pending')" id="filter-status-Pending" style="flex:1; border-radius:12px; font-weight:700;">Belum</button>
-          <button class="btn btn-sm btn-ghost filter-status-btn" onclick="filterByStatus('Completed')" id="filter-status-Completed" style="flex:1; border-radius:12px; font-weight:700;">Selesai</button>
+          <button class="btn btn-sm btn-primary filter-status-btn" onclick="filterByStatus('all')"
+            id="filter-status-all" style="flex:1; border-radius:12px; font-weight:700;">Semua</button>
+          <button class="btn btn-sm btn-ghost filter-status-btn" onclick="filterByStatus('Pending')"
+            id="filter-status-Pending" style="flex:1; border-radius:12px; font-weight:700;">Belum</button>
+          <button class="btn btn-sm btn-ghost filter-status-btn" onclick="filterByStatus('Completed')"
+            id="filter-status-Completed" style="flex:1; border-radius:12px; font-weight:700;">Selesai</button>
         </div>
 
         <!-- Task List Container -->
@@ -328,10 +374,12 @@
     <div class="modal border-animated-modal modal-lg" style="max-width: 600px; width: 95%;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title"><i class="bi bi-file-earmark-text-fill text-primary" style="margin-right:8px"></i> Preview Lampiran</h3>
+        <h3 class="modal-title"><i class="bi bi-file-earmark-text-fill text-primary" style="margin-right:8px"></i>
+          Preview Lampiran</h3>
         <button class="modal-close" onclick="closeModal('modalPreview')"><i class="bi bi-x"></i></button>
       </div>
-      <div class="modal-body" id="previewBody" style="position:relative; z-index:2; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.15); border-radius:12px; min-height:350px;">
+      <div class="modal-body" id="previewBody"
+        style="position:relative; z-index:2; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.15); border-radius:12px; min-height:350px;">
         <!-- Embedded Content -->
       </div>
     </div>
@@ -342,14 +390,17 @@
     <div class="modal border-animated-modal" style="max-width: 500px; width: 95%;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title"><i class="bi bi-info-circle-fill text-primary" style="margin-right:8px"></i> Detail Tugas</h3>
+        <h3 class="modal-title"><i class="bi bi-info-circle-fill text-primary" style="margin-right:8px"></i> Detail
+          Tugas</h3>
         <button class="modal-close" onclick="closeModal('modalViewTask')"><i class="bi bi-x"></i></button>
       </div>
-      <div class="modal-body" id="viewTaskBody" style="position:relative; z-index:2; display:flex; flex-direction:column; gap:14px;">
+      <div class="modal-body" id="viewTaskBody"
+        style="position:relative; z-index:2; display:flex; flex-direction:column; gap:14px;">
         <!-- Filled Dynamically -->
       </div>
       <div class="modal-footer" style="position:relative; z-index:2;">
-        <button class="btn btn-primary" onclick="closeModal('modalViewTask')" style="width:100%; border-radius:50px; font-weight:700;">Tutup</button>
+        <button class="btn btn-primary" onclick="closeModal('modalViewTask')"
+          style="width:100%; border-radius:50px; font-weight:700;">Tutup</button>
       </div>
     </div>
   </div>
@@ -359,23 +410,24 @@
     <div class="modal border-animated-modal" style="max-width: 500px; width: 95%;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title"><i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Tugas</h3>
+        <h3 class="modal-title"><i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Tugas
+        </h3>
         <button class="modal-close" onclick="closeModal('modalEditTask')"><i class="bi bi-x"></i></button>
       </div>
       <form id="editTaskForm" onsubmit="submitEditTask(event)" style="display:contents;">
         <input type="hidden" id="editTaskId">
-        
+
         <div class="modal-body" style="position:relative; z-index:2;">
           <div class="form-group">
             <label class="form-label">Nama / Judul Tugas*</label>
             <input type="text" id="editTaskName" required class="form-control" placeholder="Nama tugas...">
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Target / Goals*</label>
             <input type="text" id="editTaskTarget" required class="form-control" placeholder="Target pencapaian...">
           </div>
-          
+
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Mulai Jam*</label>
@@ -386,40 +438,44 @@
               <input type="time" id="editTaskEndTime" required class="form-control">
             </div>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Output Yang Dihasilkan*</label>
-            <input type="text" id="editTaskOutput" required class="form-control" placeholder="Output yang dihasilkan...">
+            <input type="text" id="editTaskOutput" required class="form-control"
+              placeholder="Output yang dihasilkan...">
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Status Tugas*</label>
             <div class="toggle-switch-wrapper">
               <span class="toggle-label" id="edit-status-label-left">Belum</span>
               <label class="switch">
-                <input type="checkbox" id="editTaskStatusToggle" onchange="updateToggleLabel(this, 'edit-status-label-left', 'edit-status-label-right')">
+                <input type="checkbox" id="editTaskStatusToggle"
+                  onchange="updateToggleLabel(this, 'edit-status-label-left', 'edit-status-label-right')">
                 <span class="slider round"></span>
               </label>
               <span class="toggle-label" id="edit-status-label-right">Selesai</span>
             </div>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Catatan / Issue (Opsional)</label>
-            <textarea id="editTaskNotes" class="form-control" rows="2" placeholder="Catatan issue jika ada..."></textarea>
+            <textarea id="editTaskNotes" class="form-control" rows="2"
+              placeholder="Catatan issue jika ada..."></textarea>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Lainnya (Opsional)</label>
             <textarea id="editTaskOthers" class="form-control" rows="2" placeholder="Info lainnya..."></textarea>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Ganti Lampiran (Opsional)</label>
-            <input type="file" id="editTaskFile" class="form-control" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <input type="file" id="editTaskFile" class="form-control"
+              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
           </div>
         </div>
-        
+
         <div class="modal-footer" style="position:relative; z-index:2;">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modalEditTask')">Batal</button>
           <button type="submit" class="btn btn-primary" id="editSubmitBtn">Simpan</button>
@@ -480,12 +536,12 @@
     function formatIndonesianDate(dateObj) {
       const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
       const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-      
+
       const dayName = days[dateObj.getDay()];
       const dateNum = dateObj.getDate();
       const monthName = months[dateObj.getMonth()];
       const yearNum = dateObj.getFullYear();
-      
+
       return `${dayName}, ${dateNum} ${monthName} ${yearNum}`;
     }
 
@@ -549,11 +605,11 @@
       const output = document.getElementById('taskOutput').value.trim();
       const statusToggle = document.getElementById('taskStatusToggle');
       const status = statusToggle.checked ? 'Completed' : 'Pending';
-      
+
       const notes = document.getElementById('taskNotes').value.trim();
       const others = document.getElementById('taskOthers').value.trim();
       const fileInput = document.getElementById('taskFile');
-      
+
       const submitBtn = e.target.querySelector('button[type="submit"]');
       const originalText = submitBtn.innerHTML;
       submitBtn.disabled = true;
@@ -655,24 +711,24 @@
       });
       const activeBtn = document.getElementById('filter-status-' + status);
       if (activeBtn) activeBtn.className = 'btn btn-sm btn-primary filter-status-btn';
-      
+
       renderFilteredTasks();
     }
 
     // Render current tasks list
     function renderFilteredTasks() {
       const container = document.getElementById('taskListContainer');
-      
+
       // Calculate Stats first for the Insight Card
       const totalTasks = currentTasksList.length;
       const completedTasks = currentTasksList.filter(t => t.status === 'Completed').length;
-      
+
       // Update Insight UI
       const percent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
       document.getElementById('insightText').textContent = `${completedTasks} / ${totalTasks} Tugas Selesai`;
       document.getElementById('insightProgress').style.width = percent + '%';
       document.getElementById('insightPercent').textContent = percent + '% Selesai';
-      
+
       // Update motivational quote
       const quotes = [
         "Kerja cerdas untuk hari esok yang sukses! 🚀",
@@ -789,29 +845,29 @@
     function previewAttachment(url) {
       const body = document.getElementById('previewBody');
       const embedUrl = getEmbedPreviewUrl(url);
-      
+
       body.innerHTML = `
         <iframe src="${embedUrl}" id="previewIframe" allow="autoplay"></iframe>
       `;
-      
+
       openModal('modalPreview');
     }
 
     // Open edit task modal
     function openEditTaskModal(taskJsonStr) {
       const t = JSON.parse(decodeURIComponent(taskJsonStr));
-      
+
       document.getElementById('editTaskId').value = t.task_id;
       document.getElementById('editTaskName').value = t.task_name || '';
       document.getElementById('editTaskTarget').value = t.target_goals || '';
       document.getElementById('editTaskStartTime').value = t.start_time || '';
       document.getElementById('editTaskEndTime').value = t.end_time || '';
       document.getElementById('editTaskOutput').value = t.output || '';
-      
+
       const statusToggle = document.getElementById('editTaskStatusToggle');
       statusToggle.checked = t.status === 'Completed';
       updateToggleLabel(statusToggle, 'edit-status-label-left', 'edit-status-label-right');
-      
+
       document.getElementById('editTaskNotes').value = t.notes || '';
       document.getElementById('editTaskOthers').value = t.others || '';
       document.getElementById('editTaskFile').value = ''; // Reset file input
@@ -828,10 +884,10 @@
       const startTime = document.getElementById('editTaskStartTime').value;
       const endTime = document.getElementById('editTaskEndTime').value;
       const output = document.getElementById('editTaskOutput').value.trim();
-      
+
       const statusToggle = document.getElementById('editTaskStatusToggle');
       const status = statusToggle.checked ? 'Completed' : 'Pending';
-      
+
       const notes = document.getElementById('editTaskNotes').value.trim();
       const others = document.getElementById('editTaskOthers').value.trim();
       const fileInput = document.getElementById('editTaskFile');
