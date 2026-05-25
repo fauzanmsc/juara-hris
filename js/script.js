@@ -125,7 +125,7 @@ window.renderAdminLayout = function () {
                             if (window.hasProfilePic && window.hasProfilePic(user.profile_pic_url)) {
                                 iEl.innerHTML = `<img src="${window.getDirectDriveUrl(user.profile_pic_url)}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.src='/img/profile.png'; this.onerror=null;">`;
                             } else {
-                                iEl.innerHTML = <img src="/img/profile.png" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">;
+                                iEl.textContent = user.name ? user.name.charAt(0).toUpperCase() : 'A';
                             }
                         }
                     } catch (e) { }
@@ -335,7 +335,7 @@ window.showModalConfirm = function (title, message, onConfirm) {
 
     // Use responsive max width, remove inner scrolling to keep UI clickable and simple
     overlay.innerHTML = `
-        <div class="modal border-animated-modal" style="text-align:center; padding: 24px; max-width: 320px; width: min(420px,95%); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow: visible;">
+        <div class="modal border-animated-modal" style="text-align:center; padding: 24px; max-width: 420px; width: min(420px,95%); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow: visible;">
             <div class="card-border-glow"></div>
             <button onclick="document.getElementById('globalConfirmOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
             <div style="position:relative; z-index:2;">
@@ -1048,11 +1048,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             }
         }
 
-                window.renderLiveLog = function (logs) {
-                        const body = document.getElementById('liveLogBody');
-                        if (!body) return; // nothing to render on non-dashboard pages
-                        if (!logs || !logs.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px">Belum ada data hari ini</td></tr>'; return; }
-                        body.innerHTML = logs.map(l => `
+        window.renderLiveLog = function (logs) {
+            const body = document.getElementById('liveLogBody');
+            if (!body) return; // nothing to render on non-dashboard pages
+            if (!logs || !logs.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px">Belum ada data hari ini</td></tr>'; return; }
+            body.innerHTML = logs.map(l => `
     <tr>
       <td>
         <div class="user-cell" style="justify-content: flex-start; text-align: left;">
@@ -1323,8 +1323,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getPendingLeaves`);
                 const data = await res.json();
                 window.allApprovals = data.requests || [];
-                        // Render with any active filters applied
-                        if (typeof applyApprovalFilters === 'function') applyApprovalFilters();
+                // Render with any active filters applied
+                if (typeof applyApprovalFilters === 'function') applyApprovalFilters();
 
                 // Update pending count badge automatically
                 try {
@@ -1485,7 +1485,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const end_date = document.getElementById('editAppEnd').value;
             const reason = document.getElementById('editAppReason').value;
             const status = document.getElementById('editAppStatus').value;
-            
+
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true; btn.innerHTML = 'Menyimpan...';
             try {
@@ -1824,7 +1824,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             showToast('Ekspor CSV berhasil', 'success');
         }
 
-        window.editAttendance = function(encodedStr) {
+        window.editAttendance = function (encodedStr) {
             const r = JSON.parse(decodeURIComponent(encodedStr));
             document.getElementById('editAttId').value = r.record_id || r.id || `${r.name}_${r.date}`;
             document.getElementById('editAttName').value = r.name;
@@ -1836,7 +1836,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             document.getElementById('modalEditAttendance').classList.remove('hidden');
         }
 
-        window.saveEditAttendance = async function(e) {
+        window.saveEditAttendance = async function (e) {
             e.preventDefault();
             const id = document.getElementById('editAttId').value;
             const name = document.getElementById('editAttName').value;
@@ -1865,7 +1865,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             btn.disabled = false; btn.innerHTML = 'Simpan';
         }
 
-        window.deleteAttendance = function(encodedStr) {
+        window.deleteAttendance = function (encodedStr) {
             const r = JSON.parse(decodeURIComponent(encodedStr));
             window.customConfirm(`Yakin ingin menghapus data absensi ${r.name} pada ${r.date}?`, async () => {
                 try {
@@ -2373,32 +2373,32 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 try { localStorage.setItem('hris_sidebar_compact', isCompact ? '1' : '0'); } catch (e) { /* ignore */ }
             }
         }
-        
-        document.addEventListener('sidebarLoaded', () => {
-             // Restore last sidebar compact state (persisted across pages)
-             try {
-                 const compact = localStorage.getItem('hris_sidebar_compact');
-                 const layout = document.querySelector('.admin-layout');
-                 const icon = document.getElementById('compactIcon');
-                 if (compact === '1') {
-                     if (layout && !layout.classList.contains('sidebar-compact')) layout.classList.add('sidebar-compact');
-                     if (icon) icon.className = 'bi bi-chevron-right';
-                 } else if (compact === '0') {
-                     if (layout && layout.classList.contains('sidebar-compact')) layout.classList.remove('sidebar-compact');
-                     if (icon) icon.className = 'bi bi-chevron-left';
-                 }
-             } catch (e) { /* ignore */ }
 
-             if (window.lastPendingCount !== undefined) {
-                 window.updatePendingBadge(window.lastPendingCount);
-             }
-             if (window.lastInactiveCount !== undefined) {
-                 const badge = document.getElementById('inactiveTalentsBadge');
-                 if (badge) {
-                     badge.textContent = window.lastInactiveCount;
-                     badge.style.display = window.lastInactiveCount > 0 ? 'inline-block' : 'none';
-                 }
-             }
+        document.addEventListener('sidebarLoaded', () => {
+            // Restore last sidebar compact state (persisted across pages)
+            try {
+                const compact = localStorage.getItem('hris_sidebar_compact');
+                const layout = document.querySelector('.admin-layout');
+                const icon = document.getElementById('compactIcon');
+                if (compact === '1') {
+                    if (layout && !layout.classList.contains('sidebar-compact')) layout.classList.add('sidebar-compact');
+                    if (icon) icon.className = 'bi bi-chevron-right';
+                } else if (compact === '0') {
+                    if (layout && layout.classList.contains('sidebar-compact')) layout.classList.remove('sidebar-compact');
+                    if (icon) icon.className = 'bi bi-chevron-left';
+                }
+            } catch (e) { /* ignore */ }
+
+            if (window.lastPendingCount !== undefined) {
+                window.updatePendingBadge(window.lastPendingCount);
+            }
+            if (window.lastInactiveCount !== undefined) {
+                const badge = document.getElementById('inactiveTalentsBadge');
+                if (badge) {
+                    badge.textContent = window.lastInactiveCount;
+                    badge.style.display = window.lastInactiveCount > 0 ? 'inline-block' : 'none';
+                }
+            }
         });
     })();
 }
@@ -3366,7 +3366,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         window.submitLeave = async function () {
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value, reason = document.getElementById('reason').value.trim();
             if (!startDate || !endDate) { showToast('Pilih tanggal mulai & selesai', 'warn'); return; }
-            
+
             const daysRequested = Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000) + 1;
             if (selectedType === 'Cuti' && daysRequested > remainingQuota) {
                 window.customAlert(`Jatah cuti Anda tersisa ${remainingQuota} hari. Anda tidak dapat mengajukan Cuti selama ${daysRequested} hari.`);
@@ -3385,7 +3385,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                     clearFile(); document.getElementById('dateRangeInfo').classList.remove('show');
                     switchTab('history');
                 } else { showToast(data.message || 'Gagal mengirim pengajuan', 'error'); }
-            } catch (e) { 
+            } catch (e) {
                 window.customAlert('Pengajuan berhasil dikirim! Menunggu persetujuan HR.');
                 document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; document.getElementById('reason').value = '';
                 clearFile(); document.getElementById('dateRangeInfo').classList.remove('show');

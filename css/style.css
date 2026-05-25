@@ -809,7 +809,7 @@ body.image-preview-open {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.04));
   aspect-ratio: 1/1;
   display: block;
   min-width: 0;
@@ -845,7 +845,7 @@ body.image-preview-open {
   flex-direction: column;
   gap: 6px;
   min-height: 58%;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.34) 38%, rgba(0,0,0,0.78) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.34) 38%, rgba(0, 0, 0, 0.78) 100%);
   color: #fff;
   font-weight: 700;
   pointer-events: none;
@@ -861,14 +861,14 @@ body.image-preview-open {
 }
 
 .live-feed-badge {
-font-size: 8px;
-    padding: 4px 6px;
-    border-radius: 999px;
-    flex: 0 0 auto;
-    max-width: 100%;
-    white-space: nowrap;
-    /* line-height: 1; */
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+  font-size: 8px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  max-width: 100%;
+  white-space: nowrap;
+  /* line-height: 1; */
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
 }
 
 .live-feed-badge.is-late {
@@ -884,15 +884,20 @@ font-size: 8px;
 }
 
 .live-feed-loading {
-  background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.13), rgba(255,255,255,0.06));
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.06));
   background-size: 220% 100%;
   animation: liveFeedSkeleton 1.1s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes liveFeedSkeleton {
-  0% { background-position: 120% 0; }
-  100% { background-position: -120% 0; }
+  0% {
+    background-position: 120% 0;
+  }
+
+  100% {
+    background-position: -120% 0;
+  }
 }
 
 .live-feed-empty {
@@ -908,13 +913,15 @@ font-size: 8px;
 }
 
 @media (max-width: 920px) {
-  .live-feed-grid { grid-auto-columns: calc((100% - 36px) / 4); }
+  .live-feed-grid {
+    grid-auto-columns: calc((100% - 36px) / 4);
+  }
 }
 
 @media (max-width: 480px) {
   .live-feed-grid {
     gap: 8px;
-    grid-auto-columns: calc((100% - 16px) / 2.2);
+    grid-auto-columns: calc((100% - 24px) / 4);
   }
 
   .live-feed-overlay {
@@ -1010,6 +1017,13 @@ font-size: 8px;
   position: fixed;
   inset: 0;
   background: var(--bg-deep);
+
+  @media (max-width: 768px) {
+    .hris-landing-hero h1 #adminWelcomeName {
+      display: block;
+      margin-top: 6px;
+    }
+  }
 
   z-index: 9999;
   display: flex;
@@ -1235,7 +1249,9 @@ thead th {
 }
 
 @media (max-width: 992px) {
-  .table-wrap table { min-width: max-content !important; }
+  .table-wrap table {
+    min-width: 100% !important;
+  }
 
   .table-wrap {
     max-height: none;
@@ -1601,7 +1617,7 @@ body.admin-layout {
   background: var(--bg-surface);
   color: var(--text);
   border: 1px solid var(--border);
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.08), -2px -2px 8px rgba(255, 255, 255, 0.1);
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.06), -4px -4px 10px rgba(255, 255, 255, 0.5);
   transform: translateY(-1px);
 }
 
@@ -1613,9 +1629,9 @@ body.admin-layout {
   transform: translateY(0);
 }
 
-html[data-theme="dark"] .sidebar-link.active { background: #ff920045 !important; }
-
-html[data-theme="dark"] .sidebar-link:hover { box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.3), -2px -2px 8px rgba(255, 255, 255, 0.02); }
+html[data-theme="dark"] .sidebar-link.active {
+  background: #ff920045 !important;
+}
 
 .sidebar-link i {
   font-size: 17px;
@@ -6209,7 +6225,8 @@ table td .avatar {
 }
 
 /* Make approval table text compact for better fit */
-#page-approval table th, #page-approval table td {
+#page-approval table th,
+#page-approval table td {
   font-size: 12px;
   padding: 8px 10px;
   line-height: 1.25;
@@ -6246,13 +6263,15 @@ table td .avatar {
 
 /* ===== Attendance: make analytics column and main table card fill viewport ===== */
 @media (min-width: 1000px) {
+
   /* Make the analytics container a vertical stack and limit its height */
   #attendanceAnalyticsContainer.analytics-row {
     display: flex;
     flex-direction: column;
     gap: 18px;
     align-self: start;
-    max-height: calc(100vh - 140px); /* keep some margin for topbar and page padding */
+    max-height: calc(100vh - 140px);
+    /* keep some margin for topbar and page padding */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding-left: 6px;
@@ -6280,7 +6299,8 @@ table td .avatar {
   #page-attendance .card.admin-menu-card .table-wrap {
     flex: 1 1 auto;
     overflow-y: auto;
-    max-height: none; /* allow flex to determine height */
+    max-height: none;
+    /* allow flex to determine height */
     padding-bottom: 12px;
   }
 
@@ -6591,7 +6611,7 @@ table.table-modern tbody td:last-child {
 
 @media (max-width: 576px) {
   .insight-banner-wrapper {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -6967,291 +6987,11 @@ body.employee-page .content {
 }
 
 @media (hover: none) and (pointer: coarse) {
+
   input,
   select,
   textarea,
   .form-control {
     font-size: 16px !important;
-  }
-}
-
-/* === ATTENDANCE PAGE AUTO LAYOUT REFRESH === */
-#page-attendance.active {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: max-content max-content max-content;
-  grid-template-areas:
-    "feed"
-    "analytics"
-    "table";
-  gap: 16px;
-  align-items: start;
-  align-content: start;
-  flex: 0 0 auto !important;
-  height: auto !important;
-  min-height: 0 !important;
-  overflow: visible !important;
-}
-
-#page-attendance .attendance-main-column {
-  display: contents;
-}
-
-#page-attendance .attendance-live-feed {
-  grid-area: feed;
-  width: 100%;
-  min-width: 0;
-  padding: 16px;
-  border-radius: 16px;
-}
-
-#page-attendance .attendance-live-feed .section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-#page-attendance .attendance-live-feed .section-title,
-#page-attendance .analytics-title {
-  min-width: 0;
-  line-height: 1.25;
-}
-
-#page-attendance .live-feed-grid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: clamp(74px, 23vw, 112px);
-  grid-template-columns: none;
-  gap: 10px;
-  align-items: stretch;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 2px 2px 10px;
-  scroll-padding-inline: 2px;
-}
-
-#page-attendance .live-feed-card {
-  aspect-ratio: 4 / 5;
-  min-height: 92px;
-  border-radius: 14px;
-  isolation: isolate;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-#page-attendance .live-feed-overlay {
-  min-height: 0;
-  padding: 24px 8px 8px;
-  justify-content: flex-end;
-  gap: 5px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.38) 42%, rgba(0, 0, 0, 0.86) 100%);
-}
-
-#page-attendance .live-feed-name {
-  font-size: 10px;
-  line-height: 1.15;
-  width: 100%;
-}
-
-#page-attendance .live-feed-badge {
-  min-height: 19px;
-  padding: 4px 7px;
-  font-size: 8px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-}
-
-#attendanceAnalyticsContainer.analytics-row {
-  grid-area: analytics;
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  flex-direction: column;
-  gap: 14px;
-}
-
-#page-attendance .analytics-card {
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  padding: 16px;
-  border-radius: 16px;
-}
-
-#page-attendance .analytics-title {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  font-size: 13px;
-  white-space: normal;
-}
-
-#page-attendance .top-emp-list {
-  gap: 2px;
-}
-
-#page-attendance .top-emp-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-  min-height: 56px;
-  padding: 8px 0;
-}
-
-#page-attendance .top-emp-left {
-  min-width: 0;
-  gap: 10px;
-}
-
-#page-attendance .top-emp-left .avatar,
-#page-attendance .top-emp-left .avatar-sm {
-  width: 38px !important;
-  height: 38px !important;
-  flex: 0 0 38px;
-}
-
-#page-attendance .top-emp-info {
-  min-width: 0;
-}
-
-#page-attendance .top-emp-name,
-#page-attendance .top-emp-pos {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-attendance .top-emp-stat {
-  justify-self: end;
-  flex-shrink: 0;
-  min-width: 58px;
-  text-align: center;
-}
-
-#page-attendance .card.admin-menu-card {
-  grid-area: table;
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-#page-attendance .card.admin-menu-card .filter-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  align-items: center;
-}
-
-#page-attendance .card.admin-menu-card .filter-row>* {
-  min-width: 0;
-  max-width: none !important;
-}
-
-#page-attendance .card.admin-menu-card .filter-row .admin-card-actions {
-  margin: 0;
-}
-
-#page-attendance .card.admin-menu-card .filter-row .btn {
-  width: 100%;
-}
-
-@media (max-width: 480px) {
-  #page-attendance.active {
-    gap: 14px;
-  }
-
-  #page-attendance .attendance-live-feed,
-  #page-attendance .analytics-card,
-  #page-attendance .card.admin-menu-card {
-    border-radius: 14px;
-  }
-
-  #page-attendance .live-feed-grid {
-    grid-auto-columns: clamp(76px, 23.5vw, 96px);
-    gap: 8px;
-  }
-
-  #page-attendance .analytics-title {
-    font-size: 12px;
-  }
-
-  #page-attendance .top-emp-rank {
-    width: 22px;
-    height: 22px;
-    font-size: 12px;
-  }
-
-  #page-attendance .top-emp-left {
-    gap: 8px;
-  }
-
-  #page-attendance .top-emp-name {
-    font-size: 12px;
-  }
-
-  #page-attendance .top-emp-pos {
-    font-size: 10px;
-  }
-
-  #page-attendance .top-emp-stat {
-    min-width: 52px;
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-
-  #page-attendance .card.admin-menu-card .filter-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 760px) {
-  #page-attendance .card.admin-menu-card .filter-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
-  }
-}
-
-@media (min-width: 1000px) {
-  #page-attendance.active {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas:
-      "feed analytics"
-      "table analytics";
-    align-content: stretch;
-    flex: 1 1 auto !important;
-    height: 100% !important;
-    overflow: hidden !important;
-  }
-
-  #attendanceAnalyticsContainer.analytics-row {
-    align-self: start;
-    max-height: calc(var(--app-height) - 124px);
-    overflow-y: auto;
-    padding-left: 0;
-    padding-right: 2px;
-  }
-
-  #page-attendance .card.admin-menu-card {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #page-attendance .card.admin-menu-card .table-wrap {
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-}
-
-@media (max-width: 768px) {
-  #adminWelcomeName {
-    display: block;
-    margin-top: 6px;
   }
 }
