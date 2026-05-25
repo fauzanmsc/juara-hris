@@ -1507,11 +1507,16 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         // ==== ATTENDANCE HISTORY ====
+        window.attendanceLoadSeq = 0;
+
         window.loadAttendance = async function () {
+            const loadSeq = ++window.attendanceLoadSeq;
             const startEl = document.getElementById('attFilterStart');
             const endEl = document.getElementById('attFilterEnd');
             const nameEl = document.getElementById('attFilterName');
             const statusEl = document.getElementById('attFilterStatus');
+            const body = document.getElementById('attBody');
+            const feed = document.getElementById('attendanceLiveFeed');
 
             // Default date range: last 7 days if user hasn't set filters
             const today = new Date();
@@ -1524,16 +1529,46 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const name = nameEl ? nameEl.value.trim() : '';
             const status = statusEl ? statusEl.value : '';
 
+            if (body) {
+                body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">Memuat data absensi...</td></tr>';
+            }
+            if (feed) {
+                feed.setAttribute('aria-busy', 'true');
+                feed.classList.remove('is-empty');
+                feed.innerHTML = Array.from({ length: 4 }, () => '<div class="live-feed-card live-feed-loading" aria-hidden="true"></div>').join('');
+            }
+
             try {
-                const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&start_date=${start}&end_date=${end}&name=${encodeURIComponent(name)}&status=${status}`);
+                const params = new URLSearchParams({
+                    action: 'getAttendance',
+                    start_date: start,
+                    end_date: end
+                });
+                if (name) params.set('name', name);
+                if (status) params.set('status', status);
+
+                const res = await fetch(`${APPS_SCRIPT_URL}?${params.toString()}`);
                 const data = await res.json();
+                if (loadSeq !== window.attendanceLoadSeq) return;
+                if (!data.success) throw new Error(data.message || 'Gagal memuat data absensi');
+
                 window.allAttendance = data.records || [];
                 renderAttendanceLiveFeed(window.allAttendance);
                 renderAtt(window.allAttendance);
                 renderAttendanceAnalytics(data.analytics);
             } catch (e) {
+                if (loadSeq !== window.attendanceLoadSeq) return;
                 console.error('Error loading attendance:', e);
                 showToast('Gagal memuat data absensi', 'error');
+                if (body) body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--danger)">Gagal memuat data</td></tr>';
+                if (feed) {
+                    feed.classList.add('is-empty');
+                    feed.innerHTML = '<div class="live-feed-empty">Gagal memuat foto absensi</div>';
+                }
+            } finally {
+                if (loadSeq === window.attendanceLoadSeq && feed) {
+                    feed.removeAttribute('aria-busy');
+                }
             }
         }
 
@@ -1558,26 +1593,32 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const latestPhotos = (records || [])
                 .filter(record => record.photo_in_url || record.photo_in)
                 .sort((a, b) => getSortTime(b) - getSortTime(a))
-                .slice(0, 4);
+                .slice(0, 10);
 
             if (!latestPhotos.length) {
+                container.classList.remove('has-scroll');
+                container.classList.add('is-empty');
                 container.innerHTML = '<div class="live-feed-empty">Belum ada foto absensi terbaru</div>';
                 return;
             }
 
+            container.classList.remove('is-empty');
+            container.classList.toggle('has-scroll', latestPhotos.length > 4);
             container.innerHTML = latestPhotos.map(record => {
                 const photo = getDirectDriveUrl(record.photo_in_url || record.photo_in);
                 const status = record.status_in === 'Terlambat' ? 'Terlambat' : 'Tepat Waktu';
-                const badgeClass = status === 'Terlambat' ? 'badge-warn' : 'badge-success';
+                const badgeClass = status === 'Terlambat' ? 'is-late' : 'is-on-time';
+                const safePhoto = escapeHTML(photo);
+                const safeName = escapeHTML(record.name || 'Karyawan');
 
                 return `
-                    <div class="live-feed-card">
-                        <img src="${escapeHTML(photo)}" alt="Foto absensi ${escapeHTML(record.name || 'Karyawan')}" onerror="this.src='/img/profile.png'; this.onerror=null;">
+                    <button type="button" class="live-feed-card" data-photo="${safePhoto}" onclick="viewPhoto(this.dataset.photo)" aria-label="Preview foto absensi ${safeName}">
+                        <img src="${safePhoto}" alt="Foto absensi ${safeName}" loading="lazy" decoding="async" onerror="this.src='/img/profile.png'; this.onerror=null;">
                         <div class="live-feed-overlay">
-                            <span class="live-feed-name">${escapeHTML(record.name || 'Karyawan')}</span>
-                            <span class="live-feed-badge badge ${badgeClass}">${status}</span>
+                            <span class="live-feed-name">${safeName}</span>
+                            <span class="live-feed-badge ${badgeClass}">${status}</span>
                         </div>
-                    </div>
+                    </button>
                 `;
             }).join('');
         }
@@ -1586,23 +1627,37 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const container = document.getElementById('attendanceAnalyticsContainer');
             if (!container) return;
 
-            if (!analytics || (!analytics.top_absent?.length && !analytics.top_sick_permit?.length)) {
+            if (!analytics || (!analytics.top_absent?.length && !analytics.top_sick_permit?.length && !analytics.top_late?.length)) {
                 container.style.display = 'none';
                 return;
             }
             container.style.display = 'flex';
 
-            const buildList = (list, isAbsent) => {
+            const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+
+            const buildList = (list, type) => {
                 if (!list || !list.length) {
                     return `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Tidak ada data mencukupi</div>`;
                 }
+                const statConfig = {
+                    absent: { key: 'absent_days', suffix: 'Hari', className: 'stat-absent' },
+                    sickPermit: { key: 'sick_permit_days', suffix: 'Hari', className: 'stat-sick-permit' },
+                    late: { key: 'late_count', suffix: 'Kali', className: 'stat-late' }
+                }[type] || { key: 'score', suffix: '', className: '' };
+
                 return list.map((emp, idx) => {
                     const avatarHTML = hasProfilePic(emp.profile_pic_url) ?
                         `<img src="${getDirectDriveUrl(emp.profile_pic_url)}" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
                         `<img src="/img/profile.png" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;">`;
 
-                    const statValue = isAbsent ? `${emp.absent_days} Hari` : `${emp.sick_permit_days} Hari`;
-                    const statClass = isAbsent ? 'stat-absent' : 'stat-sick-permit';
+                    const rawValue = Number(emp[statConfig.key] || 0);
+                    const statValue = `${rawValue} ${statConfig.suffix}`.trim();
 
                     return `
                         <div class="top-emp-item">
@@ -1610,11 +1665,11 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                                 <span class="top-emp-rank">${idx + 1}</span>
                                 ${avatarHTML}
                                 <div class="top-emp-info">
-                                    <span class="top-emp-name">${emp.name}</span>
-                                    <span class="top-emp-pos">${emp.position}</span>
+                                    <span class="top-emp-name">${escapeHTML(emp.name || 'Karyawan')}</span>
+                                    <span class="top-emp-pos">${escapeHTML(emp.position || 'Employee')}</span>
                                 </div>
                             </div>
-                            <span class="top-emp-stat ${statClass}">${statValue}</span>
+                            <span class="top-emp-stat ${statConfig.className}">${statValue}</span>
                         </div>
                     `;
                 }).join('');
@@ -1628,7 +1683,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                         Top 3 Paling Banyak Tidak Hadir
                     </h4>
                     <div class="top-emp-list">
-                        ${buildList(analytics.top_absent, true)}
+                        ${buildList(analytics.top_absent, 'absent')}
                     </div>
                 </div>
 
@@ -1639,7 +1694,18 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                         Top 3 Paling Sering Sakit & Izin
                     </h4>
                     <div class="top-emp-list">
-                        ${buildList(analytics.top_sick_permit, false)}
+                        ${buildList(analytics.top_sick_permit, 'sickPermit')}
+                    </div>
+                </div>
+
+                <!-- Box 3: Paling Sering Terlambat -->
+                <div class="analytics-card">
+                    <h4 class="analytics-title">
+                        <i class="bi bi-alarm-fill text-danger" style="font-size:16px;"></i>
+                        Top 3 Paling Sering Terlambat
+                    </h4>
+                    <div class="top-emp-list">
+                        ${buildList(analytics.top_late, 'late')}
                     </div>
                 </div>
             `;
@@ -2598,8 +2664,9 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
         // ---- READY CHECK ----
         window.checkReady = function () {
             const btn = document.getElementById('mainBtn');
-            if (isLockedOut) { btn.disabled = true; return; }
-            btn.disabled = !(photoOk && geoOk);
+            const ready = !isLockedOut && photoOk && geoOk;
+            btn.disabled = !ready;
+            btn.classList.toggle('clock-floating', ready);
         }
 
         // ---- PRE-FLIGHT CHECK ----

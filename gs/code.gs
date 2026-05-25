@@ -892,113 +892,177 @@ function updateUserStatus(body) {
 // ============ ATTENDANCE LOG ============
 
 function getAttendanceLog(params) {
-  const { start_date, end_date, name, status, user_id } = params;
+  params = params || {};
+  const start_date = params.start_date || '';
+  const end_date = params.end_date || '';
+  const name = params.name || '';
+  const status = params.status || '';
+  const user_id = params.user_id || '';
+
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const users = sheetToObjects(getSheet(SHEET.USERS));
-  // Map attendance rows to API-safe objects and normalize time/status using current config
-  let records = attendance.map(a => {
-    const user = users.find(u => u.user_id === a.user_id);
+  const config = getAllConfig();
 
-    // Normalize date and times to string values (prevent timezone shifts when Dates are JSON-serialized)
-    const dateStr = formatDate(a.date);
+  const userMap = {};
+  users.forEach(u => {
+    userMap[String(u.user_id).trim()] = u;
+  });
+
+  function normalizeConfigValue(value, defaultVal) {
+    if (value === '' || value === null || value === undefined) return defaultVal;
+    if (Object.prototype.toString.call(value) === '[object Date]') {
+      return Utilities.formatDate(value, 'GMT+7', 'HH:mm');
+    }
+    return String(value).trim() || defaultVal;
+  }
+
+  function timeToMinutes(value) {
+    const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    return (parseInt(match[1], 10) * 60) + parseInt(match[2], 10);
+  }
+
+  function safeDate(value) {
+    if (!value) return '';
+    return formatDate(value);
+  }
+
+  const weekdayStartMinutes = timeToMinutes(normalizeConfigValue(config.weekday_start, '10:00'));
+  const saturdayStartMinutes = timeToMinutes(normalizeConfigValue(config.saturday_start, '09:00'));
+  const weekdayEndMinutes = timeToMinutes(normalizeConfigValue(config.weekday_end, '19:00'));
+  const saturdayEndMinutes = timeToMinutes(normalizeConfigValue(config.saturday_end, '17:00'));
+  const toleranceMinutes = parseInt(normalizeConfigValue(config.tolerance_minutes, '15'), 10) || 0;
+  const weekdayDeadline = (weekdayStartMinutes !== null ? weekdayStartMinutes : 600) + toleranceMinutes;
+  const saturdayDeadline = (saturdayStartMinutes !== null ? saturdayStartMinutes : 540) + toleranceMinutes;
+  const weekdayEnd = weekdayEndMinutes !== null ? weekdayEndMinutes : 1140;
+  const saturdayEnd = saturdayEndMinutes !== null ? saturdayEndMinutes : 1020;
+
+  function isSaturday(dateStr) {
+    return new Date(dateStr + 'T00:00:00').getDay() === 6;
+  }
+
+  function normalizeStatusIn(rawStatus, dateStr, clockInStr) {
+    if (!clockInStr) return rawStatus || '';
+    const clockMinutes = timeToMinutes(clockInStr);
+    if (clockMinutes === null) return rawStatus || '';
+    const deadline = isSaturday(dateStr) ? saturdayDeadline : weekdayDeadline;
+    return clockMinutes <= deadline ? 'Tepat Waktu' : 'Terlambat';
+  }
+
+  function normalizeStatusOut(rawStatus, dateStr, clockOutStr) {
+    if (!clockOutStr) return rawStatus || '';
+    const clockMinutes = timeToMinutes(clockOutStr);
+    if (clockMinutes === null) return rawStatus || '';
+    const endMinutes = isSaturday(dateStr) ? saturdayEnd : weekdayEnd;
+    return clockMinutes >= endMinutes ? 'Normal' : 'Pulang Cepat';
+  }
+
+  const nameQuery = String(name || '').trim().toLowerCase();
+  const records = [];
+
+  attendance.forEach(a => {
+    const dateStr = safeDate(a.date);
+    if (!dateStr) return;
+    if (user_id && String(a.user_id).trim() !== String(user_id).trim()) return;
+    if (start_date && dateStr < start_date) return;
+    if (end_date && dateStr > end_date) return;
+
+    const user = userMap[String(a.user_id).trim()];
+    const employeeName = user ? (user.name || 'Unknown') : 'Unknown';
+    if (nameQuery && String(employeeName).toLowerCase().indexOf(nameQuery) === -1) return;
+
     const clockInStr = formatTimeVal(a.clock_in_time);
     const clockOutStr = formatTimeVal(a.clock_out_time);
+    const statusIn = normalizeStatusIn(a.status_in, dateStr, clockInStr);
+    const statusOut = normalizeStatusOut(a.status_out, dateStr, clockOutStr);
+    if (status && statusIn !== status) return;
 
-    // Recalculate status based on config (weekday vs saturday) and tolerance
-    const dayName = Utilities.formatDate(new Date(a.date), 'GMT+7', 'EEEE');
-    const isSaturday = (dayName === 'Saturday');
-    const scheduleStart = isSaturday ? getConfigVal('saturday_start', '09:00') : getConfigVal('weekday_start', '10:00');
-    const scheduleEnd = isSaturday ? getConfigVal('saturday_end', '17:00') : getConfigVal('weekday_end', '19:00');
-    const toleranceMin = parseInt(getConfigVal('tolerance_minutes', '15')) || 0;
-
-    let statusIn = a.status_in || '';
-    if (clockInStr) {
-      const [sH, sM] = scheduleStart.split(':').map(Number);
-      const deadlineMin = (sH * 60 + sM) + toleranceMin;
-      const [cH, cM] = clockInStr.split(':').map(Number);
-      const clockMinutes = (cH || 0) * 60 + (cM || 0);
-      statusIn = clockMinutes <= deadlineMin ? 'Tepat Waktu' : 'Terlambat';
-    }
-
-    let statusOut = a.status_out || '';
-    if (clockOutStr) {
-      const [eH, eM] = scheduleEnd.split(':').map(Number);
-      const endMinutes = (eH * 60 + eM);
-      const [cH2, cM2] = clockOutStr.split(':').map(Number);
-      const clockMinutes2 = (cH2 || 0) * 60 + (cM2 || 0);
-      statusOut = clockMinutes2 >= endMinutes ? 'Normal' : 'Pulang Cepat';
-    }
-
-    return {
+    records.push({
       ...a,
-      name: user ? user.name : 'Unknown',
-      position: user ? user.position : '',
+      name: employeeName,
+      position: user ? (user.position || '') : '',
       profile_pic: user ? (user.profile_pic_url || '') : '',
       date: dateStr,
       clock_in_time: clockInStr,
       clock_out_time: clockOutStr,
       status_in: statusIn,
       status_out: statusOut
-    };
+    });
   });
 
-  if (user_id) records = records.filter(r => String(r.user_id).trim() === String(user_id).trim());
-  if (start_date) records = records.filter(r => r.date >= start_date);
-  if (end_date) records = records.filter(r => r.date <= end_date);
-  if (name) records = records.filter(r => String(r.name).toLowerCase().includes(String(name).toLowerCase()));
-  if (status) records = records.filter(r => r.status_in === status);
+  records.sort((a, b) => {
+    const dateCompare = String(b.date || '').localeCompare(String(a.date || ''));
+    if (dateCompare !== 0) return dateCompare;
+    return String(b.clock_in_time || '').localeCompare(String(a.clock_in_time || ''));
+  });
 
-  // Calculate Analytics for Top 3
+  // Calculate Analytics for Top 3 with indexed lookups to keep the page fast.
   const activeEmployees = users.filter(u => u.role === 'Employee' && u.status === 'Active');
   const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
   const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
+  const uniqueDateMap = {};
+  const presentMap = {};
+  const lateCountMap = {};
 
-  // Find all unique dates in attendance sheet
-  const uniqueDates = [...new Set(attendance.map(a => formatDate(a.date)))].sort();
-  
+  attendance.forEach(a => {
+    const dateStr = safeDate(a.date);
+    if (!dateStr) return;
+    const uid = String(a.user_id).trim();
+    uniqueDateMap[dateStr] = true;
+    presentMap[uid + '|' + dateStr] = true;
+
+    const clockInStr = formatTimeVal(a.clock_in_time);
+    const statusIn = normalizeStatusIn(a.status_in, dateStr, clockInStr);
+    if (statusIn === 'Terlambat') {
+      lateCountMap[uid] = (lateCountMap[uid] || 0) + 1;
+    }
+  });
+
+  const approvedLeavesByUser = {};
+  leaves.forEach(l => {
+    if (l.status !== 'Approved') return;
+    const uid = String(l.user_id).trim();
+    if (!approvedLeavesByUser[uid]) approvedLeavesByUser[uid] = [];
+    approvedLeavesByUser[uid].push({
+      ...l,
+      _start: safeDate(l.start_date),
+      _end: safeDate(l.end_date || l.start_date)
+    });
+  });
+
+  const holidayRanges = holidays.map(h => {
+    const start = safeDate(h.start_date || h.date);
+    const end = safeDate(h.end_date || h.start_date || h.date) || start;
+    return { start: start, end: end };
+  }).filter(h => h.start && h.end);
+
+  function isHolidayDate(dateStr) {
+    return holidayRanges.some(h => dateStr >= h.start && dateStr <= h.end);
+  }
+
+  const uniqueDates = Object.keys(uniqueDateMap).sort();
   const employeeAnalytics = activeEmployees.map(emp => {
-    // 1. Calculate Sick + Permit (Sakit & Izin)
-    const empLeaves = leaves.filter(l => 
-      String(l.user_id) === String(emp.user_id) && 
-      l.status === 'Approved' && 
-      (l.type === 'Sakit' || l.type === 'Izin')
-    );
-    
+    const uid = String(emp.user_id).trim();
+    const empLeaves = approvedLeavesByUser[uid] || [];
+
     const sickPermitDays = empLeaves.reduce((sum, l) => {
-      const start = new Date(l.start_date);
-      const end = new Date(l.end_date);
+      if (l.type !== 'Sakit' && l.type !== 'Izin') return sum;
+      if (!l._start || !l._end) return sum;
+      const start = new Date(l._start + 'T00:00:00');
+      const end = new Date(l._end + 'T00:00:00');
       const days = Math.round((end - start) / (24 * 3600 * 1000)) + 1;
       return sum + (isNaN(days) ? 0 : days);
     }, 0);
 
-    // 2. Calculate Absences (Tidak Hadir)
     let absentDays = 0;
     uniqueDates.forEach(dStr => {
-      // Skip if Sunday
       const dt = new Date(dStr + 'T00:00:00');
       if (dt.getDay() === 0) return;
-      
-      // Skip if holiday
-      const isHoliday = holidays.some(h => {
-        const start = h.start_date ? formatDate(h.start_date) : (h.date ? formatDate(h.date) : '');
-        const end = h.end_date ? formatDate(h.end_date) : start;
-        return dStr >= start && dStr <= end;
-      });
-      if (isHoliday) return;
+      if (isHolidayDate(dStr)) return;
+      if (presentMap[uid + '|' + dStr]) return;
 
-      // Check if present
-      const wasPresent = attendance.some(a => 
-        String(a.user_id) === String(emp.user_id) && 
-        formatDate(a.date) === dStr
-      );
-      if (wasPresent) return;
-
-      // Check if on approved leave
-      const wasOnLeave = leaves.some(l => 
-        String(l.user_id) === String(emp.user_id) && 
-        l.status === 'Approved' && 
-        formatDate(l.start_date) <= dStr && 
-        formatDate(l.end_date) >= dStr
+      const wasOnLeave = empLeaves.some(l =>
+        l._start && l._end && l._start <= dStr && l._end >= dStr
       );
       if (wasOnLeave) return;
 
@@ -1011,28 +1075,33 @@ function getAttendanceLog(params) {
       position: emp.position || 'Employee',
       profile_pic_url: emp.profile_pic_url || '',
       sick_permit_days: sickPermitDays,
-      absent_days: absentDays
+      absent_days: absentDays,
+      late_count: lateCountMap[uid] || 0
     };
   });
 
-  // Top 3 Absent
   const topAbsent = [...employeeAnalytics]
     .sort((a, b) => b.absent_days - a.absent_days)
     .slice(0, 3)
     .filter(x => x.absent_days > 0);
 
-  // Top 3 Sick & Permit
   const topSickPermit = [...employeeAnalytics]
     .sort((a, b) => b.sick_permit_days - a.sick_permit_days)
     .slice(0, 3)
     .filter(x => x.sick_permit_days > 0);
 
+  const topLate = [...employeeAnalytics]
+    .sort((a, b) => b.late_count - a.late_count)
+    .slice(0, 3)
+    .filter(x => x.late_count > 0);
+
   return { 
     success: true, 
-    records: records.reverse(),
+    records: records,
     analytics: {
       top_absent: topAbsent,
-      top_sick_permit: topSickPermit
+      top_sick_permit: topSickPermit,
+      top_late: topLate
     }
   };
 }

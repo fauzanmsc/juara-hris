@@ -700,6 +700,7 @@ body.image-preview-open {
 .attendance-live-feed {
   flex: 0 0 auto;
   padding: 18px;
+  overflow: hidden;
 }
 
 .attendance-live-feed .section-header {
@@ -710,7 +711,34 @@ body.image-preview-open {
 .live-feed-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(4, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 36px) / 4);
+  grid-template-columns: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+  scrollbar-color: rgba(255, 183, 3, 0.55) transparent;
+  scrollbar-width: thin;
+}
+
+.live-feed-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.live-feed-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.live-feed-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 183, 3, 0.45);
+  border-radius: 999px;
+}
+
+.live-feed-grid.is-empty {
+  grid-auto-columns: 100%;
 }
 
 .attendance-live-feed .section-title {
@@ -726,6 +754,18 @@ body.image-preview-open {
   background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
   aspect-ratio: 1/1;
   display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.live-feed-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
 }
 
 .live-feed-card img {
@@ -742,12 +782,15 @@ body.image-preview-open {
   bottom: 0;
   padding: 8px 10px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.45) 100%);
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 58%;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.34) 38%, rgba(0,0,0,0.78) 100%);
   color: #fff;
   font-weight: 700;
+  pointer-events: none;
 }
 
 .live-feed-name {
@@ -755,6 +798,8 @@ body.image-preview-open {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
 .live-feed-badge {
@@ -762,6 +807,34 @@ body.image-preview-open {
   padding: 6px 8px;
   border-radius: 999px;
   flex: 0 0 auto;
+  max-width: 100%;
+  white-space: nowrap;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.live-feed-badge.is-late {
+  background: rgba(239, 68, 68, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.live-feed-badge.is-on-time {
+  background: rgba(34, 197, 94, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.live-feed-loading {
+  background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.13), rgba(255,255,255,0.06));
+  background-size: 220% 100%;
+  animation: liveFeedSkeleton 1.1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes liveFeedSkeleton {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
 }
 
 .live-feed-empty {
@@ -777,13 +850,29 @@ body.image-preview-open {
 }
 
 @media (max-width: 920px) {
-  .live-feed-grid { grid-template-columns: repeat(2, 1fr); }
-  .live-feed-card:nth-of-type(n+3) { display: none; }
+  .live-feed-grid { grid-auto-columns: calc((100% - 36px) / 4); }
 }
 
 @media (max-width: 480px) {
-  .live-feed-grid { gap: 8px; }
-  .live-feed-overlay { padding: 6px 8px; }
+  .live-feed-grid {
+    gap: 8px;
+    grid-auto-columns: calc((100% - 24px) / 4);
+  }
+
+  .live-feed-overlay {
+    padding: 5px 6px;
+    gap: 4px;
+    min-height: 68%;
+  }
+
+  .live-feed-name {
+    font-size: 10px;
+  }
+
+  .live-feed-badge {
+    font-size: 9px;
+    padding: 4px 5px;
+  }
 }
 
 /* === TOAST === */
@@ -1794,6 +1883,7 @@ html[data-theme="dark"] .sidebar-link.active {
   background: var(--bg-surface);
   border-top: 1px solid var(--border);
   display: flex;
+  min-height: 86px;
   padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
   z-index: 100;
   box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12);
@@ -2915,6 +3005,7 @@ body.history-page {
   background: var(--bg-deep);
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -3117,7 +3208,7 @@ body.employee-page .stat-val {
   font-size: 36px;
   margin-bottom: 4px;
   line-height: 1;
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
 }
 
 body.employee-page .stat-lbl {
@@ -3387,11 +3478,12 @@ body.employee-page .act-time {
    4. ATTENDANCE CLOCK (attendance.html)
    ========================================== */
 body.attendance-page .content {
-  padding: 18px;
+  padding: 18px 18px calc(128px + env(safe-area-inset-bottom)) !important;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding-bottom: 106px;
+  min-height: 0;
+  margin-bottom: 0 !important;
 }
 
 body.attendance-page .back-btn,
@@ -3448,7 +3540,7 @@ body.attendance-page .clock-time {
   font-family: monospace;
   font-weight: 900;
   font-size: 56px;
-  letter-spacing: -3px;
+  letter-spacing: 0;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -3798,6 +3890,8 @@ body.attendance-page .btn-clock {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  min-height: 64px;
+  margin-bottom: 10px;
 }
 
 body.attendance-page .btn-clock.clock-in {
@@ -3828,6 +3922,74 @@ body.attendance-page .btn-clock:disabled {
   cursor: not-allowed !important;
   box-shadow: none !important;
   opacity: 0.6;
+}
+
+@media (max-height: 740px) {
+  body.attendance-page .content {
+    gap: 10px;
+    padding: 12px 14px calc(124px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.attendance-page .clock-widget {
+    padding: 18px 16px;
+  }
+
+  body.attendance-page .clock-time {
+    font-size: 42px;
+    letter-spacing: 0;
+  }
+
+  body.attendance-page .geo-widget {
+    padding: 14px;
+  }
+
+  body.attendance-page .camera-head {
+    padding: 12px 14px 0;
+  }
+
+  body.attendance-page .camera-container {
+    padding-top: 62%;
+  }
+
+  body.attendance-page .camera-actions {
+    padding: 12px 14px;
+  }
+
+  body.attendance-page .btn-clock {
+    min-height: 58px;
+    padding: 16px;
+    font-size: 16px;
+  }
+}
+
+@media (max-height: 640px) {
+  body.attendance-page .clock-time {
+    font-size: 36px;
+  }
+
+  body.attendance-page .clock-widget {
+    padding: 14px 14px;
+  }
+
+  body.attendance-page .camera-container {
+    padding-top: 56%;
+  }
+}
+
+@media (max-width: 520px) {
+  body.attendance-page .content {
+    padding-bottom: calc(184px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.attendance-page .btn-clock.clock-floating {
+    position: fixed;
+    left: 50%;
+    bottom: calc(96px + env(safe-area-inset-bottom));
+    width: min(calc(100% - 32px), 448px);
+    transform: translateX(-50%);
+    margin: 0;
+    z-index: 99;
+  }
 }
 
 body.attendance-page .toast-att,
@@ -5670,6 +5832,7 @@ body.employee-page .icon-blue {
 .wrap-employee {
   background: var(--bg-surface);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -6150,6 +6313,11 @@ table td .avatar {
   color: var(--warning);
 }
 
+.stat-late {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
 @media (max-width: 768px) {
   .analytics-row {
     grid-template-columns: 1fr;
@@ -6391,7 +6559,7 @@ table.table-modern tbody td:last-child {
   font-size: 28px;
   font-weight: 900;
   font-family: var(--font-head);
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
 }
 
 /* Star pulse and micro animation keyframes */
