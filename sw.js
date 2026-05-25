@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2026-05-25-4';
+const CACHE_VERSION = 'v2026-05-25-8';
 const CACHE_NAME = `jef-hris-cache-${CACHE_VERSION}`;
 const APP_SHELL = [
   '/',
@@ -75,6 +75,10 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(request)
         .then(response => {
+          // If the network returned an error status (e.g. 404), fall back to cached shell
+          if (!response || !response.ok) {
+            return caches.match(request).then(cached => cached || caches.match('/index.html'));
+          }
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
           return response;

@@ -113,15 +113,16 @@
           <div class="dashboard-layout-grid fade-in">
             <!-- LIVE LOG -->
             <div class="card p-0" style="margin:0;">
-                <div style="padding: 24px 24px 0;">
-                  <h3 class="card-title"><i class="bi bi-activity text-primary" style="margin-right:8px"></i>Live Log
-                    Absensi</h3>
+              <div class="card-header" style="padding: 24px 24px 0;">
+                <div style="display:flex; flex-direction:column; min-width:0;">
+                  <h3 class="card-title"><i class="bi bi-activity text-primary" style="margin-right:8px"></i>Live Log Absensi</h3>
                   <p class="card-subtitle">Aktivitas kehadiran hari ini</p>
                 </div>
-                <button class="btn btn-sm btn-primary" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i>
-                  Refresh</button>
-              <div class="table-wrap"
-                style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <button class="btn btn-sm btn-primary" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                </div>
+              </div>
+              <div class="table-wrap" style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
                 <table>
                   <thead id="liveLogThead">
                     <tr>

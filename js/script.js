@@ -1238,17 +1238,40 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         // ==== APPROVALS ====
+
+        // Update sidebar badge showing pending approvals (safe if element missing)
+        window.updatePendingBadge = function (count) {
+            try {
+                const el = document.getElementById('pendingBadge');
+                if (!el) return;
+                const n = Number(count) || 0;
+                el.textContent = n;
+                el.style.display = n > 0 ? 'inline-block' : 'none';
+            } catch (e) { /* ignore */ }
+        };
+
         window.loadApprovals = async function () {
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getPendingLeaves`);
                 const data = await res.json();
                 window.allApprovals = data.requests || [];
                 renderApprovals(window.allApprovals);
+
+                // Update pending count badge automatically
+                try {
+                    const pendingCount = (window.allApprovals || []).filter(r => String(r.status) === 'Pending').length;
+                    window.updatePendingBadge(pendingCount);
+                } catch (e) { /* ignore */ }
             } catch (e) {
                 console.error('Error loading approvals:', e);
                 showToast('Gagal memuat data pengajuan', 'error');
             }
         }
+
+        // Auto-refresh approvals (badge) every 60s while in admin area
+        try {
+            setInterval(() => { if (typeof loadApprovals === 'function') loadApprovals(); }, 60 * 1000);
+        } catch (e) { /* ignore */ }
 
         window.renderApprovals = function (reqs) {
             const body = document.getElementById('approvalBody');

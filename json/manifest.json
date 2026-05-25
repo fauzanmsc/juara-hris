@@ -2,7 +2,7 @@
   "name": "JEF HRIS",
   "short_name": "JEF HRIS",
   "description": "Platform manajemen kehadiran dan SDM terpadu untuk tim JEF Group",
-  "start_url": "../index",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#0D0D0D",
   "theme_color": "#FFB703",
