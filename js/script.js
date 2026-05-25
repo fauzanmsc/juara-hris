@@ -1528,12 +1528,58 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&start_date=${start}&end_date=${end}&name=${encodeURIComponent(name)}&status=${status}`);
                 const data = await res.json();
                 window.allAttendance = data.records || [];
+                renderAttendanceLiveFeed(window.allAttendance);
                 renderAtt(window.allAttendance);
                 renderAttendanceAnalytics(data.analytics);
             } catch (e) {
                 console.error('Error loading attendance:', e);
                 showToast('Gagal memuat data absensi', 'error');
             }
+        }
+
+        window.renderAttendanceLiveFeed = function (records) {
+            const container = document.getElementById('attendanceLiveFeed');
+            if (!container) return;
+
+            const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+
+            const getSortTime = record => {
+                const time = parseTime(record.clock_in_time) || '00:00';
+                const stamp = new Date(`${record.date || ''}T${time}:00`).getTime();
+                return Number.isNaN(stamp) ? 0 : stamp;
+            };
+
+            const latestPhotos = (records || [])
+                .filter(record => record.photo_in_url || record.photo_in)
+                .sort((a, b) => getSortTime(b) - getSortTime(a))
+                .slice(0, 4);
+
+            if (!latestPhotos.length) {
+                container.innerHTML = '<div class="live-feed-empty">Belum ada foto absensi terbaru</div>';
+                return;
+            }
+
+            container.innerHTML = latestPhotos.map(record => {
+                const photo = getDirectDriveUrl(record.photo_in_url || record.photo_in);
+                const status = record.status_in === 'Terlambat' ? 'Terlambat' : 'Tepat Waktu';
+                const badgeClass = status === 'Terlambat' ? 'badge-warn' : 'badge-success';
+
+                return `
+                    <div class="live-feed-card">
+                        <img src="${escapeHTML(photo)}" alt="Foto absensi ${escapeHTML(record.name || 'Karyawan')}" onerror="this.src='/img/profile.png'; this.onerror=null;">
+                        <div class="live-feed-overlay">
+                            <span class="live-feed-name">${escapeHTML(record.name || 'Karyawan')}</span>
+                            <span class="live-feed-badge badge ${badgeClass}">${status}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         window.renderAttendanceAnalytics = function (analytics) {

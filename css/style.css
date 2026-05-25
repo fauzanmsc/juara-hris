@@ -689,6 +689,24 @@ body.image-preview-open {
 }
 
 /* === LIVE FEED ATTENDANCE GRID === */
+.attendance-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.attendance-live-feed {
+  flex: 0 0 auto;
+  padding: 18px;
+}
+
+.attendance-live-feed .section-header {
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .live-feed-grid {
   display: grid;
   gap: 12px;
@@ -698,12 +716,13 @@ body.image-preview-open {
 .attendance-live-feed .section-title {
   font-size: 15px;
   font-weight: 700;
+  margin: 0;
 }
 
 .live-feed-card {
   position: relative;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 8px;
   background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
   aspect-ratio: 1/1;
   display: block;
@@ -742,10 +761,24 @@ body.image-preview-open {
   font-size: 11px;
   padding: 6px 8px;
   border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.live-feed-empty {
+  grid-column: 1 / -1;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
 }
 
 @media (max-width: 920px) {
   .live-feed-grid { grid-template-columns: repeat(2, 1fr); }
+  .live-feed-card:nth-of-type(n+3) { display: none; }
 }
 
 @media (max-width: 480px) {
@@ -5972,9 +6005,13 @@ table td .avatar {
 @media (min-width: 1000px) {
   #page-attendance {
     display: grid;
-    grid-template-columns: 1fr 360px;
+    grid-template-columns: minmax(0, 1fr) 360px;
     gap: 24px;
     align-items: start;
+  }
+
+  .attendance-main-column {
+    height: 100%;
   }
 
   #attendanceAnalyticsContainer {
@@ -5988,9 +6025,9 @@ table td .avatar {
   }
 }
 
-/* ===== Attendance: make left analytics column and main table card fill viewport ===== */
+/* ===== Attendance: make analytics column and main table card fill viewport ===== */
 @media (min-width: 1000px) {
-  /* Make the analytics container a vertical stack in the left column and limit its height */
+  /* Make the analytics container a vertical stack and limit its height */
   #attendanceAnalyticsContainer.analytics-row {
     display: flex;
     flex-direction: column;
@@ -6010,7 +6047,9 @@ table td .avatar {
   #page-attendance .card.admin-menu-card {
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 115px);
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
     overflow: hidden;
   }
 
@@ -6401,7 +6440,7 @@ table.table-modern tbody td:last-child {
 /* Card full viewport height on admin pages */
 #page-users>.card,
 #page-approval>.card,
-#page-attendance>.card,
+#page-attendance .attendance-main-column>.card.admin-menu-card,
 #page-leave-report>.card,
 #page-tasks>.card {
   flex: 1;
@@ -6412,7 +6451,7 @@ table.table-modern tbody td:last-child {
 
 #page-users>.card>.table-wrap,
 #page-approval>.card>.table-wrap,
-#page-attendance>.card>.table-wrap,
+#page-attendance .attendance-main-column>.card.admin-menu-card>.table-wrap,
 #page-leave-report>.card>.table-wrap,
 #page-tasks>.card>.table-wrap {
   flex: 1;
@@ -6431,12 +6470,24 @@ table.table-modern tbody td:last-child {
 
 #page-users,
 #page-approval,
-#page-attendance,
 #page-leave-report,
 #page-tasks {
   min-height: 0 !important;
   height: 100% !important;
   overflow: hidden !important;
+}
+
+#page-attendance {
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+@media (min-width: 1000px) {
+  #page-attendance {
+    overflow: hidden !important;
+  }
 }
 
 /* ===== RESPONSIVE MODAL FIXES ===== */
