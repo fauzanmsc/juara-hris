@@ -47,80 +47,35 @@ window.renderAdminLayout = function () {
     const topbarMount = document.getElementById('adminTopbarMount');
 
     if (sidebarMount && !document.getElementById('sidebar')) {
-        sidebarMount.innerHTML = `
-            <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-            <aside class="sidebar" id="sidebar">
-                <div class="sidebar-logo" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                    <div class="sidebar-brand" style="display:flex; align-items:center; gap:10px; flex:1;">
-                        <img src="../img/logomark.png" alt="JEF" class="sidebar-brand-icon">
-                        <div class="sidebar-brand-text">
-                            <h3>JEF HRIS</h3>
-                            <p>HC Admin Panel</p>
-                        </div>
-                    </div>
-                    <button class="btn-compact-sidebar" id="btnCompactSidebar" onclick="toggleCompactSidebar()"
-                        title="Minimize Sidebar"
-                        style="background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:auto; transition:all var(--transition); flex-shrink:0;">
-                        <i class="bi bi-chevron-left" id="compactIcon"></i>
-                    </button>
-                    <button class="btn-close-sidebar" onclick="toggleSidebar()" aria-label="Close Sidebar" style="flex-shrink:0;">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-                <nav class="sidebar-nav">
-                    <div class="nav-section-label">CORE HUB</div>
-                    <a class="sidebar-link" href="/admin/dashboard.html">
-                        <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
-                    </a>
-
-                    <div class="nav-section-label">WORKFORCE</div>
-                    <a class="sidebar-link" href="/admin/users.html">
-                        <i class="bi bi-people-fill"></i><span>Employees</span>
-                        <span class="nav-badge" id="inactiveTalentsBadge" style="display:none;">0</span>
-                    </a>
-                    <a class="sidebar-link" href="/admin/approval.html">
-                        <i class="bi bi-clipboard-check-fill"></i><span>Approvals</span>
-                        <span class="nav-badge" id="pendingBadge">0</span>
-                    </a>
-                    <a class="sidebar-link" href="/admin/attendance.html">
-                        <i class="bi bi-clock-history"></i><span>Attendance</span>
-                    </a>
-                    <a class="sidebar-link" href="/admin/leave-report.html">
-                        <i class="bi bi-file-earmark-bar-graph-fill"></i><span>Leaves</span>
-                    </a>
-                    <a class="sidebar-link" href="/admin/positions.html">
-                        <i class="bi bi-briefcase-fill"></i><span>Structure</span>
-                    </a>
-                    <a class="sidebar-link" href="/admin/tasks.html">
-                        <i class="bi bi-list-task"></i><span>Tasks</span>
-                    </a>
-
-                    <div class="nav-section-label">SYSTEM</div>
-                    <a class="sidebar-link" href="/admin/holidays.html">
-                        <i class="bi bi-calendar2-x-fill"></i><span>Holidays</span>
-                    </a>
-                    <a class="sidebar-link" href="/admin/config.html">
-                        <i class="bi bi-gear-fill"></i><span>Settings</span>
-                    </a>
-                </nav>
-
-                <div class="sidebar-footer">
-                    <div class="sidebar-user" onclick="logout()">
-                        <div class="avatar-wrapper" style="position: relative; width: 38px; height: 38px; flex-shrink: 0;">
-                            <div class="avatar avatar-sm" id="sidebarInitials" style="width: 100%; height: 100%;">HR</div>
-                            <div class="status-indicator-dot online" id="connectionStatusDot" title="Online Jaringan"
-                                style="position: absolute; bottom: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--bg-surface); box-shadow: 0 0 8px rgba(0,0,0,0.3); z-index: 10; transition: all var(--transition);">
-                            </div>
-                        </div>
-                        <div class="sidebar-user-info">
-                            <h4 id="sidebarName">—</h4>
-                            <p>Administrator</p>
-                        </div>
-                        <i class="bi bi-box-arrow-right text-danger" style="margin-left:auto"></i>
-                    </div>
-                </div>
-            </aside>
-        `;
+        fetch('/admin/sidebar.html')
+            .then(res => res.text())
+            .then(html => {
+                sidebarMount.innerHTML = html;
+                const currentPath = window.location.pathname;
+                sidebarMount.querySelectorAll('.sidebar-link').forEach(link => {
+                    if (link.getAttribute('href') === currentPath) {
+                        link.classList.add('active');
+                    }
+                });
+                if (typeof window.bindAdminSidebarInfo === 'function') {
+                    window.bindAdminSidebarInfo();
+                } else if (sessionStorage.getItem('hris_user')) {
+                    try {
+                        const user = JSON.parse(sessionStorage.getItem('hris_user'));
+                        const nEl = document.getElementById('sidebarName');
+                        const iEl = document.getElementById('sidebarInitials');
+                        if(nEl) nEl.textContent = user.name || 'Admin';
+                        if(iEl) {
+                            if (window.hasProfilePic && window.hasProfilePic(user.profile_pic_url)) {
+                                iEl.innerHTML = `<img src="${window.getDirectDriveUrl(user.profile_pic_url)}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.src='/img/profile.png'; this.onerror=null;">`;
+                            } else {
+                                iEl.textContent = user.name ? user.name.charAt(0).toUpperCase() : 'A';
+                            }
+                        }
+                    } catch(e){}
+                }
+            })
+            .catch(err => console.error('Error loading sidebar:', err));
     }
 
     if (topbarMount && !document.getElementById('topbarTitle')) {
@@ -163,6 +118,31 @@ window.renderAdminLayout = function () {
 
 if (isInsideAdmin) {
     renderAdminLayout();
+}
+
+window.renderEmployeeLayout = function () {
+    const wrap = document.querySelector('.wrap-employee');
+    if (wrap && !document.querySelector('.bottom-nav')) {
+        fetch('/employee/bottom-nav.html')
+            .then(res => res.text())
+            .then(html => {
+                wrap.insertAdjacentHTML('beforeend', html);
+                const currentPath = window.location.pathname;
+                wrap.querySelectorAll('.bottom-nav .nav-item').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === currentPath || (currentPath === '/employee/' && href === '/employee/beranda.html')) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            })
+            .catch(err => console.error('Error loading bottom nav:', err));
+    }
+};
+
+if (isInsideEmployee) {
+    renderEmployeeLayout();
 }
 
 // Register Service Worker globally for caching and instant performance updates
@@ -2942,8 +2922,8 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
 
         window.submitLeave = async function () {
-            if (remainingQuota <= 0) {
-                window.customAlert('Jatah cuti Anda saat ini adalah 0. Anda tidak dapat mengajukan Cuti, Sakit, atau Izin.');
+            if (remainingQuota <= 0 && selectedType === 'Cuti') {
+                window.customAlert('Jatah cuti Anda saat ini adalah 0. Anda tidak dapat mengajukan Cuti.');
                 return;
             }
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value, reason = document.getElementById('reason').value.trim();
