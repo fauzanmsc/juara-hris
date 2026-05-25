@@ -120,6 +120,32 @@ function generateId(prefix) {
   return prefix + '_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000);
 }
 
+/**
+ * Generate next sequential user id in the form USR{NNN} based on existing tbl_users.
+ * Falls back to 'USR001' if no numeric user ids found.
+ */
+function getNextUserId() {
+  try {
+    const users = sheetToObjects(getSheet(SHEET.USERS));
+    let maxNum = 0;
+    let maxDigits = 3;
+    users.forEach(u => {
+      const id = String(u.user_id || '');
+      const m = id.match(/^USR0*(\d+)$/);
+      if (m) {
+        const digits = m[1].length;
+        const num = parseInt(m[1], 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+        if (digits > maxDigits) maxDigits = digits;
+      }
+    });
+    const next = maxNum + 1;
+    return 'USR' + String(next).padStart(maxDigits, '0');
+  } catch (e) {
+    return 'USR001';
+  }
+}
+
 function getTodayString() {
   return Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd');
 }
@@ -551,6 +577,42 @@ function submitLeave(body) {
   const newId = generateId('LVR');
   const lastRow = sheet.getLastRow() + 1;
   
+  // If this is a 'Cuti' request, validate remaining quota first
+  if (String(type).toLowerCase() === 'cuti') {
+    try {
+      const quotaSheet = getOrCreateSheet(SHEET.QUOTAS, ['user_id', 'name', 'allowed_leave_quota']);
+      const quotas = sheetToObjects(quotaSheet);
+      let qRecord = quotas.find(q => String(q.user_id) === String(user_id));
+      let allowedQuota = 12;
+      if (qRecord) allowedQuota = Number(qRecord.allowed_leave_quota);
+      else quotaSheet.appendRow([user_id, '', 12]);
+
+      // Calculate requested days (inclusive)
+      const s = new Date(start_date);
+      const e = new Date(end_date);
+      const reqDays = Math.round((e - s) / (24 * 3600 * 1000)) + 1;
+
+      // Count existing Cuti (Approved + Pending) for this user
+      const allLeaves = sheetToObjects(getSheet(SHEET.LEAVE));
+      const usedCuti = allLeaves
+        .filter(l => String(l.user_id) === String(user_id) && String(l.type) === 'Cuti' && String(l.status) !== 'Rejected')
+        .reduce((sum, l) => {
+          const s2 = new Date(l.start_date);
+          const e2 = new Date(l.end_date);
+          const days = Math.round((e2 - s2) / (24 * 3600 * 1000)) + 1;
+          return sum + (isNaN(days) ? 0 : days);
+        }, 0);
+
+      const remaining = allowedQuota - usedCuti;
+      if (reqDays > remaining) {
+        return { success: false, message: `Kuota cuti tidak mencukupi. Sisa kuota: ${remaining} hari` };
+      }
+    } catch (e) {
+      // if quota check fails for any reason, allow submission but log
+      Logger.log('Quota check failed: ' + e.message);
+    }
+  }
+
   sheet.appendRow([
     newId, user_id, type,
     start_date, end_date, reason,
@@ -686,7 +748,7 @@ function addUser(body) {
 
   ensureUsersDivisionMigration();
   const sheet = getSheet(SHEET.USERS);
-  const newId = generateId('USR');
+  const newId = getNextUserId();
   sheet.appendRow([newId, name, email, password_pin, role || 'Employee', position, '', 'Active', division]);
   return { success: true, user_id: newId };
 }
@@ -778,15 +840,50 @@ function getAttendanceLog(params) {
   const { start_date, end_date, name, status, user_id } = params;
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const users = sheetToObjects(getSheet(SHEET.USERS));
-
+  // Map attendance rows to API-safe objects and normalize time/status using current config
   let records = attendance.map(a => {
     const user = users.find(u => u.user_id === a.user_id);
+
+    // Normalize date and times to string values (prevent timezone shifts when Dates are JSON-serialized)
+    const dateStr = formatDate(a.date);
+    const clockInStr = formatTimeVal(a.clock_in_time);
+    const clockOutStr = formatTimeVal(a.clock_out_time);
+
+    // Recalculate status based on config (weekday vs saturday) and tolerance
+    const dayName = Utilities.formatDate(new Date(a.date), 'GMT+7', 'EEEE');
+    const isSaturday = (dayName === 'Saturday');
+    const scheduleStart = isSaturday ? getConfigVal('saturday_start', '09:00') : getConfigVal('weekday_start', '10:00');
+    const scheduleEnd = isSaturday ? getConfigVal('saturday_end', '17:00') : getConfigVal('weekday_end', '19:00');
+    const toleranceMin = parseInt(getConfigVal('tolerance_minutes', '15')) || 0;
+
+    let statusIn = a.status_in || '';
+    if (clockInStr) {
+      const [sH, sM] = scheduleStart.split(':').map(Number);
+      const deadlineMin = (sH * 60 + sM) + toleranceMin;
+      const [cH, cM] = clockInStr.split(':').map(Number);
+      const clockMinutes = (cH || 0) * 60 + (cM || 0);
+      statusIn = clockMinutes <= deadlineMin ? 'Tepat Waktu' : 'Terlambat';
+    }
+
+    let statusOut = a.status_out || '';
+    if (clockOutStr) {
+      const [eH, eM] = scheduleEnd.split(':').map(Number);
+      const endMinutes = (eH * 60 + eM);
+      const [cH2, cM2] = clockOutStr.split(':').map(Number);
+      const clockMinutes2 = (cH2 || 0) * 60 + (cM2 || 0);
+      statusOut = clockMinutes2 >= endMinutes ? 'Normal' : 'Pulang Cepat';
+    }
+
     return {
       ...a,
       name: user ? user.name : 'Unknown',
       position: user ? user.position : '',
       profile_pic: user ? (user.profile_pic_url || '') : '',
-      date: formatDate(a.date)
+      date: dateStr,
+      clock_in_time: clockInStr,
+      clock_out_time: clockOutStr,
+      status_in: statusIn,
+      status_out: statusOut
     };
   });
 
@@ -1596,7 +1693,7 @@ function registerEmployee(body) {
   }
 
   const sheet = getSheet(SHEET.USERS);
-  const newId = generateId('USR');
+  const newId = getNextUserId();
 
   let profilePicUrl = '';
   if (profile_pic_base64) {

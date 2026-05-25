@@ -1547,8 +1547,8 @@ html[data-theme="dark"] .sidebar-link.active {
   /* softer, subtler shadow for header icons */
   box-shadow: 0 6px 12px rgba(2,6,23,0.04) !important;
   border-radius: 50% !important;
-  width: 34px !important;
-  height: 34px !important;
+  width: 32px !important;
+  height: 32px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -2892,7 +2892,7 @@ body.employee-page .avatar-emp {
   font-weight: 900;
   font-size: 19px;
   color: #FFF;
-  border: 2.5px solid rgba(255, 183, 3, 0.4);
+  border: 2.5px solid rgba(200, 200, 200, 0.942);
   overflow: hidden;
   flex-shrink: 0;
 }

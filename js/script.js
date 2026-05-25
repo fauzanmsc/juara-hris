@@ -325,12 +325,12 @@ window.logout = function () {
     if (typeof window.showModalConfirm === 'function') {
         window.showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem HRIS?', function () {
             sessionStorage.removeItem('hris_user');
-            window.location.href = window.getRedirectUrl('index');
+            window.location.href = '/web/';
         });
     } else {
         if (confirm('Apakah Anda yakin ingin keluar dari sistem HRIS?')) {
             sessionStorage.removeItem('hris_user');
-            window.location.href = window.getRedirectUrl('index');
+            window.location.href = '/web/';
         }
     }
 };
@@ -2050,7 +2050,7 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
             icon.className = `geo-icon ${cls}`;
             icon.textContent = safe ? '✅' : '🔒';
             title.textContent = safe
-                ? 'Anda di area kantor'
+                ? 'Anda berada di area kantor'
                 : 'Anda di luar area kantor';
             distEl.innerHTML =
                 `Jarak dari kantor:
