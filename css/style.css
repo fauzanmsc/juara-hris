@@ -688,6 +688,71 @@ body.image-preview-open {
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
 }
 
+/* === LIVE FEED ATTENDANCE GRID === */
+.live-feed-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.attendance-live-feed .section-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.live-feed-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
+  aspect-ratio: 1/1;
+  display: block;
+}
+
+.live-feed-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.live-feed-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.45) 100%);
+  color: #fff;
+  font-weight: 700;
+}
+
+.live-feed-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.live-feed-badge {
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 999px;
+}
+
+@media (max-width: 920px) {
+  .live-feed-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .live-feed-grid { gap: 8px; }
+  .live-feed-overlay { padding: 6px 8px; }
+}
+
 /* === TOAST === */
 #toast-container {
   position: fixed;
@@ -5856,6 +5921,14 @@ table td .avatar {
   gap: 24px;
 }
 
+/* Specific: render the attendance analytics container as a vertical flex stack
+   so the two analytics cards appear stacked (left column) like the design */
+#attendanceAnalyticsContainer.analytics-row {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 .analytics-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -5899,14 +5972,13 @@ table td .avatar {
 @media (min-width: 1000px) {
   #page-attendance {
     display: grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: 1fr 360px;
     gap: 24px;
     align-items: start;
   }
 
   #attendanceAnalyticsContainer {
     margin-bottom: 0;
-    padding: 12px 0;
   }
 
   /* Ensure analytics cards contrast correctly in light mode */
@@ -5927,7 +5999,7 @@ table td .avatar {
     max-height: calc(100vh - 140px); /* keep some margin for topbar and page padding */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-right: 6px;
+    padding-left: 6px;
   }
 
   #attendanceAnalyticsContainer .analytics-card {
@@ -5938,8 +6010,8 @@ table td .avatar {
   #page-attendance .card.admin-menu-card {
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 140px);
-    overflow: visible;
+    max-height: calc(100vh - 115px);
+    overflow: hidden;
   }
 
   #page-attendance .card.admin-menu-card .filter-row {

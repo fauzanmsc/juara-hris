@@ -956,31 +956,36 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
                 // Update profile pic if changed
                 if (data.profile_pic_url) {
-                    updateAdminAvatar(data.profile_pic_url);
+                    try { updateAdminAvatar(data.profile_pic_url); } catch (uaErr) { console.warn('updateAdminAvatar error', uaErr); }
                     // Sync to session
                     userData.profile_pic_url = data.profile_pic_url;
                     sessionStorage.setItem('hris_user', JSON.stringify(userData));
                 }
 
-                document.getElementById('s-hadir').textContent = data.stats?.hadir ?? 0;
-                document.getElementById('s-total').textContent = data.stats?.total ?? 0;
-                document.getElementById('s-late').textContent = data.stats?.terlambat ?? 0;
-                document.getElementById('s-leave').textContent = data.stats?.cuti ?? 0;
-                document.getElementById('s-absent').textContent = data.stats?.absen ?? 0;
-                
+                // Helper to safely set text content
+                const safeSet = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+
+                safeSet('s-hadir', data.stats?.hadir ?? 0);
+                safeSet('s-total', data.stats?.total ?? 0);
+                safeSet('s-late', data.stats?.terlambat ?? 0);
+                safeSet('s-leave', data.stats?.cuti ?? 0);
+                safeSet('s-absent', data.stats?.absen ?? 0);
+
                 window.lastPendingCount = data.pending_count ?? 0;
                 const pb = document.getElementById('pendingBadge');
                 if (pb) {
                     pb.textContent = window.lastPendingCount;
                     pb.style.display = window.lastPendingCount > 0 ? 'inline-block' : 'none';
                 }
-                
+
                 window.allLiveLogs = data.live_log || [];
-                renderLiveLog(window.allLiveLogs);
+                if (typeof renderLiveLog === 'function') {
+                    try { renderLiveLog(window.allLiveLogs); } catch (rlErr) { console.warn('renderLiveLog failed', rlErr); }
+                }
 
                 if (window.renderChart && data.stats) {
                     window.lastChartStats = data.stats;
-                    window.renderChart(data.stats);
+                    try { window.renderChart(data.stats); } catch (rcErr) { console.warn('renderChart failed', rcErr); }
                 }
 
                 try {
@@ -989,21 +994,24 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     const allU = dataUsers.users || [];
                     const clockedInNames = (data.live_log || []).map(l => l.name);
                     const belumAbsen = allU.filter(u => u.role === 'Employee' && !clockedInNames.includes(u.name) && u.status === 'Active');
-                    if (window.renderBelumAbsen) window.renderBelumAbsen(belumAbsen);
-                } catch (eu) { }
+                    if (window.renderBelumAbsen) {
+                        try { window.renderBelumAbsen(belumAbsen); } catch (rbErr) { console.warn('renderBelumAbsen failed', rbErr); }
+                    }
+                } catch (eu) { console.warn('getUsers failed', eu); }
 
                 if (window.hidePageLoader) window.hidePageLoader();
             } catch (e) {
                 console.error('Error loading dashboard:', e);
-                showToast('Gagal memuat dashboard', 'error');
                 if (window.hidePageLoader) window.hidePageLoader();
+                showToast('Gagal memuat dashboard', 'error');
             }
         }
 
-        window.renderLiveLog = function (logs) {
-            const body = document.getElementById('liveLogBody');
-            if (!logs.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px">Belum ada data hari ini</td></tr>'; return; }
-            body.innerHTML = logs.map(l => `
+                window.renderLiveLog = function (logs) {
+                        const body = document.getElementById('liveLogBody');
+                        if (!body) return; // nothing to render on non-dashboard pages
+                        if (!logs || !logs.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px">Belum ada data hari ini</td></tr>'; return; }
+                        body.innerHTML = logs.map(l => `
     <tr>
       <td>
         <div class="user-cell" style="justify-content: flex-start; text-align: left;">
@@ -1536,7 +1544,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 container.style.display = 'none';
                 return;
             }
-            container.style.display = 'grid';
+            container.style.display = 'flex';
 
             const buildList = (list, isAbsent) => {
                 if (!list || !list.length) {
@@ -1571,7 +1579,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 <div class="analytics-card">
                     <h4 class="analytics-title">
                         <i class="bi bi-person-x-fill text-danger" style="font-size:16px;"></i> 
-                        Top 3 Karyawan Paling Banyak Tidak Hadir
+                        Top 3 Paling Banyak Tidak Hadir
                     </h4>
                     <div class="top-emp-list">
                         ${buildList(analytics.top_absent, true)}
@@ -1582,7 +1590,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 <div class="analytics-card">
                     <h4 class="analytics-title">
                         <i class="bi bi-heart-pulse-fill text-warning" style="font-size:16px;"></i> 
-                        Top 3 Karyawan Paling Sering Sakit & Izin
+                        Top 3 Paling Sering Sakit & Izin
                     </h4>
                     <div class="top-emp-list">
                         ${buildList(analytics.top_sick_permit, false)}
