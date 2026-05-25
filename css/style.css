@@ -1391,7 +1391,7 @@ html[data-theme="dark"] .sidebar-link.active {
 }
 
 .sidebar-footer {
-  padding: 16px 12px;
+  padding: 6px 12px;
   border-top: 1px solid var(--border)
 }
 
