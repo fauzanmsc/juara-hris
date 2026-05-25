@@ -53,65 +53,66 @@
 
         <!-- ATTENDANCE PAGE -->
         <section class="page-section active fade-in" id="page-attendance">
-          <div class="attendance-main-column">
-            <section class="card attendance-live-feed" aria-labelledby="attendanceLiveFeedTitle">
-              <div class="section-header">
-                <div>
-                  <h3 class="section-title" id="attendanceLiveFeedTitle">Live Feed Attendance</h3>
+          <section class="card attendance-live-feed" aria-labelledby="attendanceLiveFeedTitle">
+            <div class="section-header">
+              <div>
+                <h3 class="section-title" id="attendanceLiveFeedTitle">Live Feed Attendance</h3>
 
-                </div>
-                <button class="btn btn-sm btn-ghost" onclick="loadAttendance()" title="Refresh live feed" aria-label="Refresh live feed">
-                  <i class="bi bi-arrow-clockwise"></i>
-                </button>
               </div>
-              <div id="attendanceLiveFeed" class="live-feed-grid"></div>
-            </section>
+              <button class="btn btn-sm btn-ghost" onclick="loadAttendance()" title="Refresh live feed" aria-label="Refresh live feed">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </div>
+            <div id="attendanceLiveFeed" class="live-feed-grid"></div>
+          </section>
 
-            <div class="card admin-menu-card">
+          <!-- ANALYTICS CARDS (Top 3 Absent & Sick/Permit) -->
+          <div id="attendanceAnalyticsContainer" class="analytics-row"></div>
+
+          <div class="card admin-menu-card">
 
 
-              <div class="filter-row">
-                <input type="date" class="form-control" id="attFilterStart">
-                <input type="date" class="form-control" id="attFilterEnd">
-                <input type="text" class="form-control" id="attFilterName" placeholder="Nama karyawan..." style="flex:1">
-                <select class="form-control" id="attFilterStatus">
-                  <option value="">Semua Status</option>
-                  <option value="Tepat Waktu">Tepat Waktu</option>
-                  <option value="Terlambat">Terlambat</option>
-                </select>
-                <button class="btn btn-primary" style="padding: 10px 20px; border-radius: var(--radius-sm);"
-                  onclick="loadAttendance()"><i class="bi bi-search"></i></button>
-                                <div class="admin-card-actions">
+            <div class="filter-row">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
+                <input type="date" class="form-control" id="attFilterStart" style="min-width: 0;">
+                <input type="date" class="form-control" id="attFilterEnd" style="min-width: 0;">
+              </div>
+              <input type="text" class="form-control" id="attFilterName" placeholder="Nama karyawan..." style="flex:1">
+              <select class="form-control" id="attFilterStatus">
+                <option value="">Semua Status</option>
+                <option value="Tepat Waktu">Tepat Waktu</option>
+                <option value="Terlambat">Terlambat</option>
+              </select>
+              <button class="btn btn-primary" style="padding: 10px 20px; border-radius: var(--radius-sm);"
+                onclick="loadAttendance()"><i class="bi bi-search"></i></button>
+              <div class="admin-card-actions">
                 <button class="btn btn-sm btn-success" onclick="exportCSV()"><i class="bi bi-file-earmark-excel-fill"></i>
                   Export CSV</button>
               </div>
-              </div>
+            </div>
 
-              <div class="table-wrap">
-                <table>
-                  <thead id="attendanceThead">
-                    <tr>
-                      <th style="cursor:pointer;" onclick="sortAttendanceTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortAttendanceTable('date')" data-sort="date">Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_in')" data-sort="clock_in">Masuk <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_out')" data-sort="clock_out">Pulang <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortAttendanceTable('distance')" data-sort="distance">Jarak <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortAttendanceTable('status_in')" data-sort="status_in">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th>Foto</th>
-                      <th>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody id="attBody">
-                    <tr>
-                      <td colspan="8" style="text-align:center;padding:30px">Gunakan filter untuk mencari data</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div class="table-wrap">
+              <table>
+                <thead id="attendanceThead">
+                  <tr>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('date')" data-sort="date">Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_in')" data-sort="clock_in">Masuk <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_out')" data-sort="clock_out">Pulang <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('distance')" data-sort="distance">Jarak <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortAttendanceTable('status_in')" data-sort="status_in">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th>Foto</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="attBody">
+                  <tr>
+                    <td colspan="8" style="text-align:center;padding:30px">Gunakan filter untuk mencari data</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-          <!-- ANALYTICS CARDS (Top 3 Absent & Sick/Permit) -->
-          <div id="attendanceAnalyticsContainer" class="analytics-row" style="margin-bottom: 24px; display:flex"></div>
 
 
         </section>
@@ -506,6 +507,7 @@
         const activePage = 'attendance';
         showPage(activePage);
       }
+      setInterval(() => { if(window.innerWidth <= 768 && typeof loadAttendance === 'function') { loadAttendance(); } }, 30000);
     });
 
     window.addEventListener('load', () => {

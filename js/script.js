@@ -125,7 +125,7 @@ window.renderAdminLayout = function () {
                             if (window.hasProfilePic && window.hasProfilePic(user.profile_pic_url)) {
                                 iEl.innerHTML = `<img src="${window.getDirectDriveUrl(user.profile_pic_url)}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.src='/img/profile.png'; this.onerror=null;">`;
                             } else {
-                                iEl.textContent = user.name ? user.name.charAt(0).toUpperCase() : 'A';
+                                iEl.innerHTML = <img src="/img/profile.png" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">;
                             }
                         }
                     } catch (e) { }
@@ -335,7 +335,7 @@ window.showModalConfirm = function (title, message, onConfirm) {
 
     // Use responsive max width, remove inner scrolling to keep UI clickable and simple
     overlay.innerHTML = `
-        <div class="modal border-animated-modal" style="text-align:center; padding: 24px; max-width: 420px; width: min(420px,95%); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow: visible;">
+        <div class="modal border-animated-modal" style="text-align:center; padding: 24px; max-width: 320px; width: min(420px,95%); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow: visible;">
             <div class="card-border-glow"></div>
             <button onclick="document.getElementById('globalConfirmOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
             <div style="position:relative; z-index:2;">
