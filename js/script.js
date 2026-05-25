@@ -27,12 +27,12 @@ window.getRedirectUrl = function (page) {
     else if (page === 'admin.html') page = 'admin';
     else if (page === 'employee.html') page = 'employee';
     else page = page.replace('.html', '').replace('.php', '');
-    
+
     // Always use absolute paths for reliable navigation
     if (page === 'admin' || page === 'dashboard') return '/admin/dashboard.html';
     if (page === 'employee' || page === 'beranda') return '/employee/beranda.html';
     if (page === 'index') return '/index.html';
-    
+
     if (isInsideAdmin || ['users', 'approval', 'attendance', 'leave-report', 'positions', 'tasks', 'holidays', 'config'].includes(page)) {
         return '/admin/' + page + '.html';
     }
@@ -64,16 +64,17 @@ window.renderAdminLayout = function () {
                         const user = JSON.parse(sessionStorage.getItem('hris_user'));
                         const nEl = document.getElementById('sidebarName');
                         const iEl = document.getElementById('sidebarInitials');
-                        if(nEl) nEl.textContent = user.name || 'Admin';
-                        if(iEl) {
+                        if (nEl) nEl.textContent = user.name || 'Admin';
+                        if (iEl) {
                             if (window.hasProfilePic && window.hasProfilePic(user.profile_pic_url)) {
                                 iEl.innerHTML = `<img src="${window.getDirectDriveUrl(user.profile_pic_url)}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.src='/img/profile.png'; this.onerror=null;">`;
                             } else {
                                 iEl.textContent = user.name ? user.name.charAt(0).toUpperCase() : 'A';
                             }
                         }
-                    } catch(e){}
+                    } catch (e) { }
                 }
+                document.dispatchEvent(new Event('sidebarLoaded'));
             })
             .catch(err => console.error('Error loading sidebar:', err));
     }
@@ -305,12 +306,12 @@ window.logout = function () {
     if (typeof window.showModalConfirm === 'function') {
         window.showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem HRIS?', function () {
             sessionStorage.removeItem('hris_user');
-            window.location.href = '/web/';
+            window.location.href = '/';
         });
     } else {
         if (confirm('Apakah Anda yakin ingin keluar dari sistem HRIS?')) {
             sessionStorage.removeItem('hris_user');
-            window.location.href = '/web/';
+            window.location.href = '/';
         }
     }
 };
@@ -791,18 +792,17 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         const userData = JSON.parse(sessionStorage.getItem('hris_user') || 'null');
         if (!userData || userData.role !== 'Admin') window.location.href = window.getRedirectUrl('index');
 
-        document.getElementById('sidebarName').textContent = userData?.name || 'Admin';
-        if (document.getElementById('adminWelcomeName')) {
-            document.getElementById('adminWelcomeName').textContent = userData?.name || 'Admin';
-        }
-        const sidebarInitials = document.getElementById('sidebarInitials');
-        const initials = (userData?.name || 'HR').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        const sbName = document.getElementById('sidebarName');
+        if (sbName) sbName.textContent = userData?.name || 'Admin';
+        const wName = document.getElementById('adminWelcomeName');
+        if (wName) wName.textContent = userData?.name || 'Admin';
 
         window.updateAdminAvatar = function (url) {
-            if (!sidebarInitials) return;
+            const si = document.getElementById('sidebarInitials');
+            if (!si) return;
             const hasPic = hasProfilePic(url);
             const finalUrl = hasPic ? getDirectDriveUrl(url) : '';
-            sidebarInitials.textContent = '';
+            si.textContent = '';
             const img = document.createElement('img');
             img.style.width = '100%';
             img.style.height = '100%';
@@ -810,7 +810,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             img.style.objectFit = 'cover';
             img.onerror = () => { img.src = '/img/profile.png'; img.onerror = null; };
             img.src = finalUrl || '/img/profile.png';
-            sidebarInitials.appendChild(img);
+            si.appendChild(img);
         };
 
         // Init avatar
@@ -860,7 +860,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         // Clock
         setInterval(() => {
             const n = new Date();
-            document.getElementById('liveTopClock').textContent = [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => String(x).padStart(2, '0')).join(':');
+            const clk = document.getElementById('liveTopClock');
+            if (clk) clk.textContent = [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => String(x).padStart(2, '0')).join(':');
         }, 1000);
 
         // Navigation
@@ -936,8 +937,14 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 document.getElementById('s-late').textContent = data.stats?.terlambat ?? 0;
                 document.getElementById('s-leave').textContent = data.stats?.cuti ?? 0;
                 document.getElementById('s-absent').textContent = data.stats?.absen ?? 0;
-                document.getElementById('pendingBadge').textContent = data.pending_count ?? 0;
-                document.getElementById('pendingBadge').style.display = data.pending_count > 0 ? 'block' : 'none';
+                
+                window.lastPendingCount = data.pending_count ?? 0;
+                const pb = document.getElementById('pendingBadge');
+                if (pb) {
+                    pb.textContent = window.lastPendingCount;
+                    pb.style.display = window.lastPendingCount > 0 ? 'inline-block' : 'none';
+                }
+                
                 window.allLiveLogs = data.live_log || [];
                 renderLiveLog(window.allLiveLogs);
 
@@ -1001,8 +1008,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const data = await res.json();
                 allUsers = data.users || [];
                 window.allUsers = allUsers;
-                
+
                 const inactiveCount = allUsers.filter(u => u.status && u.status !== 'Active').length;
+                window.lastInactiveCount = inactiveCount;
                 const badge = document.getElementById('inactiveTalentsBadge');
                 if (badge) {
                     badge.textContent = inactiveCount;
@@ -1094,10 +1102,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const q = (document.getElementById('userSearch')?.value || '').trim().toLowerCase();
             const st = document.getElementById('userStatusFilter')?.value || '';
             const role = document.getElementById('userRoleFilter')?.value || '';
-            
+
             const filtered = allUsers.filter(u => {
-                const matchesSearch = !q || 
-                    (u.name && u.name.toLowerCase().includes(q)) || 
+                const matchesSearch = !q ||
+                    (u.name && u.name.toLowerCase().includes(q)) ||
                     (u.email && u.email.toLowerCase().includes(q)) ||
                     (u.user_id && u.user_id.toLowerCase().includes(q));
                 const matchesStatus = !st || u.status === st;
@@ -1222,9 +1230,10 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         // Update sidebar badge showing pending approvals (safe if element missing)
         window.updatePendingBadge = function (count) {
             try {
+                const n = Number(count) || 0;
+                window.lastPendingCount = n;
                 const el = document.getElementById('pendingBadge');
                 if (!el) return;
-                const n = Number(count) || 0;
                 el.textContent = n;
                 el.style.display = n > 0 ? 'inline-block' : 'none';
             } catch (e) { /* ignore */ }
@@ -1251,10 +1260,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         // Auto-refresh approvals (badge) every 60s while in admin area
         try {
             setInterval(() => { if (typeof loadApprovals === 'function') loadApprovals(); }, 60 * 1000);
+            setTimeout(() => { if (typeof loadApprovals === 'function') loadApprovals(); }, 1500); // Initial badge load
         } catch (e) { /* ignore */ }
 
         window.renderApprovals = function (reqs) {
             const body = document.getElementById('approvalBody');
+            if (!body) return;
             if (!reqs.length) { body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px">Tidak ada pengajuan</td></tr>'; return; }
             body.innerHTML = reqs.map(r => {
                 const statusText = {
@@ -1359,7 +1370,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.renderAttendanceAnalytics = function (analytics) {
             const container = document.getElementById('attendanceAnalyticsContainer');
             if (!container) return;
-            
+
             if (!analytics || (!analytics.top_absent?.length && !analytics.top_sick_permit?.length)) {
                 container.style.display = 'none';
                 return;
@@ -1374,7 +1385,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     const avatarHTML = hasProfilePic(emp.profile_pic_url) ?
                         `<img src="${getDirectDriveUrl(emp.profile_pic_url)}" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
                         `<img src="/img/profile.png" class="avatar avatar-sm" style="width:36px; height:36px; object-fit:cover;">`;
-                    
+
                     const statValue = isAbsent ? `${emp.absent_days} Hari` : `${emp.sick_permit_days} Hari`;
                     const statClass = isAbsent ? 'stat-absent' : 'stat-sick-permit';
 
@@ -1456,7 +1467,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             }
             let csvContent = "data:text/csv;charset=utf-8,";
             csvContent += "Nama,Tanggal,Jam Masuk,Jam Pulang,Jarak (m),Status\n";
-            window.allAttendance.forEach(function(r) {
+            window.allAttendance.forEach(function (r) {
                 let row = [
                     `"${r.name || ''}"`,
                     `"${r.date || ''}"`,
@@ -1963,6 +1974,19 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 }
             }
         }
+        
+        document.addEventListener('sidebarLoaded', () => {
+             if (window.lastPendingCount !== undefined) {
+                 window.updatePendingBadge(window.lastPendingCount);
+             }
+             if (window.lastInactiveCount !== undefined) {
+                 const badge = document.getElementById('inactiveTalentsBadge');
+                 if (badge) {
+                     badge.textContent = window.lastInactiveCount;
+                     badge.style.display = window.lastInactiveCount > 0 ? 'inline-block' : 'none';
+                 }
+             }
+        });
     })();
 }
 
@@ -2447,12 +2471,14 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         if (!userData || userData.role !== 'Employee') { window.location.href = window.getRedirectUrl('index'); }
 
         // Profile
-        document.getElementById('userName').textContent = userData?.name || '—';
-        document.getElementById('userPosition').textContent = userData?.position || '—';
+        const unEl = document.getElementById('userName');
+        if (unEl) unEl.textContent = userData?.name || '—';
+        const upEl = document.getElementById('userPosition');
+        if (upEl) upEl.textContent = userData?.position || '—';
         const initials = (userData?.name || 'U').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-        const avatarEl = document.getElementById('avatarEl');
 
         window.updateAvatar = function (url) {
+            const avatarEl = document.getElementById('avatarEl');
             if (!avatarEl) return;
             const hasPic = hasProfilePic(url);
             const finalUrl = hasPic ? getDirectDriveUrl(url) : '';
@@ -2478,8 +2504,10 @@ if (currentPage === 'employee.html' || (currentPage === '' && 'employee.js' === 
         const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         window.updateClock = function () {
             const now = new Date();
-            document.getElementById('dayName').textContent = DAYS[now.getDay()];
-            document.getElementById('dateStr').textContent = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+            const dName = document.getElementById('dayName');
+            if (dName) dName.textContent = DAYS[now.getDay()];
+            const dStr = document.getElementById('dateStr');
+            if (dStr) dStr.textContent = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
             const clockEl = document.getElementById('liveClock');
             if (clockEl) {
                 const timeStr = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
@@ -2922,12 +2950,14 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         }
 
         window.submitLeave = async function () {
-            if (remainingQuota <= 0 && selectedType === 'Cuti') {
-                window.customAlert('Jatah cuti Anda saat ini adalah 0. Anda tidak dapat mengajukan Cuti.');
-                return;
-            }
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value, reason = document.getElementById('reason').value.trim();
             if (!startDate || !endDate) { showToast('Pilih tanggal mulai & selesai', 'warn'); return; }
+            
+            const daysRequested = Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000) + 1;
+            if (selectedType === 'Cuti' && daysRequested > remainingQuota) {
+                window.customAlert(`Jatah cuti Anda tersisa ${remainingQuota} hari. Anda tidak dapat mengajukan Cuti selama ${daysRequested} hari.`);
+                return;
+            }
             if (!reason) { showToast('Alasan wajib diisi', 'warn'); return; }
             if (selectedType === 'Sakit' && !fileBase64) { showToast('Upload surat dokter untuk pengajuan sakit', 'warn'); return; }
             const btn = document.getElementById('submitBtn');
@@ -3079,17 +3109,17 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
     };
 
     window.customConfirm = function (message, onOK, onCancel) {
-            let overlay = document.getElementById('globalModalOverlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'globalModalOverlay';
-                overlay.className = 'overlay';
-                overlay.style.zIndex = '999999';
-                document.body.appendChild(overlay);
-            }
+        let overlay = document.getElementById('globalModalOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'globalModalOverlay';
+            overlay.className = 'overlay';
+            overlay.style.zIndex = '999999';
+            document.body.appendChild(overlay);
+        }
 
-            // Responsive, non-scrolling confirmation with larger tappable buttons
-            overlay.innerHTML = `
+        // Responsive, non-scrolling confirmation with larger tappable buttons
+        overlay.innerHTML = `
                 <div class="modal border-animated-modal" style="text-align:center; padding: 24px; max-width:420px; width: min(420px,95%); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative;">
                     <div class="card-border-glow"></div>
                     <button id="customConfirmCloseX" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
@@ -3262,8 +3292,8 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         if (valB === undefined || valB === null) valB = '';
 
         const numericCols = [
-            'distance', 'distance_meters', 'allowed_leave_quota', 
-            'remaining_leave_quota', 'sick_count', 'permit_count', 
+            'distance', 'distance_meters', 'allowed_leave_quota',
+            'remaining_leave_quota', 'sick_count', 'permit_count',
             'cuti_count', 'score', 'absent_days', 'sick_permit_days'
         ];
 
@@ -3393,7 +3423,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Tidak ada data tugas ditemukan</td></tr>';
             return;
         }
-        
+
         body.innerHTML = filtered.map(t => {
             const statusBadge = t.status === 'Completed' ? 'badge-success' : 'badge-warn';
             const statusTranslation = t.status === 'Completed' ? 'Selesai' : 'Belum Selesai';
@@ -3405,9 +3435,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                     <td>
                         <div class="user-cell">
                             ${hasProfilePic(t.profile_pic_url) ?
-                                `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
-                                `<img src="/img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
-                            }
+                    `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar avatar-sm" style="object-fit:cover" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                    `<img src="/img/profile.png" class="avatar avatar-sm" style="object-fit:cover;">`
+                }
                             <div>
                                 <strong>${t.name}</strong>
                                 <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${t.position}</div>
@@ -3708,7 +3738,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         try {
             const res = await fetch(`${APPS_SCRIPT_URL}?action=getTasks&start_date=${start}&end_date=${end}`);
             const data = await res.json();
-            
+
             if (data.success && data.tasks) {
                 let filtered = data.tasks;
                 if (name) {
@@ -3726,12 +3756,12 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                         return userObj && userObj.division === division;
                     });
                 }
-                
+
                 // Dynamic calculation for task statistics
                 const totalTasks = filtered.length;
                 const completedTasks = filtered.filter(t => t.status === 'Completed').length;
                 const pendingTasks = totalTasks - completedTasks;
-                
+
                 // Calculate average productivity score (only for tasks with a score)
                 const scoredTasks = filtered.filter(t => t.score && !isNaN(t.score));
                 const avgScore = scoredTasks.length > 0
@@ -3769,7 +3799,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         document.getElementById('modalTaskEndTime').value = '';
         document.getElementById('modalTaskOutput').value = '';
         document.getElementById('modalTaskOthers').value = '';
-        
+
         // Populate employee dropdown from active employees
         const userSelect = document.getElementById('modalTaskUser');
         if (userSelect && window.allUsers) {
@@ -3782,10 +3812,10 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         openModal('modalTask');
     };
 
-    window.viewAdminTaskDetail = function(taskJsonStr) {
+    window.viewAdminTaskDetail = function (taskJsonStr) {
         const t = JSON.parse(decodeURIComponent(taskJsonStr));
         const body = document.getElementById('modalViewTaskAdminBody');
-        
+
         const attachmentBtn = t.attachment_url ? `
             <button onclick="previewAdminAttachment('${t.attachment_url}')" class="btn btn-primary" style="margin-top:8px; padding:10px 16px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; width:100%;">
                 <i class="bi bi-file-earmark-arrow-up-fill"></i> Buka Dokumen Lampiran
@@ -3799,9 +3829,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
             <div class="bento-detail-grid">
                 <div style="display:flex; gap:12px; padding-bottom:16px; border-bottom:1px dashed var(--border); margin-bottom:4px;">
                     ${hasProfilePic(t.profile_pic_url) ?
-                        `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
-                        `<img src="/img/profile.png" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;">`
-                    }
+                `<img src="${getDirectDriveUrl(t.profile_pic_url)}" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;" onerror="this.src='/img/profile.png'; this.onerror=null;">` :
+                `<img src="/img/profile.png" class="avatar" style="width:50px; height:50px; object-fit:cover; border-radius:14px;">`
+            }
                     <div style="display:flex; flex-direction:column; justify-content:center;">
                         <h4 style="margin:0; font-size:18px; font-weight:800; color:var(--text);">${t.name}</h4>
                         <span style="color:var(--text-muted); font-size:12px;">${t.position || 'Employee'} • ${t.division || '-'}</span>
@@ -3875,9 +3905,9 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
     window.openEditTaskModal = function (taskJsonStr) {
         const task = JSON.parse(decodeURIComponent(taskJsonStr));
         document.getElementById('modalTaskTitle').innerHTML = '<i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Tugas & Productivity';
-        
+
         document.getElementById('modalTaskId').value = task.task_id;
-        
+
         // Populate employee dropdown from active employees
         const userSelect = document.getElementById('modalTaskUser');
         if (userSelect && window.allUsers) {
@@ -3886,7 +3916,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
                 <option value="${u.user_id}" ${u.user_id === task.user_id ? 'selected' : ''}>${u.name} (${u.position || 'Employee'})</option>
             `).join('');
         }
-        
+
         document.getElementById('modalTaskName').value = task.task_name || '';
         document.getElementById('modalTaskTarget').value = task.target_goals || '';
         document.getElementById('modalTaskStartTime').value = task.start_time || '';
@@ -3898,7 +3928,7 @@ if (currentPage === 'leave.html' || (currentPage === '' && 'leave.js' === 'index
         document.getElementById('modalTaskOthers').value = task.others || '';
         document.getElementById('modalTaskStatus').value = task.status || 'Pending';
         document.getElementById('modalTaskScore').value = task.score || '';
-        
+
         openModal('modalTask');
     };
 

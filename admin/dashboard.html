@@ -58,7 +58,8 @@
           <div class="hris-landing-hero fade-in">
             <h1
               style="font-family:var(--font-head); font-weight:800; font-size:22px; color:var(--text); line-height:1.2; margin-bottom:8px;">
-              Selamat Datang, <span id="adminWelcomeName" style="color:var(--primary); font-weight:700; font-size:22px;">Admin</span> 👋
+              Selamat Datang, <span id="adminWelcomeName"
+                style="color:var(--primary); font-weight:700; font-size:22px;">Admin</span> 👋
             </h1>
             <p style="color:var(--text-muted); font-size:13px; line-height:1.4; margin-top:6px;">
               Kelola talenta, absensi, cuti, dan laporan secara cepat.
@@ -113,24 +114,39 @@
           <div class="dashboard-layout-grid fade-in">
             <!-- LIVE LOG -->
             <div class="card p-0" style="margin:0;">
-              <div class="card-header" style="padding: 24px 24px 0;">
+              <div class="card-header">
                 <div style="display:flex; flex-direction:column; min-width:0;">
-                  <h3 class="card-title"><i class="bi bi-activity text-primary" style="margin-right:8px"></i>Live Log Absensi</h3>
+                  <h3 class="card-title"><i class="bi bi-activity text-primary" style="margin-right:8px"></i>Live Log
+                    Absensi</h3>
                   <p class="card-subtitle">Aktivitas kehadiran hari ini</p>
                 </div>
                 <div style="display:flex; align-items:center; gap:12px;">
-                  <button class="btn btn-sm btn-primary" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                  <button class="btn btn-sm btn-primary" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i>
+                    Refresh</button>
                 </div>
               </div>
-              <div class="table-wrap" style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
+              <div class="table-wrap"
+                style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
                 <table>
                   <thead id="liveLogThead">
                     <tr>
-                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('clock_in')" data-sort="clock_in">Masuk <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('clock_out')" data-sort="clock_out">Pulang <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('distance')" data-sort="distance">Jarak <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('status_in')" data-sort="status_in">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('name')" data-sort="name">Karyawan <i
+                          class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('clock_in')" data-sort="clock_in">Masuk <i
+                          class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('clock_out')" data-sort="clock_out">Pulang
+                        <i class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                      </th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('distance')" data-sort="distance">Jarak <i
+                          class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortLiveLogsTable('status_in')" data-sort="status_in">Status
+                        <i class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                      </th>
                       <th>Foto</th>
                     </tr>
                   </thead>
@@ -156,9 +172,9 @@
 
               <!-- BELUM ABSEN -->
               <div class="card p-0" style="margin:0;">
-                <div style="padding: 20px 20px 0;">
+                <div>
                   <h3 class="card-title text-danger"><i class="bi bi-person-x-fill" style="margin-right:8px"></i>Belum
-                      Absen</h3>
+                    Absen</h3>
                   <p class="card-subtitle">Karyawan belum Clock In hari ini</p>
                 </div>
                 <div class="table-wrap"
@@ -187,7 +203,8 @@
     <div class="modal border-animated-modal" style="max-width: 480px;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary" style="margin-right:8px"></i> Tambah Karyawan</h3>
+        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary"
+            style="margin-right:8px"></i> Tambah Karyawan</h3>
         <button class="modal-close" onclick="closeModal('modalUser')"><i class="bi bi-x"></i></button>
       </div>
       <form id="adminUserForm" onsubmit="event.preventDefault(); saveUser();" style="display:contents;">
@@ -196,9 +213,8 @@
         <div class="modal-body" style="position:relative; z-index:2;">
           <div class="avatar-upload-group">
             <div class="avatar-preview-wrapper">
-              <img id="mu_preview" class="avatar-preview-img"
-                src="/img/profile.png"
-                alt="Preview" onerror="this.src='/img/profile.png'; this.onerror=null;">
+              <img id="mu_preview" class="avatar-preview-img" src="/img/profile.png" alt="Preview"
+                onerror="this.src='/img/profile.png'; this.onerror=null;">
               <label for="mu_file" class="avatar-edit-btn">
                 <i class="bi bi-camera-fill"></i>
               </label>
@@ -529,4 +545,5 @@
     });
   </script>
 </body>
+
 </html>
