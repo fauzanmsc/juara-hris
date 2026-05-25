@@ -22,6 +22,47 @@ if (window.location.pathname.includes('/admin/') || window.location.pathname.end
 
 const isInsideAdmin = window.location.pathname.includes('/admin/') || window.location.pathname.endsWith('/admin');
 const isInsideEmployee = window.location.pathname.includes('/employee/') || window.location.pathname.endsWith('/employee');
+
+(function setupViewportGuard() {
+    const root = document.documentElement;
+    let resizeTimer;
+
+    const syncViewportSize = () => {
+        const viewport = window.visualViewport;
+        const height = Math.round(viewport?.height || window.innerHeight || root.clientHeight);
+        const width = Math.round(viewport?.width || window.innerWidth || root.clientWidth);
+
+        if (height) root.style.setProperty('--app-height', `${height}px`);
+        if (width) root.style.setProperty('--app-width', `${width}px`);
+    };
+
+    const queueSync = () => {
+        window.clearTimeout(resizeTimer);
+        syncViewportSize();
+        resizeTimer = window.setTimeout(syncViewportSize, 250);
+    };
+
+    syncViewportSize();
+    window.addEventListener('resize', queueSync, { passive: true });
+    window.addEventListener('orientationchange', queueSync, { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', queueSync, { passive: true });
+        window.visualViewport.addEventListener('scroll', queueSync, { passive: true });
+    }
+
+    const preventGestureZoom = event => event.preventDefault();
+    document.addEventListener('gesturestart', preventGestureZoom, { passive: false });
+    document.addEventListener('gesturechange', preventGestureZoom, { passive: false });
+    document.addEventListener('gestureend', preventGestureZoom, { passive: false });
+
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', event => {
+        const now = Date.now();
+        if (now - lastTouchEnd < 300) event.preventDefault();
+        lastTouchEnd = now;
+    }, { passive: false });
+})();
+
 window.getRedirectUrl = function (page) {
     if (page === 'index.html') page = 'index';
     else if (page === 'admin.html') page = 'admin';
@@ -1324,20 +1365,26 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         window.renderApprovals = function (reqs) {
             const body = document.getElementById('approvalBody');
             if (!body) return;
-            if (!reqs.length) { body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px">Tidak ada pengajuan</td></tr>'; return; }
+            const hasDecisionContent = reqs.some(r => String(r.status) === 'Pending');
+            const approvalThead = document.getElementById('approvalThead');
+            if (approvalThead) approvalThead.classList.toggle('hide-decision-col', !hasDecisionContent);
+            const colspan = hasDecisionContent ? 9 : 8;
+            if (!reqs.length) { body.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;padding:30px">Tidak ada pengajuan</td></tr>`; return; }
             body.innerHTML = reqs.map(r => {
                 const statusText = {
                     Pending: 'Menunggu',
                     Approved: 'Disetujui',
                     Rejected: 'Ditolak'
                 }[r.status] || r.status;
-                const typeBadgeClass = r.type === 'Cuti' ? 'badge-success' : (r.type === 'Sakit' ? 'badge-danger' : 'badge-primary');
+                const typeText = r.type || '—';
+                const typeKey = String(typeText).toLowerCase();
+                const typeChipClass = typeKey.includes('cuti') ? 'cuti' : (typeKey.includes('sakit') ? 'sakit' : (typeKey.includes('izin') ? 'izin' : 'other'));
                 const startShort = window.formatShortDate(r.start_date);
                 const endShort = window.formatShortDate(r.end_date);
                 return `
     <tr>
       <td style="min-width:180px; max-width:220px; white-space:normal; line-height:1.4;"><strong>${r.user_name}</strong></td>
-      <td><span class="badge ${typeBadgeClass}">${r.type}</span></td>
+      <td><span class="approval-type-chip approval-type-${typeChipClass}"><span class="approval-type-dot"></span><span>${typeText}</span></span></td>
       <td style="white-space:nowrap">${startShort}</td>
       <td style="white-space:nowrap">${endShort}</td>
       <td style="max-width:180px;text-overflow:ellipsis;overflow:hidden">${r.reason}</td>

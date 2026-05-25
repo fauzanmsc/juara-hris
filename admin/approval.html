@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>JEF HRIS - Dashboard</title>
   <meta name="theme-color" content="#FFB703">
   <link rel="icon" type="image/png" href="../img/logomark.png">
@@ -73,7 +73,7 @@
 
             <div class="table-wrap" style="max-height: 380px; overflow-y: auto;">
               <table>
-                <thead id="approvalThead">
+                <thead id="approvalThead" class="hide-decision-col">
                   <tr>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('user_name')" data-sort="user_name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('type')" data-sort="type">Jenis <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
@@ -82,13 +82,13 @@
                     <th>Catatan</th>
                     <th>Dokumen</th>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('status')" data-sort="status">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th>Keputusan</th>
+                    <th data-approval-decision-col>Keputusan</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="approvalBody">
                   <tr>
-                    <td colspan="9" style="text-align:center;padding:30px">Memuat pengajuan...</td>
+                    <td colspan="8" style="text-align:center;padding:30px">Memuat pengajuan...</td>
                   </tr>
                 </tbody>
               </table>

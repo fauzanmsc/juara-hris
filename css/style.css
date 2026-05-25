@@ -468,6 +468,64 @@ img {
   border: 1px solid rgba(255, 183, 3, 0.25)
 }
 
+.approval-type-chip {
+  width: 92px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.approval-type-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.approval-type-cuti {
+  background: rgba(59, 130, 246, 0.16);
+  color: #2563eb;
+}
+
+.approval-type-cuti .approval-type-dot {
+  background: #3b82f6;
+}
+
+.approval-type-sakit {
+  background: rgba(16, 185, 129, 0.16);
+  color: #047857;
+}
+
+.approval-type-sakit .approval-type-dot {
+  background: #10b981;
+}
+
+.approval-type-izin {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+}
+
+.approval-type-izin .approval-type-dot {
+  background: #f59e0b;
+}
+
+.approval-type-other {
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--text-muted);
+}
+
+.approval-type-other .approval-type-dot {
+  background: var(--text-muted);
+}
+
 /* === FORM INPUTS === */
 .form-group {
   display: flex;
@@ -6164,6 +6222,11 @@ table td .avatar {
   line-height: 1.25;
 }
 
+#approvalThead.hide-decision-col th:nth-child(8),
+#approvalThead.hide-decision-col+tbody td:nth-child(8) {
+  display: none;
+}
+
 /* Attendance page: two-column layout on desktop */
 @media (min-width: 1000px) {
   #page-attendance {
@@ -6713,5 +6776,208 @@ table.table-modern tbody td:last-child {
     max-height: calc(100vh - 16px);
     max-height: calc(100dvh - 16px);
     padding: 16px;
+  }
+}
+
+/* === VIEWPORT, SAFE AREA & IOS SCALE GUARD === */
+:root {
+  --app-height: 100vh;
+  --app-width: 100vw;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --app-height: 100dvh;
+  }
+}
+
+html {
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-x: none;
+}
+
+body {
+  min-height: var(--app-height);
+  touch-action: manipulation;
+  overscroll-behavior-x: none;
+}
+
+a,
+button,
+input,
+select,
+textarea,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+.page-loader,
+#pageLoader,
+#employeePageLoader {
+  min-height: var(--app-height);
+  padding-top: var(--app-safe-top);
+  padding-bottom: var(--app-safe-bottom);
+}
+
+body.admin-layout,
+body.admin-layout>.admin-layout {
+  height: var(--app-height) !important;
+  min-height: var(--app-height) !important;
+  overflow: hidden !important;
+}
+
+body.admin-layout .bg-animated {
+  height: var(--app-height);
+}
+
+body.admin-layout .sidebar {
+  top: 0 !important;
+  bottom: auto !important;
+  height: var(--app-height) !important;
+  max-height: var(--app-height) !important;
+  min-height: 0 !important;
+  padding-top: var(--app-safe-top);
+  padding-bottom: var(--app-safe-bottom);
+}
+
+body.admin-layout .sidebar-logo,
+body.admin-layout .sidebar-footer {
+  flex-shrink: 0;
+}
+
+body.admin-layout .sidebar-nav {
+  min-height: 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.admin-layout .admin-main {
+  height: var(--app-height) !important;
+  min-height: 0 !important;
+}
+
+body.admin-layout .admin-topbar {
+  top: 0 !important;
+  min-height: calc(64px + var(--app-safe-top));
+  height: auto !important;
+  padding-top: var(--app-safe-top);
+}
+
+body.admin-layout .admin-content {
+  min-height: 0;
+  padding-bottom: calc(24px + var(--app-safe-bottom)) !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.login-page {
+  min-height: var(--app-height);
+}
+
+body.login-page .left-panel {
+  padding-top: calc(60px + var(--app-safe-top));
+  padding-bottom: calc(60px + var(--app-safe-bottom));
+}
+
+body.login-page .right-panel {
+  min-height: var(--app-height);
+  max-height: var(--app-height);
+  overflow-y: auto;
+  padding-top: calc(56px + var(--app-safe-top));
+  padding-bottom: calc(56px + var(--app-safe-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+
+body.login-page .theme-toggle-btn {
+  top: calc(20px + var(--app-safe-top)) !important;
+  right: calc(20px + var(--app-safe-right)) !important;
+}
+
+body.employee-page,
+body.attendance-page,
+body.leave-page,
+body.history-page {
+  min-height: var(--app-height);
+}
+
+.wrap-employee {
+  min-height: var(--app-height);
+}
+
+body.employee-page .header,
+body.attendance-page .header,
+body.leave-page .header,
+body.history-page .header {
+  top: 0;
+  padding-top: calc(16px + var(--app-safe-top));
+  padding-left: calc(18px + var(--app-safe-left));
+  padding-right: calc(18px + var(--app-safe-right));
+}
+
+body.employee-page .header {
+  padding-top: calc(20px + var(--app-safe-top));
+}
+
+body.employee-page .content,
+body.attendance-page .content,
+body.leave-page .content,
+body.history-page .content {
+  -webkit-overflow-scrolling: touch;
+}
+
+body.employee-page .content {
+  padding-bottom: calc(110px + var(--app-safe-bottom));
+}
+
+.pb-nav {
+  padding-bottom: calc(90px + var(--app-safe-bottom)) !important;
+}
+
+.bottom-nav {
+  min-height: calc(86px + var(--app-safe-bottom));
+  padding-bottom: calc(10px + var(--app-safe-bottom));
+  padding-left: var(--app-safe-left);
+  padding-right: var(--app-safe-right);
+}
+
+@media (max-width: 900px) {
+  body.login-page .right-panel {
+    min-height: var(--app-height);
+    padding: calc(40px + var(--app-safe-top)) calc(24px + var(--app-safe-right)) calc(40px + var(--app-safe-bottom)) calc(24px + var(--app-safe-left));
+  }
+}
+
+@media (max-width: 768px) {
+  body.admin-layout .admin-topbar {
+    padding-top: calc(10px + var(--app-safe-top)) !important;
+    padding-left: calc(16px + var(--app-safe-left)) !important;
+    padding-right: calc(16px + var(--app-safe-right)) !important;
+  }
+
+  body.admin-layout .admin-content {
+    padding: 16px calc(16px + var(--app-safe-right)) calc(16px + var(--app-safe-bottom)) calc(16px + var(--app-safe-left)) !important;
+  }
+
+  body.admin-layout .sidebar {
+    width: min(260px, calc(100vw - var(--app-safe-left) - var(--app-safe-right))) !important;
+  }
+
+  body.admin-layout .sidebar-overlay {
+    height: var(--app-height);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea,
+  .form-control {
+    font-size: 16px !important;
   }
 }
