@@ -57,6 +57,21 @@ window.renderAdminLayout = function () {
                         link.classList.add('active');
                     }
                 });
+                // Set topbar title from the active sidebar menu label (useful when loading pages directly)
+                try {
+                    const activeLink = sidebarMount.querySelector('.sidebar-link.active');
+                    if (activeLink) {
+                        const labelEl = activeLink.querySelector('span');
+                        const titleText = labelEl ? labelEl.textContent.trim() : activeLink.textContent.trim();
+                        const topbarEl = document.getElementById('topbarTitle');
+                        if (topbarEl && titleText) topbarEl.textContent = titleText;
+
+                        // Optional: if sidebar link provides a data-subtitle attribute, use it for the subtitle
+                        const subText = activeLink.getAttribute('data-subtitle');
+                        const topbarSub = document.getElementById('topbarSub');
+                        if (topbarSub && subText) topbarSub.textContent = subText;
+                    }
+                } catch (e) { /* ignore errors */ }
                 if (typeof window.bindAdminSidebarInfo === 'function') {
                     window.bindAdminSidebarInfo();
                 } else if (sessionStorage.getItem('hris_user')) {

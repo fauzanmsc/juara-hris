@@ -1756,7 +1756,7 @@ html[data-theme="dark"] .sidebar-link.active {
 }
 
 .filter-row .form-control {
-  min-width: 160px;
+
   flex: 1;
   max-width: 100%;
 }
@@ -5956,7 +5956,7 @@ table td .avatar {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .wrap-employee .header {
     position: sticky;
     top: 0;
