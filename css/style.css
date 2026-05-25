@@ -485,7 +485,7 @@ img {
 }
 
 .form-control {
-  padding: 13px 16px;
+  padding: 8px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 14px;
@@ -765,6 +765,12 @@ body.image-preview-open {
   position: fixed;
   inset: 0;
   background: var(--bg-deep);
+@media (max-width: 768px) {
+  .hris-landing-hero h1 #adminWelcomeName {
+    display: block;
+    margin-top: 6px;
+  }
+}
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -950,7 +956,7 @@ body.image-preview-open {
   overflow-x: auto;
   overflow-y: auto;
   box-sizing: border-box;
-  max-height: 400px;
+  max-height: 550px;
   -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
@@ -1121,7 +1127,7 @@ tbody tr:hover td {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .admin-card-actions .btn {
@@ -2534,6 +2540,10 @@ body.login-page .right-panel::before {
 
 body.login-page .form-header {
   margin-bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 body.login-page .form-header h2 {
@@ -2778,6 +2788,10 @@ body.login-page .mobile-brand {
 
   body.login-page .form-header {
     margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   body.login-page .btn-login {
@@ -5843,11 +5857,11 @@ table td .avatar {
 }
 
 .analytics-card {
-  background: var(--card-bg, rgba(255, 255, 255, 0.05));
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-md);
+  padding: 12px 24px;
+  box-shadow: var(--shadow-card);
   transition: all var(--transition);
 }
 
@@ -5861,18 +5875,92 @@ table td .avatar {
   font-weight: 800;
   font-size: 14px;
   color: var(--text);
-  margin-bottom: 18px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
   border-bottom: 1px dashed var(--border);
-  padding-bottom: 12px;
+  padding-bottom: 6px;
 }
 
 .top-emp-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+}
+
+/* Make approval table text compact for better fit */
+#page-approval table th, #page-approval table td {
+  font-size: 12px;
+  padding: 8px 10px;
+  line-height: 1.25;
+}
+
+/* Attendance page: two-column layout on desktop */
+@media (min-width: 1000px) {
+  #page-attendance {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  #attendanceAnalyticsContainer {
+    margin-bottom: 0;
+    padding: 12px 0;
+  }
+
+  /* Ensure analytics cards contrast correctly in light mode */
+  #attendanceAnalyticsContainer .analytics-card {
+    background: var(--bg-card);
+    border-color: var(--border);
+  }
+}
+
+/* ===== Attendance: make left analytics column and main table card fill viewport ===== */
+@media (min-width: 1000px) {
+  /* Make the analytics container a vertical stack in the left column and limit its height */
+  #attendanceAnalyticsContainer.analytics-row {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-self: start;
+    max-height: calc(100vh - 140px); /* keep some margin for topbar and page padding */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 6px;
+  }
+
+  #attendanceAnalyticsContainer .analytics-card {
+    flex: 0 0 auto;
+  }
+
+  /* Make the main attendance card occupy remaining viewport height and allow only the table body to scroll */
+  #page-attendance .card.admin-menu-card {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 140px);
+    overflow: visible;
+  }
+
+  #page-attendance .card.admin-menu-card .filter-row {
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+  }
+
+  #page-attendance .card.admin-menu-card .table-wrap {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    max-height: none; /* allow flex to determine height */
+    padding-bottom: 12px;
+  }
+
+  /* Ensure the table header sticks within the scrollable table-wrap */
+  #page-attendance .card.admin-menu-card .table-wrap thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg-card) !important;
+  }
 }
 
 .top-emp-item {
@@ -6059,7 +6147,7 @@ table.table-modern tbody td:last-child {
   background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(251, 133, 0, 0.04) 50%, rgba(0, 0, 0, 0) 100%);
   border: 1px solid rgba(255, 183, 3, 0.2);
   border-radius: var(--radius-md) !important;
-  padding: 32px;
+  padding: 16px 24px;
   margin-bottom: 30px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);

@@ -65,6 +65,7 @@ function doPost(e) {
       case 'clockOut':       result = clockOut(body); break;
       case 'submitLeave':    result = submitLeave(body); break;
       case 'decideLeave':    result = decideLeave(body); break;
+      case 'editLeave':      result = editLeave(body); break;
       case 'deleteLeave':    result = deleteLeaveRequest(body); break;
       case 'addUser':        result = addUser(body); break;
       case 'updateUser':     result = updateUser(body); break;
@@ -644,6 +645,60 @@ function decideLeave(body) {
       return { success: true };
     }
   }
+  return { success: false, message: 'Pengajuan tidak ditemukan' };
+}
+
+function editLeave(body) {
+  const { request_id, type, start_date, end_date, reason, status, attachment_base64, attachment_name, existing_attachment_url } = body;
+  if (!request_id) return { success: false, message: 'request_id tidak ditemukan' };
+
+  const sheet = getSheet(SHEET.LEAVE);
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return { success: false, message: 'Sheet pengajuan kosong' };
+
+  const headers = data[0].map(h => String(h).trim());
+  const idIdx = headers.indexOf('request_id');
+  const typeIdx = headers.indexOf('type');
+  const startIdx = headers.indexOf('start_date');
+  const endIdx = headers.indexOf('end_date');
+  const reasonIdx = headers.indexOf('reason');
+  const statusIdx = headers.indexOf('status');
+  const attIdx = headers.indexOf('attachment_url');
+  const approvedByIdx = headers.indexOf('approved_by');
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idIdx]) === String(request_id)) {
+      const rowNum = i + 1;
+
+      try {
+        if (type !== undefined && typeIdx !== -1) sheet.getRange(rowNum, typeIdx + 1).setValue(type);
+        if (start_date !== undefined && startIdx !== -1) sheet.getRange(rowNum, startIdx + 1).setValue(start_date);
+        if (end_date !== undefined && endIdx !== -1) sheet.getRange(rowNum, endIdx + 1).setValue(end_date);
+        if (reason !== undefined && reasonIdx !== -1) sheet.getRange(rowNum, reasonIdx + 1).setValue(reason);
+        if (status !== undefined && statusIdx !== -1) sheet.getRange(rowNum, statusIdx + 1).setValue(status);
+
+        // Handle attachments: new upload takes precedence, otherwise preserve existing or clear
+        if (attachment_base64) {
+          const ext = (attachment_name || 'doc').split('.').pop();
+          const fname = `leave_${request_id}_${new Date().getTime()}.${ext}`;
+          const uploadRes = uploadBase64ToDrive(attachment_base64, fname, 'dokumen_cuti');
+          if (uploadRes && uploadRes.url) {
+            if (attIdx !== -1) {
+              sheet.getRange(rowNum, attIdx + 1).setValue(uploadRes.url);
+              try { sheet.getRange(rowNum, attIdx + 1).insertFileChip(uploadRes.id); } catch(e) {}
+            }
+          }
+        } else if (existing_attachment_url !== undefined) {
+          if (attIdx !== -1) sheet.getRange(rowNum, attIdx + 1).setValue(existing_attachment_url || '');
+        }
+
+        return { success: true, updated: true, request_id: request_id };
+      } catch (err) {
+        return { success: false, message: 'Gagal memperbarui pengajuan: ' + err.message };
+      }
+    }
+  }
+
   return { success: false, message: 'Pengajuan tidak ditemukan' };
 }
 

@@ -616,7 +616,22 @@ if (currentPage === 'index.html' || (currentPage === '' && 'index.js' === 'index
                 if (data.success) {
                     localStorage.setItem('failed_attempts', '0');
                     sessionStorage.setItem('hris_user', JSON.stringify(data.user));
-                    showAlert('Login berhasil! Mengarahkan...', 'success');
+                    // Show modal success and remove its close controls because we'll redirect
+                    if (window.showModalAlert) {
+                        window.showModalAlert('Sukses', 'Login berhasil! Mengarahkan...', 'success');
+                        setTimeout(() => {
+                            const overlay = document.getElementById('globalModalOverlay');
+                            if (overlay) {
+                                const buttons = overlay.querySelectorAll('button');
+                                buttons.forEach(b => {
+                                    const onclick = b.getAttribute('onclick') || '';
+                                    if (onclick.includes('globalModalOverlay')) b.style.display = 'none';
+                                });
+                            }
+                        }, 20);
+                    } else {
+                        showAlert('Login berhasil! Mengarahkan...', 'success');
+                    }
                     setTimeout(() => {
                         window.location.href = window.getRedirectUrl(data.user.role === 'Admin' ? 'admin' : 'employee');
                     }, 1000);
@@ -1259,7 +1274,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getPendingLeaves`);
                 const data = await res.json();
                 window.allApprovals = data.requests || [];
-                renderApprovals(window.allApprovals);
+                        // Render with any active filters applied
+                        if (typeof applyApprovalFilters === 'function') applyApprovalFilters();
 
                 // Update pending count badge automatically
                 try {
@@ -1278,6 +1294,25 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             setTimeout(() => { if (typeof loadApprovals === 'function') loadApprovals(); }, 1500); // Initial badge load
         } catch (e) { /* ignore */ }
 
+        // Format a date string as YY-MM-DD (tries several common formats)
+        window.formatShortDate = function (d) {
+            if (!d) return '';
+            if (typeof d !== 'string') d = String(d);
+            const ymd = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (ymd) return `${ymd[1].slice(2)}-${ymd[2]}-${ymd[3]}`;
+            // Try to parse ISO-ish string
+            const iso = d.match(/(\d{4})\/(\d{2})\/(\d{2})/);
+            if (iso) return `${iso[1].slice(2)}-${iso[2]}-${iso[3]}`;
+            const dt = new Date(d);
+            if (!isNaN(dt.getTime())) {
+                const yy = String(dt.getFullYear()).slice(2);
+                const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                const dd = String(dt.getDate()).padStart(2, '0');
+                return `${yy}-${mm}-${dd}`;
+            }
+            return d;
+        }
+
         window.renderApprovals = function (reqs) {
             const body = document.getElementById('approvalBody');
             if (!body) return;
@@ -1289,12 +1324,14 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                     Rejected: 'Ditolak'
                 }[r.status] || r.status;
                 const typeBadgeClass = r.type === 'Cuti' ? 'badge-success' : (r.type === 'Sakit' ? 'badge-danger' : 'badge-primary');
+                const startShort = window.formatShortDate(r.start_date);
+                const endShort = window.formatShortDate(r.end_date);
                 return `
     <tr>
       <td style="min-width:180px; max-width:220px; white-space:normal; line-height:1.4;"><strong>${r.user_name}</strong></td>
       <td><span class="badge ${typeBadgeClass}">${r.type}</span></td>
-      <td style="white-space:nowrap">${r.start_date}</td>
-      <td style="white-space:nowrap">${r.end_date}</td>
+      <td style="white-space:nowrap">${startShort}</td>
+      <td style="white-space:nowrap">${endShort}</td>
       <td style="max-width:180px;text-overflow:ellipsis;overflow:hidden">${r.reason}</td>
       <td>${r.attachment_url ? `<button class="btn btn-sm btn-ghost" onclick="viewDoc('${r.attachment_url}')"><i class="bi bi-file-earmark-text"></i> Lihat</button>` : '—'}</td>
       <td><span class="badge ${r.status === 'Pending' ? 'badge-warn' : r.status === 'Approved' ? 'badge-success' : 'badge-danger'}">${statusText}</span></td>
@@ -1315,6 +1352,30 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
     </tr>
   `;
             }).join('');
+        }
+
+        // Apply filters (name, type) to approvals and render
+        window.applyApprovalFilters = function () {
+            const nameEl = document.getElementById('appFilterName');
+            const typeEl = document.getElementById('appFilterType');
+            const name = nameEl ? nameEl.value.trim().toLowerCase() : '';
+            const type = typeEl ? typeEl.value : '';
+            let list = Array.isArray(window.allApprovals) ? window.allApprovals.slice() : [];
+            if (name) {
+                list = list.filter(r => (r.user_name || '').toLowerCase().includes(name));
+            }
+            if (type) {
+                list = list.filter(r => (r.type || '') === type);
+            }
+            renderApprovals(list);
+        }
+
+        window.resetApprovalFilters = function () {
+            const nameEl = document.getElementById('appFilterName');
+            const typeEl = document.getElementById('appFilterType');
+            if (nameEl) nameEl.value = '';
+            if (typeEl) typeEl.value = '';
+            if (typeof applyApprovalFilters === 'function') applyApprovalFilters();
         }
 
         window.viewDoc = function (url) {
@@ -1349,6 +1410,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             document.getElementById('editAppEnd').value = r.end_date;
             document.getElementById('editAppReason').value = r.reason;
             document.getElementById('editAppStatus').value = r.status;
+            // Populate existing attachment preview if any
+            try {
+                const attUrlEl = document.getElementById('editAppAttachmentUrl');
+                const previewEl = document.getElementById('editAppAttachmentPreview');
+                const fileInput = document.getElementById('editAppFile');
+                if (attUrlEl) attUrlEl.value = r.attachment_url || '';
+                if (previewEl) previewEl.innerHTML = r.attachment_url ? `<button class="btn btn-sm btn-ghost" onclick="viewDoc('${r.attachment_url}')"><i class="bi bi-file-earmark-text"></i> Lampiran Saat Ini</button>` : '';
+                if (fileInput) fileInput.value = '';
+            } catch (e) { /* ignore preview errors */ }
             document.getElementById('modalEditApproval').classList.remove('hidden');
         }
 
@@ -1364,17 +1434,36 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true; btn.innerHTML = 'Menyimpan...';
             try {
-                await fetch(APPS_SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        action: 'editLeave', 
-                        request_id: id,
-                        type, start_date, end_date, reason, status
-                    }) 
-                });
-                showToast('Pengajuan berhasil diperbarui', 'success');
-                closeModal('modalEditApproval');
-                loadApprovals();
+                const payload = { action: 'editLeave', request_id: id, type, start_date, end_date, reason, status };
+                // Handle optional file upload
+                const fileInput = document.getElementById('editAppFile');
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    try {
+                        const file = fileInput.files[0];
+                        const base64 = await toBase64(file);
+                        payload.attachment_base64 = base64; // raw base64 string
+                        payload.attachment_name = file.name;
+                    } catch (errFile) { console.warn('File read failed', errFile); }
+                } else {
+                    // preserve existing attachment if any
+                    const existing = document.getElementById('editAppAttachmentUrl') ? document.getElementById('editAppAttachmentUrl').value : '';
+                    if (existing) payload.existing_attachment_url = existing;
+                }
+
+                const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                let data = null;
+                try { data = await res.json(); } catch (e) { /* ignore parse error */ }
+
+                // Consider success when server returns success flag or HTTP OK
+                if ((res && res.ok && (data === null || data.success === undefined)) || (data && (data.success || data.updated || data.result === 'ok'))) {
+                    showToast('Pengajuan berhasil diperbarui', 'success');
+                    closeModal('modalEditApproval');
+                    // Refresh approvals from datasheet to reflect immediate update
+                    try { await loadApprovals(); } catch (e) { /* ignore */ }
+                    if (typeof loadDashboard === 'function') loadDashboard();
+                } else {
+                    showToast((data && data.message) ? data.message : 'Gagal memperbarui pengajuan', 'error');
+                }
             } catch (err) {
                 showToast('Gagal memperbarui pengajuan', 'error');
             }
@@ -1411,10 +1500,21 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         // ==== ATTENDANCE HISTORY ====
         window.loadAttendance = async function () {
-            const start = document.getElementById('attFilterStart').value;
-            const end = document.getElementById('attFilterEnd').value;
-            const name = document.getElementById('attFilterName').value.trim();
-            const status = document.getElementById('attFilterStatus').value;
+            const startEl = document.getElementById('attFilterStart');
+            const endEl = document.getElementById('attFilterEnd');
+            const nameEl = document.getElementById('attFilterName');
+            const statusEl = document.getElementById('attFilterStatus');
+
+            // Default date range: last 7 days if user hasn't set filters
+            const today = new Date();
+            const toISO = d => d.toISOString().slice(0, 10);
+            const defaultEnd = toISO(today);
+            const defaultStart = toISO(new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000)));
+
+            const start = (startEl && startEl.value) ? startEl.value : (startEl ? (startEl.value = defaultStart) && defaultStart : defaultStart);
+            const end = (endEl && endEl.value) ? endEl.value : (endEl ? (endEl.value = defaultEnd) && defaultEnd : defaultEnd);
+            const name = nameEl ? nameEl.value.trim() : '';
+            const status = statusEl ? statusEl.value : '';
 
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendance&start_date=${start}&end_date=${end}&name=${encodeURIComponent(name)}&status=${status}`);
@@ -2037,7 +2137,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 return `
                     <tr>
                         <td style="text-align:center; padding: 6px 12px;">
-                            <img src="${profileSrc}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--primary); display:block; margin:0 auto;" alt="${r.name}" onerror="this.src='/img/profile.png'; this.onerror=null;">
+                            <img src="${profileSrc}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #c2c2c24f; display:block; margin:0 auto;" alt="${r.name}" onerror="this.src='/img/profile.png'; this.onerror=null;">
                         </td>
                         <td><strong>${r.name}</strong></td>
                         <td><span class="badge badge-info">${r.position}</span></td>
@@ -2103,10 +2203,25 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 if (icon) {
                     icon.className = isCompact ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
                 }
+                try { localStorage.setItem('hris_sidebar_compact', isCompact ? '1' : '0'); } catch (e) { /* ignore */ }
             }
         }
         
         document.addEventListener('sidebarLoaded', () => {
+             // Restore last sidebar compact state (persisted across pages)
+             try {
+                 const compact = localStorage.getItem('hris_sidebar_compact');
+                 const layout = document.querySelector('.admin-layout');
+                 const icon = document.getElementById('compactIcon');
+                 if (compact === '1') {
+                     if (layout && !layout.classList.contains('sidebar-compact')) layout.classList.add('sidebar-compact');
+                     if (icon) icon.className = 'bi bi-chevron-right';
+                 } else if (compact === '0') {
+                     if (layout && layout.classList.contains('sidebar-compact')) layout.classList.remove('sidebar-compact');
+                     if (icon) icon.className = 'bi bi-chevron-left';
+                 }
+             } catch (e) { /* ignore */ }
+
              if (window.lastPendingCount !== undefined) {
                  window.updatePendingBadge(window.lastPendingCount);
              }

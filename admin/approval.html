@@ -59,14 +59,26 @@
                 Refresh</button>
             </div>
 
+            <div class="filter-row" style="display:flex; gap:12px; align-items:center; margin:12px 0;">
+              <input type="text" class="form-control" id="appFilterName" placeholder="Filter nama karyawan..." style="flex:1">
+              <select class="form-control" id="appFilterType" style="width:170px;">
+                <option value="">Semua Jenis</option>
+                <option value="Cuti">Cuti</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+              </select>
+              <button class="btn btn-primary" onclick="applyApprovalFilters()"><i class="bi bi-search"></i> Filter</button>
+              <button class="btn btn-ghost" onclick="resetApprovalFilters()"><i class="bi bi-x-lg"></i> Reset</button>
+            </div>
+
             <div class="table-wrap" style="max-height: 380px; overflow-y: auto;">
               <table>
                 <thead id="approvalThead">
                   <tr>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('user_name')" data-sort="user_name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('type')" data-sort="type">Jenis <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortApprovalsTable('start_date')" data-sort="start_date">Dari Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortApprovalsTable('end_date')" data-sort="end_date">Hingga Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('start_date')" data-sort="start_date">Mulai <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('end_date')" data-sort="end_date">Hingga <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th>Catatan</th>
                     <th>Dokumen</th>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('status')" data-sort="status">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
@@ -319,17 +331,23 @@
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Dari Tanggal</label>
+              <label class="form-label">Mulai </label>
               <input type="date" class="form-control" id="editAppStart" required>
             </div>
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Hingga Tanggal</label>
+              <label class="form-label">Hingga </label>
               <input type="date" class="form-control" id="editAppEnd" required>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Catatan</label>
             <textarea class="form-control" id="editAppReason" rows="2" required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lampiran (opsional)</label>
+            <input type="file" class="form-control" id="editAppFile" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <input type="hidden" id="editAppAttachmentUrl">
+            <div id="editAppAttachmentPreview" style="margin-top:8px"></div>
           </div>
           <div class="form-group">
             <label class="form-label">Status</label>
