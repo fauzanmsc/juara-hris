@@ -1504,7 +1504,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 const previewEl = document.getElementById('editAppAttachmentPreview');
                 const fileInput = document.getElementById('editAppFile');
                 if (attUrlEl) attUrlEl.value = r.attachment_url || '';
-                if (previewEl) previewEl.innerHTML = r.attachment_url ? `<button class="btn btn-sm btn-ghost" onclick="viewDoc('${r.attachment_url}')"><i class="bi bi-file-earmark-text"></i> Lampiran Saat Ini</button>` : '';
+                if (previewEl) previewEl.innerHTML = r.attachment_url ? `<button type="button" class="btn btn-sm btn-ghost" onclick="viewDoc('${r.attachment_url}')"><i class="bi bi-file-earmark-text"></i> Lampiran Saat Ini</button>` : '';
                 if (fileInput) fileInput.value = '';
             } catch (e) { /* ignore preview errors */ }
             document.getElementById('modalEditApproval').classList.remove('hidden');
@@ -1711,10 +1711,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             if (!container) return;
 
             if (!analytics || (!analytics.top_absent?.length && !analytics.top_sick_permit?.length && !analytics.top_late?.length)) {
-                container.style.display = 'none';
-                return;
+                // If no data, the buildList function will handle empty states
+                // We no longer hide the container because the cards are hardcoded.
             }
-            container.style.display = 'flex';
 
             const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
                 '&': '&amp;',
@@ -1758,40 +1757,14 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 }).join('');
             };
 
-            container.innerHTML = `
-                <!-- Box 1: Paling Banyak Tidak Hadir -->
-                <div class="analytics-card">
-                    <h4 class="analytics-title">
-                        <i class="bi bi-person-x-fill text-danger" style="font-size:16px;"></i> 
-                        Top 3 Paling Banyak Tidak Hadir
-                    </h4>
-                    <div class="top-emp-list">
-                        ${buildList(analytics.top_absent, 'absent')}
-                    </div>
-                </div>
+            const absentList = document.getElementById('list-top-absent');
+            if (absentList) absentList.innerHTML = buildList(analytics?.top_absent, 'absent');
 
-                <!-- Box 2: Paling Sering Sakit & Izin -->
-                <div class="analytics-card">
-                    <h4 class="analytics-title">
-                        <i class="bi bi-heart-pulse-fill text-warning" style="font-size:16px;"></i> 
-                        Top 3 Paling Sering Sakit & Izin
-                    </h4>
-                    <div class="top-emp-list">
-                        ${buildList(analytics.top_sick_permit, 'sickPermit')}
-                    </div>
-                </div>
+            const sickList = document.getElementById('list-top-sick-permit');
+            if (sickList) sickList.innerHTML = buildList(analytics?.top_sick_permit, 'sickPermit');
 
-                <!-- Box 3: Paling Sering Terlambat -->
-                <div class="analytics-card">
-                    <h4 class="analytics-title">
-                        <i class="bi bi-alarm-fill text-danger" style="font-size:16px;"></i>
-                        Top 3 Paling Sering Terlambat
-                    </h4>
-                    <div class="top-emp-list">
-                        ${buildList(analytics.top_late, 'late')}
-                    </div>
-                </div>
-            `;
+            const lateList = document.getElementById('list-top-late');
+            if (lateList) lateList.innerHTML = buildList(analytics?.top_late, 'late');
         }
 
         window.renderAtt = function (records) {

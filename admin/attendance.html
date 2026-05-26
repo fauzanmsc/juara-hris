@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>JEF HRIS - Dashboard</title>
   <meta name="theme-color" content="#FFB703">
   <link rel="icon" type="image/png" href="../img/logomark.png">
@@ -54,52 +55,111 @@
         <!-- ATTENDANCE PAGE -->
         <section class="page-section active fade-in" id="page-attendance">
           <!-- ANALYTICS CARDS (Top 3 Absent & Sick/Permit) -->
-          <div id="attendanceAnalyticsContainer" class="analytics-row"></div>
+          <div class="attendance-main-column" style="display: flex; flex-direction: column; gap: 18px; flex: 1; min-height: 0;">
 
-          <div class="card admin-menu-card">
-
-
-            <div class="filter-row">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
-                <input type="date" class="form-control" id="attFilterStart" style="min-width: 0;">
-                <input type="date" class="form-control" id="attFilterEnd" style="min-width: 0;">
+            <!-- STATISTIK & BELUM ABSEN -->
+            <div id="attendanceAnalyticsContainer" class="analytics-row">
+              <!-- Box 1: Paling Sering Terlambat -->
+              <div class="analytics-card">
+                <h4 class="analytics-title">
+                  <i class="bi bi-alarm-fill text-danger" style="font-size:16px;"></i>
+                  Top 3 Paling Sering Terlambat
+                </h4>
+                <div class="top-emp-list" id="list-top-late">
+                  <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Memuat data...
+                  </div>
+                </div>
               </div>
-              <input type="text" class="form-control" id="attFilterName" placeholder="Nama karyawan..." style="flex:1">
-              <select class="form-control" id="attFilterStatus" style="width: auto; min-width: 150px; cursor: pointer; margin-top: 12px;">
-                <option value="">Semua Status</option>
-                <option value="Tepat Waktu">Tepat Waktu</option>
-                <option value="Terlambat">Terlambat</option>
-                <option value="Absen">Absen</option>
-              </select>
-              <button class="btn btn-primary" style="padding: 10px 20px; border-radius: var(--radius-sm);"
-                onclick="loadAttendance()"><i class="bi bi-search"></i></button>
-              <div class="admin-card-actions">
-                <button class="btn btn-sm btn-success" onclick="exportCSV()"><i class="bi bi-file-earmark-excel-fill"></i>
-                  Export CSV</button>
+
+              <!-- Box 2: Paling Banyak Tidak Hadir -->
+              <div class="analytics-card">
+                <h4 class="analytics-title">
+                  <i class="bi bi-person-x-fill text-danger" style="font-size:16px;"></i>
+                  Top 3 Paling Banyak Tidak Hadir
+                </h4>
+                <div class="top-emp-list" id="list-top-absent">
+                  <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Memuat data...
+                  </div>
+                </div>
+              </div>
+
+              <!-- Box 3: Paling Sering Sakit & Izin -->
+              <div class="analytics-card">
+                <h4 class="analytics-title">
+                  <i class="bi bi-heart-pulse-fill text-warning" style="font-size:16px;"></i>
+                  Top 3 Paling Sering Sakit & Izin
+                </h4>
+                <div class="top-emp-list" id="list-top-sick-permit">
+                  <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Memuat data...
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- LIVE LOG -->
+            <div class="card p-0 admin-menu-card" style="margin:0;">
+
+
+              <div class="filter-row">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
+                  <input type="date" class="form-control" id="attFilterStart" style="min-width: 0;">
+                  <input type="date" class="form-control" id="attFilterEnd" style="min-width: 0;">
+                </div>
+                <input type="text" class="form-control" id="attFilterName" placeholder="Nama karyawan..."
+                  style="flex:1">
+                <select class="form-control" id="attFilterStatus"
+                  style="width: auto; min-width: 150px; cursor: pointer; margin-top: 12px;">
+                  <option value="">Semua Status</option>
+                  <option value="Tepat Waktu">Tepat Waktu</option>
+                  <option value="Terlambat">Terlambat</option>
+                  <option value="Absen">Absen</option>
+                </select>
+                <button class="btn btn-primary" style="padding: 10px 20px; border-radius: var(--radius-sm);"
+                  onclick="loadAttendance()"><i class="bi bi-search"></i></button>
+                <div class="admin-card-actions">
+                  <button class="btn btn-sm btn-success" onclick="exportCSV()"><i
+                      class="bi bi-file-earmark-excel-fill"></i>
+                    Export CSV</button>
+                </div>
+              </div>
+
+              <div class="table-wrap"
+                style="border: none; border-radius: 0; border-top: 1px solid var(--border); margin-top: 20px;">
+                <table>
+                  <thead id="attendanceThead">
+                    <tr>
+                      <th style="cursor:pointer;" onclick="sortAttendanceTable('name')" data-sort="name">Karyawan <i
+                          class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortAttendanceTable('date')" data-sort="date">Tanggal <i
+                          class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_in')" data-sort="clock_in">Masuk
+                        <i class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                      </th>
+                      <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_out')" data-sort="clock_out">
+                        Pulang <i class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th style="cursor:pointer;" onclick="sortAttendanceTable('distance')" data-sort="distance">Jarak
+                        <i class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                      </th>
+                      <th style="cursor:pointer;" onclick="sortAttendanceTable('status_in')" data-sort="status_in">
+                        Status <i class="bi bi-arrow-down-up bi-sort-icon"
+                          style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                      <th>Foto</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="attBody">
+                    <tr>
+                      <td colspan="8" style="text-align:center;padding:30px">Gunakan filter untuk mencari data</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div class="table-wrap">
-              <table>
-                <thead id="attendanceThead">
-                  <tr>
-                    <th style="cursor:pointer;" onclick="sortAttendanceTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortAttendanceTable('date')" data-sort="date">Tanggal <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_in')" data-sort="clock_in">Masuk <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortAttendanceTable('clock_out')" data-sort="clock_out">Pulang <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortAttendanceTable('distance')" data-sort="distance">Jarak <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortAttendanceTable('status_in')" data-sort="status_in">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th>Foto</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody id="attBody">
-                  <tr>
-                    <td colspan="8" style="text-align:center;padding:30px">Gunakan filter untuk mencari data</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
           </div>
 
 
@@ -116,7 +176,8 @@
     <div class="modal border-animated-modal" style="max-width: 480px;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary" style="margin-right:8px"></i> Tambah Karyawan</h3>
+        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary"
+            style="margin-right:8px"></i> Tambah Karyawan</h3>
         <button class="modal-close" onclick="closeModal('modalUser')"><i class="bi bi-x"></i></button>
       </div>
       <form id="adminUserForm" onsubmit="event.preventDefault(); saveUser();" style="display:contents;">
@@ -125,9 +186,8 @@
         <div class="modal-body" style="position:relative; z-index:2;">
           <div class="avatar-upload-group">
             <div class="avatar-preview-wrapper">
-              <img id="mu_preview" class="avatar-preview-img"
-                src="/img/profile.png"
-                alt="Preview" onerror="this.src='/img/profile.png'; this.onerror=null;">
+              <img id="mu_preview" class="avatar-preview-img" src="/img/profile.png" alt="Preview"
+                onerror="this.src='/img/profile.png'; this.onerror=null;">
               <label for="mu_file" class="avatar-edit-btn">
                 <i class="bi bi-camera-fill"></i>
               </label>
@@ -280,7 +340,8 @@
     <div class="modal border-animated-modal" style="max-width: 450px;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title"><i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Absensi</h3>
+        <h3 class="modal-title"><i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Absensi
+        </h3>
         <button class="modal-close" onclick="closeModal('modalEditAttendance')"><i class="bi bi-x"></i></button>
       </div>
       <form id="formEditAttendance" onsubmit="saveEditAttendance(event)" style="display:contents;">
@@ -288,11 +349,13 @@
         <div class="modal-body" style="position:relative; z-index:2;">
           <div class="form-group">
             <label class="form-label">Nama Karyawan</label>
-            <input type="text" class="form-control" id="editAttName" readonly style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
+            <input type="text" class="form-control" id="editAttName" readonly
+              style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
           </div>
           <div class="form-group">
             <label class="form-label">Tanggal</label>
-            <input type="date" class="form-control" id="editAttDate" readonly style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
+            <input type="date" class="form-control" id="editAttDate" readonly
+              style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
             <div class="form-group" style="margin-bottom:0;">
@@ -495,7 +558,7 @@
         const activePage = 'attendance';
         showPage(activePage);
       }
-      setInterval(() => { if(window.innerWidth <= 768 && typeof loadAttendance === 'function') { loadAttendance(); } }, 30000);
+      setInterval(() => { if (window.innerWidth <= 768 && typeof loadAttendance === 'function') { loadAttendance(); } }, 30000);
     });
 
     window.addEventListener('load', () => {
@@ -507,4 +570,5 @@
     });
   </script>
 </body>
+
 </html>

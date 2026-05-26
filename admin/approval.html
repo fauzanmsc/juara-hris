@@ -278,7 +278,7 @@
   </div>
 
   <!-- Modal Document -->
-  <div class="overlay hidden" id="modalDoc">
+  <div class="overlay hidden" id="modalDoc" style="z-index: 9999;">
     <div class="modal modal-lg"
       style="max-width: 600px; width: 95%; max-height:90vh; display:flex; flex-direction:column; padding:24px;">
       <div class="modal-header" style="flex-shrink:0; margin-bottom:16px;">
@@ -357,7 +357,7 @@
           <div class="form-group">
             <label class="form-label">Lampiran (opsional)</label>
             <input type="file" class="form-control" id="editAppFile"
-              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,.zip,.rar">
             <input type="hidden" id="editAppAttachmentUrl">
             <div id="editAppAttachmentPreview" style="margin-top:8px"></div>
           </div>
