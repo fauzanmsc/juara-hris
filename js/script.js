@@ -1175,19 +1175,28 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
         }
 
         window.filterUsers = function () {
-            const q = (document.getElementById('userSearch')?.value || '').trim().toLowerCase();
-            const stVal = document.getElementById('userStatusFilter')?.value || '';
-            const roleVal = document.getElementById('userRoleFilter')?.value || '';
-            const stArr = stVal ? stVal.split(',') : [];
-            const roleArr = roleVal ? roleVal.split(',') : [];
+            const searchEl = document.getElementById('userSearch');
+            const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+            const stEl = document.getElementById('userStatusFilter');
+            const roleEl = document.getElementById('userRoleFilter');
+            
+            const stVal = stEl ? stEl.value : '';
+            const roleVal = roleEl ? roleEl.value : '';
+            
+            const stArr = stVal ? stVal.split(',').map(s => s.trim().toLowerCase()) : [];
+            const roleArr = roleVal ? roleVal.split(',').map(s => s.trim().toLowerCase()) : [];
 
-            const filtered = allUsers.filter(u => {
+            if (!window.allUsers) return;
+
+            const filtered = window.allUsers.filter(u => {
                 const matchesSearch = !q ||
-                    (u.name && u.name.toLowerCase().includes(q)) ||
-                    (u.email && u.email.toLowerCase().includes(q)) ||
-                    (u.user_id && u.user_id.toLowerCase().includes(q));
-                const matchesStatus = stArr.length === 0 || stArr.includes(u.status);
-                const matchesRole = roleArr.length === 0 || roleArr.includes(u.role);
+                    (u.name && String(u.name).toLowerCase().includes(q)) ||
+                    (u.email && String(u.email).toLowerCase().includes(q)) ||
+                    (u.user_id && String(u.user_id).toLowerCase().includes(q));
+                
+                const matchesStatus = stArr.length === 0 || stArr.includes(String(u.status || '').toLowerCase());
+                const matchesRole = roleArr.length === 0 || roleArr.includes(String(u.role || '').toLowerCase());
+                
                 return matchesSearch && matchesStatus && matchesRole;
             });
             renderUsers(filtered);
@@ -1419,8 +1428,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 list = list.filter(r => (r.user_name || '').toLowerCase().includes(name));
             }
             if (type) {
-                const typeArr = type.split(',');
-                list = list.filter(r => typeArr.includes(r.type || ''));
+                const typeArr = type.split(',').map(t => t.trim().toLowerCase());
+                list = list.filter(r => typeArr.includes(String(r.type || '').toLowerCase()));
             }
             renderApprovals(list);
         }

@@ -980,8 +980,8 @@ function getAttendanceLog(params) {
     const statusIn = normalizeStatusIn(a.status_in, dateStr, clockInStr);
     const statusOut = normalizeStatusOut(a.status_out, dateStr, clockOutStr);
     if (status) {
-      const statusArr = String(status).split(',');
-      if (!statusArr.includes(statusIn)) return;
+      const statusArr = String(status).split(',').map(s => s.trim().toLowerCase());
+      if (!statusArr.includes(String(statusIn).trim().toLowerCase())) return;
     }
 
     records.push({
