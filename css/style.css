@@ -1255,7 +1255,7 @@ thead th {
 
 @media (max-width: 992px) {
   .table-wrap table {
-    min-width: max-content !important;
+    min-width: 100% !important;
   }
 
   .table-wrap {
@@ -1264,8 +1264,9 @@ thead th {
 
   thead th,
   tbody td {
-    padding: 8px 10px !important;
-    font-size: 12px !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
   }
 
   .table-wrap table {
@@ -2037,6 +2038,19 @@ html[data-theme="dark"] .sidebar-link:hover {
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0
+}
+
+/* === SEARCH BUTTON ROUND === */
+.btn-search-round {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  flex-grow: 0 !important;
 }
 
 .dot-success {
@@ -6253,18 +6267,8 @@ table td .avatar {
   display: none;
 }
 
-/* Attendance page: two-column layout on desktop */
+/* Attendance page: full-width layout on desktop */
 @media (min-width: 1000px) {
-  #page-attendance {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
-    gap: 18px;
-    align-items: start;
-  }
-
-  .attendance-main-column {
-    height: 100%;
-  }
 
   #attendanceAnalyticsContainer {
     margin-bottom: 0;
@@ -7242,7 +7246,10 @@ body.employee-page .content {
 
 @media (min-width: 760px) {
   #page-attendance .card.admin-menu-card .filter-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
+    display: grid;
+    grid-template-columns: minmax(280px, 2fr) minmax(150px, 1.5fr) minmax(140px, 1fr) 44px auto;
+    align-items: center;
+    gap: 12px;
   }
 }
 @media (min-width: 1000px) {
