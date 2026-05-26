@@ -566,7 +566,7 @@
       `).join('');
     }
 
-    window.renderLateChart = function () {
+    window.renderLateChart = async function () {
       if (!document.getElementById('lateChart')) return;
       const ctx = document.getElementById('lateChart').getContext('2d');
       if (window.lateChartInstance) window.lateChartInstance.destroy();
@@ -576,60 +576,102 @@
       const textColor = isDark ? '#FFFFFF' : '#1E293B';
       const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
-      const gradient = ctx.createLinearGradient(0, 0, 0, 320);
-      gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)');
-      gradient.addColorStop(1, 'rgba(139, 92, 246, 0.01)');
-
-      let labels = [];
-      let data = [];
-
-      if (range === 'weekly') {
-        labels = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-        data = [2, 5, 3, 1, 4, 0, 0];
-      } else if (range === 'monthly') {
-        labels = Array.from({length: 30}, (_, i) => (i + 1).toString().padStart(2, '0'));
-        data = Array.from({length: 30}, () => Math.floor(Math.random() * 15));
-      } else {
-        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
-        data = [15, 22, 18, 25, 20, 35, 28, 40, 32, 25, 15, 10];
+      // Fetch real data from backend
+      let labels = [], tepatData = [], terlambatData = [];
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendanceTrend&range=${range}`);
+        const json = await res.json();
+        if (json.success) {
+          labels = json.labels || [];
+          tepatData = json.tepat || [];
+          terlambatData = json.terlambat || [];
+        }
+      } catch (err) {
+        console.warn('Failed to fetch attendance trend', err);
       }
+
+      if (!labels.length) return;
+
+      // Gradient for Tepat Waktu (green)
+      const gradientGreen = ctx.createLinearGradient(0, 0, 0, 320);
+      gradientGreen.addColorStop(0, 'rgba(34, 197, 94, 0.35)');
+      gradientGreen.addColorStop(1, 'rgba(34, 197, 94, 0.01)');
+
+      // Gradient for Terlambat (red)
+      const gradientRed = ctx.createLinearGradient(0, 0, 0, 320);
+      gradientRed.addColorStop(0, 'rgba(239, 68, 68, 0.35)');
+      gradientRed.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
 
       window.lateChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
-          datasets: [{
-            label: 'Terlambat',
-            data: data,
-            borderColor: '#8B5CF6',
-            backgroundColor: gradient,
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#FFFFFF',
-            pointBorderColor: '#8B5CF6',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-          }]
+          datasets: [
+            {
+              label: 'Tepat Waktu',
+              data: tepatData,
+              borderColor: '#22C55E',
+              backgroundColor: gradientGreen,
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#FFFFFF',
+              pointBorderColor: '#22C55E',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'Terlambat',
+              data: terlambatData,
+              borderColor: '#EF4444',
+              backgroundColor: gradientRed,
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#FFFFFF',
+              pointBorderColor: '#EF4444',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: {
+                color: textColor,
+                padding: 16,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '600' }
+              }
+            },
             tooltip: {
               backgroundColor: 'rgba(26, 26, 26, 0.9)',
               titleColor: '#FFFFFF',
               bodyColor: '#E5E7EB',
-              borderColor: '#8B5CF6',
+              borderColor: 'rgba(255,255,255,0.1)',
               borderWidth: 1,
-              padding: 10,
+              padding: 12,
               cornerRadius: 12,
-              displayColors: false,
+              displayColors: true,
+              usePointStyle: true,
+              boxWidth: 8,
+              boxHeight: 8,
               callbacks: {
                 label: function(context) {
-                  return context.parsed.y + ' Orang Terlambat';
+                  return ' ' + context.dataset.label + ': ' + context.parsed.y + ' Orang';
                 }
               }
             }

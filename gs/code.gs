@@ -46,6 +46,7 @@ function doGet(e) {
         break;
       case 'getHolidays':    result = getHolidays(); break;
       case 'getTasks':       result = getTasks(e.parameter); break;
+      case 'getAttendanceTrend': result = getAttendanceTrend(e.parameter); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
     return jsonResponse(result);
@@ -1111,6 +1112,154 @@ function getAttendanceLog(params) {
       top_late: topLate
     }
   };
+}
+
+
+// ============ ATTENDANCE TREND (Chart Data) ============
+
+function getAttendanceTrend(params) {
+  const range = params.range || 'monthly'; // weekly | monthly | yearly
+  const today = new Date();
+  const todayStr = Utilities.formatDate(today, 'GMT+7', 'yyyy-MM-dd');
+
+  const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
+  const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
+  const config = getAllConfig();
+
+  // Build holiday set
+  const holidaySet = new Set();
+  holidays.forEach(h => {
+    const s = h.start_date ? formatDate(h.start_date) : (h.date ? formatDate(h.date) : '');
+    const e = h.end_date ? formatDate(h.end_date) : s;
+    if (!s) return;
+    let cur = new Date(s + 'T00:00:00');
+    const end = new Date((e || s) + 'T00:00:00');
+    while (cur <= end) {
+      holidaySet.add(Utilities.formatDate(cur, 'GMT+7', 'yyyy-MM-dd'));
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+
+  // Determine date range
+  let startDate, endDate;
+  if (range === 'weekly') {
+    // Current week Mon–Fri
+    const dayOfWeek = today.getDay(); // 0=Sun
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    startDate = new Date(monday);
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    endDate = friday > today ? today : friday;
+  } else if (range === 'monthly') {
+    // Current month
+    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    endDate = new Date(today); // up to today
+  } else {
+    // Yearly: Jan–Dec current year
+    startDate = new Date(today.getFullYear(), 0, 1);
+    endDate = new Date(today); // up to today
+  }
+
+  // Time helpers for status calculation
+  function normalizeConfigValue(value, defaultVal) {
+    if (value === '' || value === null || value === undefined) return defaultVal;
+    if (Object.prototype.toString.call(value) === '[object Date]') {
+      return Utilities.formatDate(value, 'GMT+7', 'HH:mm');
+    }
+    return String(value).trim() || defaultVal;
+  }
+  function timeToMinutes(value) {
+    const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    return (parseInt(match[1], 10) * 60) + parseInt(match[2], 10);
+  }
+  const weekdayStartMinutes = timeToMinutes(normalizeConfigValue(config.weekday_start, '10:00'));
+  const saturdayStartMinutes = timeToMinutes(normalizeConfigValue(config.saturday_start, '09:00'));
+  const toleranceMinutes = parseInt(normalizeConfigValue(config.tolerance_minutes, '15'), 10) || 0;
+  const weekdayDeadline = (weekdayStartMinutes !== null ? weekdayStartMinutes : 600) + toleranceMinutes;
+  const saturdayDeadline = (saturdayStartMinutes !== null ? saturdayStartMinutes : 540) + toleranceMinutes;
+
+  // Build per-date counts
+  const dateCounts = {}; // { 'YYYY-MM-DD': { tepat: N, terlambat: N } }
+
+  attendance.forEach(a => {
+    const dateStr = formatDate(a.date);
+    if (!dateStr) return;
+    const dt = new Date(dateStr + 'T00:00:00');
+    const day = dt.getDay();
+    if (day === 0 || day === 6) return; // skip Sat/Sun
+    if (holidaySet.has(dateStr)) return; // skip holidays
+
+    const clockInStr = formatTimeVal(a.clock_in_time);
+    if (!clockInStr) return;
+    const clockMinutes = timeToMinutes(clockInStr);
+    if (clockMinutes === null) return;
+
+    const isSat = day === 6;
+    const deadline = isSat ? saturdayDeadline : weekdayDeadline;
+    const isLate = clockMinutes > deadline;
+
+    if (!dateCounts[dateStr]) dateCounts[dateStr] = { tepat: 0, terlambat: 0 };
+    if (isLate) {
+      dateCounts[dateStr].terlambat++;
+    } else {
+      dateCounts[dateStr].tepat++;
+    }
+  });
+
+  // Build labels and data arrays
+  if (range === 'yearly') {
+    // Aggregate by month
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+    const year = today.getFullYear();
+    const currentMonth = today.getMonth(); // 0-indexed
+    const labels = [];
+    const tepatData = [];
+    const terlambatData = [];
+
+    for (let m = 0; m <= currentMonth; m++) {
+      labels.push(months[m]);
+      let tepat = 0, terlambat = 0;
+      Object.keys(dateCounts).forEach(dStr => {
+        const d = new Date(dStr + 'T00:00:00');
+        if (d.getFullYear() === year && d.getMonth() === m) {
+          tepat += dateCounts[dStr].tepat;
+          terlambat += dateCounts[dStr].terlambat;
+        }
+      });
+      tepatData.push(tepat);
+      terlambatData.push(terlambat);
+    }
+
+    return { success: true, labels, tepat: tepatData, terlambat: terlambatData };
+  } else {
+    // Daily labels
+    const labels = [];
+    const tepatData = [];
+    const terlambatData = [];
+    let cur = new Date(startDate);
+
+    while (cur <= endDate) {
+      const dStr = Utilities.formatDate(cur, 'GMT+7', 'yyyy-MM-dd');
+      const day = cur.getDay();
+      // Skip weekends
+      if (day !== 0 && day !== 6 && !holidaySet.has(dStr)) {
+        if (range === 'weekly') {
+          const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+          labels.push(dayNames[day]);
+        } else {
+          labels.push(String(cur.getDate()).padStart(2, '0'));
+        }
+        const c = dateCounts[dStr] || { tepat: 0, terlambat: 0 };
+        tepatData.push(c.tepat);
+        terlambatData.push(c.terlambat);
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    return { success: true, labels, tepat: tepatData, terlambat: terlambatData };
+  }
 }
 
 
