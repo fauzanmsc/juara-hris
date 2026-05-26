@@ -162,7 +162,9 @@ function formatDate(d) {
 function formatTimeVal(val) {
   if (!val) return '';
   if (Object.prototype.toString.call(val) === '[object Date]') {
-    return Utilities.formatDate(val, 'GMT+7', 'HH:mm');
+    var h = String(val.getHours()).padStart(2, '0');
+    var m = String(val.getMinutes()).padStart(2, '0');
+    return h + ':' + m;
   }
   var str = String(val).trim();
   var match = str.match(/(\d{2}):(\d{2}):\d{2}/);
@@ -232,7 +234,9 @@ function getConfigVal(key, defaultVal) {
   }
   let val;
   if (Object.prototype.toString.call(found.value) === '[object Date]') {
-    val = Utilities.formatDate(found.value, 'GMT+7', 'HH:mm');
+    var h = String(found.value.getHours()).padStart(2, '0');
+    var m = String(found.value.getMinutes()).padStart(2, '0');
+    val = h + ':' + m;
   } else {
     val = String(found.value).trim();
   }
@@ -417,10 +421,10 @@ function preflightCheck(params) {
 // ============ CLOCK IN ============
 
 function clockIn(body) {
-  const { user_id, lat, lng, photo_base64 } = body;
+  const { user_id, lat, lng, photo_base64, client_time } = body;
   const today = getTodayString();
   const now = new Date();
-  const timeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
+  const timeStr = client_time || Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
   const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
   const isSaturday = (dayName === 'Saturday');
 
@@ -486,10 +490,10 @@ function clockIn(body) {
 // ============ CLOCK OUT ============
 
 function clockOut(body) {
-  const { user_id, lat, lng, photo_base64 } = body;
+  const { user_id, lat, lng, photo_base64, client_time } = body;
   const today = getTodayString();
   const now = new Date();
-  const timeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
+  const timeStr = client_time || Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
   const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
   const isSaturday = (dayName === 'Saturday');
 
@@ -975,7 +979,10 @@ function getAttendanceLog(params) {
     const clockOutStr = formatTimeVal(a.clock_out_time);
     const statusIn = normalizeStatusIn(a.status_in, dateStr, clockInStr);
     const statusOut = normalizeStatusOut(a.status_out, dateStr, clockOutStr);
-    if (status && statusIn !== status) return;
+    if (status) {
+      const statusArr = String(status).split(',');
+      if (!statusArr.includes(statusIn)) return;
+    }
 
     records.push({
       ...a,
@@ -1222,9 +1229,12 @@ function getAdminDashboard(params) {
 
   const hadirUserIds = todayAtt.map(a => a.user_id);
   const cutiUserIds = todayLeaves.map(l => l.user_id);
-  const absenCount = users.filter(u =>
+  
+  const employeeUsers = users.filter(u => u.role === 'Employee');
+  const absenUsers = employeeUsers.filter(u =>
     !hadirUserIds.includes(u.user_id) && !cutiUserIds.includes(u.user_id)
-  ).length;
+  );
+  const absenCount = absenUsers.length;
 
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;
 
@@ -1242,20 +1252,21 @@ function getAdminDashboard(params) {
       photo_in: a.photo_in_url || '',
       profile_pic: user ? (user.profile_pic_url || '') : ''
     };
-  });
+  }).reverse();
 
   return {
     success: true,
     profile_pic_url: admin ? (admin.profile_pic_url || '') : '',
     stats: {
       hadir: todayAtt.length,
-      total: users.length,
+      total: employeeUsers.length,
       terlambat: todayAtt.filter(a => a.status_in === 'Terlambat').length,
       cuti: todayLeaves.length,
       absen: absenCount
     },
     pending_count: pendingCount,
-    live_log: liveLog
+    live_log: liveLog,
+    belum_absen_users: absenUsers
   };
 }
 

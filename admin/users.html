@@ -61,18 +61,22 @@
                 <input type="text" class="form-control" id="userSearch" placeholder="Cari nama / email..."
                   oninput="filterUsers()">
               </div>
-              <div style="display:flex; gap:10px;">
-                <select class="form-control" id="userStatusFilter" onchange="filterUsers()" style="max-width:160px;">
-                  <option value="">Semua Status</option>
-                  <option value="Active">Aktif</option>
-                  <option value="Inactive">Nonaktif</option>
-                  <option value="Pending">Menunggu Persetujuan</option>
-                </select>
-                <select class="form-control" id="userRoleFilter" onchange="filterUsers()" style="max-width:140px;">
-                  <option value="">Semua Role</option>
-                  <option value="Employee">Employee Only</option>
-                  <option value="Admin">Admin Only</option>
-                </select>
+              <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; width:100%;">
+                <input type="hidden" id="userStatusFilter" value="">
+                <input type="hidden" id="userRoleFilter" value="">
+                
+                <div class="filter-badges">
+                  <span class="badge badge-outline active" data-val="" onclick="setBadgeFilter('userStatusFilter', this)">Semua Status</span>
+                  <span class="badge badge-outline" data-val="Active" onclick="setBadgeFilter('userStatusFilter', this)">Aktif</span>
+                  <span class="badge badge-outline" data-val="Inactive" onclick="setBadgeFilter('userStatusFilter', this)">Nonaktif</span>
+                  <span class="badge badge-outline" data-val="Pending" onclick="setBadgeFilter('userStatusFilter', this)">Pending</span>
+                </div>
+                
+                <div class="filter-badges">
+                  <span class="badge badge-outline active" data-val="" onclick="setBadgeFilter('userRoleFilter', this)">Semua Role</span>
+                  <span class="badge badge-outline" data-val="Employee" onclick="setBadgeFilter('userRoleFilter', this)">Employee Only</span>
+                  <span class="badge badge-outline" data-val="Admin" onclick="setBadgeFilter('userRoleFilter', this)">Admin Only</span>
+                </div>
               </div>
 </div>
                           <div class="admin-card-actions">

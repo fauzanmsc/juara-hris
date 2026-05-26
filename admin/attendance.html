@@ -78,11 +78,13 @@
                 <input type="date" class="form-control" id="attFilterEnd" style="min-width: 0;">
               </div>
               <input type="text" class="form-control" id="attFilterName" placeholder="Nama karyawan..." style="flex:1">
-              <select class="form-control" id="attFilterStatus">
-                <option value="">Semua Status</option>
-                <option value="Tepat Waktu">Tepat Waktu</option>
-                <option value="Terlambat">Terlambat</option>
-              </select>
+              <input type="hidden" id="attFilterStatus" value="">
+              <div class="filter-badges" style="width:100%; margin-top:12px;">
+                <span class="badge badge-outline active" data-val="" onclick="setBadgeFilter('attFilterStatus', this)">Semua Status</span>
+                <span class="badge badge-outline" data-val="Tepat Waktu" onclick="setBadgeFilter('attFilterStatus', this)">Tepat Waktu</span>
+                <span class="badge badge-outline" data-val="Terlambat" onclick="setBadgeFilter('attFilterStatus', this)">Terlambat</span>
+                <span class="badge badge-outline" data-val="Absen" onclick="setBadgeFilter('attFilterStatus', this)">Absen</span>
+              </div>
               <button class="btn btn-primary" style="padding: 10px 20px; border-radius: var(--radius-sm);"
                 onclick="loadAttendance()"><i class="bi bi-search"></i></button>
               <div class="admin-card-actions">

@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>JEF HRIS - Dashboard</title>
   <meta name="theme-color" content="#FFB703">
   <link rel="icon" type="image/png" href="../img/logomark.png">
@@ -54,20 +55,23 @@
         <!-- APPROVAL PAGE -->
         <section class="page-section active fade-in" id="page-approval">
           <div class="card admin-menu-card">
-            <div class="admin-card-actions">
-              <button class="btn btn-sm btn-ghost" onclick="loadApprovals()"><i class="bi bi-arrow-clockwise"></i>
-                Refresh</button>
-            </div>
 
             <div class="filter-row" style="display:flex; gap:12px; align-items:center; margin:12px 0;">
-              <input type="text" class="form-control" id="appFilterName" placeholder="Filter nama karyawan..." style="flex:1">
-              <select class="form-control" id="appFilterType" style="width:170px;">
-                <option value="">Semua Jenis</option>
-                <option value="Cuti">Cuti</option>
-                <option value="Sakit">Sakit</option>
-                <option value="Izin">Izin</option>
-              </select>
-              <button class="btn btn-primary" onclick="applyApprovalFilters()"><i class="bi bi-search"></i> Filter</button>
+              <input type="text" class="form-control" id="appFilterName" placeholder="Filter nama karyawan..."
+                style="flex:1">
+              <input type="hidden" id="appFilterType" value="">
+              <div class="filter-badges">
+                <span class="badge badge-outline active" data-val=""
+                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Semua Jenis</span>
+                <span class="badge badge-outline" data-val="Cuti"
+                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Cuti</span>
+                <span class="badge badge-outline" data-val="Sakit"
+                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Sakit</span>
+                <span class="badge badge-outline" data-val="Izin"
+                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Izin</span>
+              </div>
+              <button class="btn btn-primary" onclick="applyApprovalFilters()"><i class="bi bi-search"></i>
+                Filter</button>
               <button class="btn btn-ghost" onclick="resetApprovalFilters()"><i class="bi bi-x-lg"></i> Reset</button>
             </div>
 
@@ -75,13 +79,23 @@
               <table>
                 <thead id="approvalThead" class="hide-decision-col">
                   <tr>
-                    <th style="cursor:pointer;" onclick="sortApprovalsTable('user_name')" data-sort="user_name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortApprovalsTable('type')" data-sort="type">Jenis <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortApprovalsTable('start_date')" data-sort="start_date">Mulai <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortApprovalsTable('end_date')" data-sort="end_date">Hingga <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('user_name')" data-sort="user_name">Karyawan
+                      <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('type')" data-sort="type">Jenis <i
+                        class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('start_date')" data-sort="start_date">Mulai
+                      <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('end_date')" data-sort="end_date">Hingga <i
+                        class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th>Catatan</th>
                     <th>Dokumen</th>
-                    <th style="cursor:pointer;" onclick="sortApprovalsTable('status')" data-sort="status">Status <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortApprovalsTable('status')" data-sort="status">Status <i
+                        class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th data-approval-decision-col>Keputusan</th>
                     <th>Aksi</th>
                   </tr>
@@ -107,7 +121,8 @@
     <div class="modal border-animated-modal" style="max-width: 480px;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary" style="margin-right:8px"></i> Tambah Karyawan</h3>
+        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary"
+            style="margin-right:8px"></i> Tambah Karyawan</h3>
         <button class="modal-close" onclick="closeModal('modalUser')"><i class="bi bi-x"></i></button>
       </div>
       <form id="adminUserForm" onsubmit="event.preventDefault(); saveUser();" style="display:contents;">
@@ -116,9 +131,8 @@
         <div class="modal-body" style="position:relative; z-index:2;">
           <div class="avatar-upload-group">
             <div class="avatar-preview-wrapper">
-              <img id="mu_preview" class="avatar-preview-img"
-                src="/img/profile.png"
-                alt="Preview" onerror="this.src='/img/profile.png'; this.onerror=null;">
+              <img id="mu_preview" class="avatar-preview-img" src="/img/profile.png" alt="Preview"
+                onerror="this.src='/img/profile.png'; this.onerror=null;">
               <label for="mu_file" class="avatar-edit-btn">
                 <i class="bi bi-camera-fill"></i>
               </label>
@@ -311,7 +325,8 @@
     <div class="modal border-animated-modal" style="max-width: 450px;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title"><i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Pengajuan</h3>
+        <h3 class="modal-title"><i class="bi bi-pencil-square text-primary" style="margin-right:8px"></i> Edit Pengajuan
+        </h3>
         <button class="modal-close" onclick="closeModal('modalEditApproval')"><i class="bi bi-x"></i></button>
       </div>
       <form id="formEditApproval" onsubmit="saveEditApproval(event)" style="display:contents;">
@@ -319,7 +334,8 @@
         <div class="modal-body" style="position:relative; z-index:2;">
           <div class="form-group">
             <label class="form-label">Nama Karyawan</label>
-            <input type="text" class="form-control" id="editAppName" readonly style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
+            <input type="text" class="form-control" id="editAppName" readonly
+              style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
           </div>
           <div class="form-group">
             <label class="form-label">Jenis</label>
@@ -345,7 +361,8 @@
           </div>
           <div class="form-group">
             <label class="form-label">Lampiran (opsional)</label>
-            <input type="file" class="form-control" id="editAppFile" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <input type="file" class="form-control" id="editAppFile"
+              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
             <input type="hidden" id="editAppAttachmentUrl">
             <div id="editAppAttachmentPreview" style="margin-top:8px"></div>
           </div>
@@ -509,4 +526,5 @@
     });
   </script>
 </body>
+
 </html>

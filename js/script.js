@@ -1030,15 +1030,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 }
 
                 try {
-                    const resUsers = await fetch(`${APPS_SCRIPT_URL}?action=getUsers`);
-                    const dataUsers = await resUsers.json();
-                    const allU = dataUsers.users || [];
-                    const clockedInNames = (data.live_log || []).map(l => l.name);
-                    const belumAbsen = allU.filter(u => u.role === 'Employee' && !clockedInNames.includes(u.name) && u.status === 'Active');
+                    const belumAbsen = data.belum_absen_users || [];
+                    const activeBelumAbsen = belumAbsen.filter(u => u.status === 'Active');
                     if (window.renderBelumAbsen) {
-                        try { window.renderBelumAbsen(belumAbsen); } catch (rbErr) { console.warn('renderBelumAbsen failed', rbErr); }
+                        try { window.renderBelumAbsen(activeBelumAbsen); } catch (rbErr) { console.warn('renderBelumAbsen failed', rbErr); }
                     }
-                } catch (eu) { console.warn('getUsers failed', eu); }
+                } catch (eu) { console.warn('renderBelumAbsen failed', eu); }
 
                 if (window.hidePageLoader) window.hidePageLoader();
             } catch (e) {
@@ -1179,16 +1176,18 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         window.filterUsers = function () {
             const q = (document.getElementById('userSearch')?.value || '').trim().toLowerCase();
-            const st = document.getElementById('userStatusFilter')?.value || '';
-            const role = document.getElementById('userRoleFilter')?.value || '';
+            const stVal = document.getElementById('userStatusFilter')?.value || '';
+            const roleVal = document.getElementById('userRoleFilter')?.value || '';
+            const stArr = stVal ? stVal.split(',') : [];
+            const roleArr = roleVal ? roleVal.split(',') : [];
 
             const filtered = allUsers.filter(u => {
                 const matchesSearch = !q ||
                     (u.name && u.name.toLowerCase().includes(q)) ||
                     (u.email && u.email.toLowerCase().includes(q)) ||
                     (u.user_id && u.user_id.toLowerCase().includes(q));
-                const matchesStatus = !st || u.status === st;
-                const matchesRole = !role || u.role === role;
+                const matchesStatus = stArr.length === 0 || stArr.includes(u.status);
+                const matchesRole = roleArr.length === 0 || roleArr.includes(u.role);
                 return matchesSearch && matchesStatus && matchesRole;
             });
             renderUsers(filtered);
@@ -1420,7 +1419,8 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 list = list.filter(r => (r.user_name || '').toLowerCase().includes(name));
             }
             if (type) {
-                list = list.filter(r => (r.type || '') === type);
+                const typeArr = type.split(',');
+                list = list.filter(r => typeArr.includes(r.type || ''));
             }
             renderApprovals(list);
         }
@@ -1429,7 +1429,16 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const nameEl = document.getElementById('appFilterName');
             const typeEl = document.getElementById('appFilterType');
             if (nameEl) nameEl.value = '';
-            if (typeEl) typeEl.value = '';
+            if (typeEl) {
+                typeEl.value = '';
+                // Reset badges visually
+                const container = typeEl.nextElementSibling;
+                if (container && container.classList.contains('filter-badges')) {
+                    container.querySelectorAll('.badge').forEach(b => b.classList.remove('active'));
+                    const defaultBadge = container.querySelector('.badge[data-val=""]');
+                    if (defaultBadge) defaultBadge.classList.add('active');
+                }
+            }
             if (typeof applyApprovalFilters === 'function') applyApprovalFilters();
         }
 
@@ -2826,6 +2835,10 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
             btn.textContent = '⏳ Menyimpan...';
 
             try {
+                const n = new Date();
+                const pad = (v) => String(v).padStart(2, '0');
+                const clientTime = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+
                 const payload = {
                     action: attendanceMode === 'in' ? 'clockIn' : 'clockOut',
 
@@ -2841,7 +2854,8 @@ if (currentPage === 'attendance.html' || (currentPage === '' && 'attendance.js' 
 
                     distance_meters: Math.round(currentDist),
 
-                    photo_base64: photoBase64
+                    photo_base64: photoBase64,
+                    client_time: clientTime
                 };
 
 
@@ -3219,6 +3233,52 @@ if (currentPage === 'history.html' || (currentPage === '' && 'history.js' === 'i
             if (status === 'late') return records.filter(r => r.status_in === 'Terlambat');
             return records;
         }
+
+        // Helper for badge filters (Multi-select enabled)
+        window.setBadgeFilter = function(inputId, badgeEl) {
+            const input = document.getElementById(inputId);
+            const container = badgeEl.parentElement;
+            const val = badgeEl.dataset.val;
+
+            if (!input) return;
+
+            if (val === '') {
+                // If "Semua" is clicked, reset all
+                input.value = '';
+                container.querySelectorAll('.badge').forEach(b => b.classList.remove('active'));
+                badgeEl.classList.add('active');
+            } else {
+                // Toggle this specific value
+                badgeEl.classList.toggle('active');
+                
+                // Get all active specific values
+                const activeVals = Array.from(container.querySelectorAll('.badge.active'))
+                    .map(b => b.dataset.val)
+                    .filter(v => v !== '');
+                
+                if (activeVals.length === 0) {
+                    // If none selected, activate "Semua"
+                    input.value = '';
+                    const defaultBadge = container.querySelector('.badge[data-val=""]');
+                    if (defaultBadge) defaultBadge.classList.add('active');
+                } else {
+                    // If some selected, deactivate "Semua"
+                    input.value = activeVals.join(',');
+                    const defaultBadge = container.querySelector('.badge[data-val=""]');
+                    if (defaultBadge) defaultBadge.classList.remove('active');
+                }
+            }
+            
+            if (inputId.startsWith('user')) {
+                if (typeof filterUsers === 'function') filterUsers();
+            } else if (inputId.startsWith('att')) {
+                if (typeof filterLocalAttendance === 'function') filterLocalAttendance();
+                else if (typeof loadAttendance === 'function') loadAttendance();
+            } else if (inputId.startsWith('rep')) {
+                if (typeof filterLocalLeaveReport === 'function') filterLocalLeaveReport();
+                else if (typeof loadLeaveReport === 'function') loadLeaveReport();
+            }
+        };
 
         window.filterHistory = function (status, el) {
             currentFilter = status;
