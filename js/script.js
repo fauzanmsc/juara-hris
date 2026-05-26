@@ -2057,6 +2057,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             const start = document.getElementById('holiday_start_date').value;
             const end = document.getElementById('holiday_end_date').value || start;
             const desc = document.getElementById('holiday_desc').value;
+            const oldId = document.getElementById('holiday_old_id').value || '';
             if (!start || !desc) { showToast('Lengkapi tanggal mulai & keterangan libur', 'warn'); return; }
             try {
                 if (oldId) {
