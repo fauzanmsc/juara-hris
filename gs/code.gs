@@ -1189,7 +1189,7 @@ function getAttendanceTrend(params) {
     if (!dateCounts[dateStr]) dateCounts[dateStr] = { tepat: 0, terlambat: 0 };
     if (statusIn === 'Terlambat') {
       dateCounts[dateStr].terlambat++;
-    } else {
+    } else if (statusIn === 'Tepat Waktu') {
       dateCounts[dateStr].tepat++;
     }
   });

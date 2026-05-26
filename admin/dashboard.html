@@ -691,6 +691,10 @@
               boxWidth: 8,
               boxHeight: 8,
               callbacks: {
+                title: function(tooltipItems) {
+                  const total = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
+                  return 'Total: ' + total + ' Orang';
+                },
                 label: function(context) {
                   return ' ' + context.dataset.label + ': ' + context.parsed.y + ' Orang';
                 }
