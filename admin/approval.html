@@ -15,7 +15,7 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=20260526_3">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -59,17 +59,12 @@
             <div class="filter-row" style="display:flex; gap:12px; align-items:center; margin:12px 0;">
               <input type="text" class="form-control" id="appFilterName" placeholder="Filter nama karyawan..."
                 style="flex:1">
-              <input type="hidden" id="appFilterType" value="">
-              <div class="filter-badges">
-                <span class="badge badge-outline active" data-val=""
-                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Semua Jenis</span>
-                <span class="badge badge-outline" data-val="Cuti"
-                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Cuti</span>
-                <span class="badge badge-outline" data-val="Sakit"
-                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Sakit</span>
-                <span class="badge badge-outline" data-val="Izin"
-                  onclick="setBadgeFilter('appFilterType', this); applyApprovalFilters();">Izin</span>
-              </div>
+              <select class="form-control" id="appFilterType" onchange="applyApprovalFilters()" style="width: auto; min-width: 150px; cursor: pointer;">
+                <option value="">Semua Jenis</option>
+                <option value="Cuti">Cuti</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+              </select>
               <button class="btn btn-primary" onclick="applyApprovalFilters()"><i class="bi bi-search"></i>
                 Filter</button>
               <button class="btn btn-ghost" onclick="resetApprovalFilters()"><i class="bi bi-x-lg"></i> Reset</button>
@@ -414,7 +409,7 @@
   </div>
 
   <div id="toast-container"></div>
-  <script src="../js/script.js"></script>
+  <script src="../js/script.js?v=20260526_3"></script>
   <script>
     // Initialize Dashboard Chart and Belum Absen Table
     window.renderChart = function (stats) {
