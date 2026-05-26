@@ -991,6 +991,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
         // ==== DASHBOARD ====
         window.loadDashboard = async function () {
+            const feed = document.getElementById('attendanceLiveFeed');
+            if (feed) {
+                feed.setAttribute('aria-busy', 'true');
+                feed.classList.remove('is-empty');
+                feed.innerHTML = Array.from({ length: 4 }, () => '<div class="live-feed-card live-feed-loading" aria-hidden="true"></div>').join('');
+            }
             try {
                 const res = await fetch(`${APPS_SCRIPT_URL}?action=adminDashboard&user_id=${userData.user_id}`);
                 const data = await res.json();
@@ -1023,6 +1029,9 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 if (typeof renderLiveLog === 'function') {
                     try { renderLiveLog(window.allLiveLogs); } catch (rlErr) { console.warn('renderLiveLog failed', rlErr); }
                 }
+                if (typeof renderAttendanceLiveFeed === 'function') {
+                    try { renderAttendanceLiveFeed(window.allLiveLogs); } catch (rfErr) { console.warn('renderAttendanceLiveFeed failed', rfErr); }
+                }
 
                 if (window.renderChart && data.stats) {
                     window.lastChartStats = data.stats;
@@ -1038,9 +1047,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 } catch (eu) { console.warn('renderBelumAbsen failed', eu); }
 
                 if (window.hidePageLoader) window.hidePageLoader();
+                if (feed) feed.removeAttribute('aria-busy');
             } catch (e) {
                 console.error('Error loading dashboard:', e);
                 if (window.hidePageLoader) window.hidePageLoader();
+                if (feed) {
+                    feed.classList.add('is-empty');
+                    feed.innerHTML = '<div class="live-feed-empty">Gagal memuat foto absensi</div>';
+                    feed.removeAttribute('aria-busy');
+                }
                 showToast('Gagal memuat dashboard', 'error');
             }
         }
@@ -1657,8 +1672,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
 
             const latestPhotos = (records || [])
                 .filter(record => record.photo_in_url || record.photo_in)
-                .sort((a, b) => getSortTime(b) - getSortTime(a))
-                .slice(0, 10);
+                .sort((a, b) => getSortTime(b) - getSortTime(a));
 
             if (!latestPhotos.length) {
                 container.classList.remove('has-scroll');
@@ -1671,8 +1685,12 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
             container.classList.toggle('has-scroll', latestPhotos.length > 4);
             container.innerHTML = latestPhotos.map(record => {
                 const photo = getDirectDriveUrl(record.photo_in_url || record.photo_in);
-                const status = record.status_in === 'Terlambat' ? 'Terlambat' : 'Tepat Waktu';
-                const badgeClass = status === 'Terlambat' ? 'is-late' : 'is-on-time';
+                const status = record.status_in || 'Belum Absen';
+                let badgeClass = 'is-on-time';
+                if (status === 'Terlambat') badgeClass = 'is-late';
+                else if (status === 'Absen') badgeClass = 'is-danger';
+                else if (status !== 'Tepat Waktu' && status !== 'Belum Absen') badgeClass = 'is-primary';
+                
                 const safePhoto = escapeHTML(photo);
                 const safeName = escapeHTML(record.name || 'Karyawan');
 
@@ -1681,7 +1699,7 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                         <img src="${safePhoto}" alt="Foto absensi ${safeName}" loading="lazy" decoding="async" onerror="this.src='/img/profile.png'; this.onerror=null;">
                         <div class="live-feed-overlay">
                             <span class="live-feed-name">${safeName}</span>
-                            <span class="live-feed-badge ${badgeClass}">${status}</span>
+                            <span class="live-feed-badge ${badgeClass}">${escapeHTML(status)}</span>
                         </div>
                     </button>
                 `;

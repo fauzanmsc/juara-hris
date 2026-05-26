@@ -111,6 +111,23 @@
             </div>
           </div>
 
+
+          <!-- LIVE FEED ATTENDANCE -->
+          <section class="card attendance-live-feed" aria-labelledby="attendanceLiveFeedTitle"
+            style="margin-top: 12px; margin-bottom: 12px;">
+            <div class="section-header">
+              <div>
+                <h3 class="section-title" id="attendanceLiveFeedTitle"><i class="bi bi-camera-fill text-primary"
+                    style="margin-right:8px"></i>Live Feed Attendance</h3>
+              </div>
+              <button class="btn btn-sm btn-ghost" onclick="loadDashboard()" title="Refresh live feed"
+                aria-label="Refresh live feed">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </div>
+            <div id="attendanceLiveFeed" class="live-feed-grid"></div>
+          </section>
+
           <!-- DASHBOARD GRAPHS & LISTS -->
           <div class="dashboard-layout-grid fade-in">
             <!-- LIVE LOG -->
