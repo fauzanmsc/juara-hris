@@ -1118,6 +1118,7 @@ function getAttendanceLog(params) {
 // ============ ATTENDANCE TREND (Chart Data) ============
 
 function getAttendanceTrend(params) {
+  params = params || {};
   const range = params.range || 'monthly'; // weekly | monthly | yearly
   const today = new Date();
   const todayStr = Utilities.formatDate(today, 'GMT+7', 'yyyy-MM-dd');
@@ -1150,8 +1151,7 @@ function getAttendanceTrend(params) {
   // Determine date range
   let startDate, endDate;
   if (range === 'weekly') {
-    // Current week Mon–Fri
-    const dayOfWeek = today.getDay(); // 0=Sun
+    const dayOfWeek = today.getDay();
     const monday = new Date(today);
     monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
     startDate = new Date(monday);
@@ -1159,13 +1159,11 @@ function getAttendanceTrend(params) {
     friday.setDate(monday.getDate() + 4);
     endDate = friday > today ? today : friday;
   } else if (range === 'monthly') {
-    // Current month
     startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    endDate = new Date(today); // up to today
+    endDate = new Date(today);
   } else {
-    // Yearly: Jan–Dec current year
     startDate = new Date(today.getFullYear(), 0, 1);
-    endDate = new Date(today); // up to today
+    endDate = new Date(today);
   }
 
   // Time helpers for status calculation
@@ -1187,14 +1185,21 @@ function getAttendanceTrend(params) {
   const weekdayDeadline = (weekdayStartMinutes !== null ? weekdayStartMinutes : 600) + toleranceMinutes;
   const saturdayDeadline = (saturdayStartMinutes !== null ? saturdayStartMinutes : 540) + toleranceMinutes;
 
-  // Build per-date counts
-  const dateCounts = {}; // { 'YYYY-MM-DD': { tepat: N, terlambat: N } }
+  // Build per-date counts — deduplicate: 1 employee = 1 count per day
+  const dateCounts = {};
+  const seenPerDay = {}; // 'uid|date' => true
 
   attendance.forEach(a => {
     const uid = String(a.user_id).trim();
     if (!employeeIds.has(uid)) return; // Only count employees
     const dateStr = formatDate(a.date);
     if (!dateStr) return;
+
+    // Deduplicate: only count first record per employee per day
+    const dedupKey = uid + '|' + dateStr;
+    if (seenPerDay[dedupKey]) return;
+    seenPerDay[dedupKey] = true;
+
     const dt = new Date(dateStr + 'T00:00:00');
     const day = dt.getDay();
     if (day === 0 || day === 6) return; // skip Sat/Sun
@@ -1205,8 +1210,7 @@ function getAttendanceTrend(params) {
     const clockMinutes = timeToMinutes(clockInStr);
     if (clockMinutes === null) return;
 
-    const isSat = day === 6;
-    const deadline = isSat ? saturdayDeadline : weekdayDeadline;
+    const deadline = weekdayDeadline; // Mon-Fri only (Sat/Sun already skipped)
     const isLate = clockMinutes > deadline;
 
     if (!dateCounts[dateStr]) dateCounts[dateStr] = { tepat: 0, terlambat: 0 };
@@ -1378,11 +1382,17 @@ function getAdminDashboard(params) {
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
 
+  // Filter attendance: only Employee role, today only, deduplicated per employee
+  const employeeUserIds = new Set(users.filter(u => u.role === 'Employee').map(u => u.user_id));
+  const seenToday = new Set();
   const todayAtt = attendance.filter(a => {
     if (formatDate(a.date) !== today) return false;
-    // Only count Employee role
-    const user = users.find(u => u.user_id === a.user_id);
-    return user && user.role === 'Employee';
+    const uid = a.user_id;
+    if (!employeeUserIds.has(uid)) return false;
+    // Deduplicate: only count first record per employee
+    if (seenToday.has(uid)) return false;
+    seenToday.add(uid);
+    return true;
   });
   const todayLeaves = leaves.filter(l =>
     l.status === 'Approved' &&
