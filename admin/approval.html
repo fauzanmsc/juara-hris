@@ -59,7 +59,8 @@
             <div class="filter-row" style="display:flex; gap:12px; align-items:center; margin:12px 0;">
               <input type="text" class="form-control" id="appFilterName" placeholder="Filter nama karyawan..."
                 style="flex:1">
-              <select class="form-control" id="appFilterType" onchange="applyApprovalFilters()" style="width: auto; min-width: 150px; cursor: pointer;">
+              <select class="form-control" id="appFilterType" onchange="applyApprovalFilters()"
+                style="width: auto; min-width: 150px; cursor: pointer;">
                 <option value="">Semua Jenis</option>
                 <option value="Cuti">Cuti</option>
                 <option value="Sakit">Sakit</option>
@@ -76,13 +77,15 @@
                   <tr>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('user_name')" data-sort="user_name">Karyawan
                       <i class="bi bi-arrow-down-up bi-sort-icon"
-                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                    </th>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('type')" data-sort="type">Jenis <i
                         class="bi bi-arrow-down-up bi-sort-icon"
                         style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('start_date')" data-sort="start_date">Mulai
                       <i class="bi bi-arrow-down-up bi-sort-icon"
-                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                    </th>
                     <th style="cursor:pointer;" onclick="sortApprovalsTable('end_date')" data-sort="end_date">Hingga <i
                         class="bi bi-arrow-down-up bi-sort-icon"
                         style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
@@ -396,7 +399,7 @@
               style="background:rgba(0,0,0,0.06); color:var(--text-muted); cursor:not-allowed;">
           </div>
           <div class="form-group">
-            <label class="form-label">Jatah Cuti Tahunan</label>
+            <label class="form-label">Jatah Cuti</label>
             <input type="number" class="form-control" id="adjustAllowedQuota" required min="0" max="365">
           </div>
         </div>

@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>JEF HRIS - Dashboard</title>
   <meta name="theme-color" content="#FFB703">
   <link rel="icon" type="image/png" href="../img/logomark.png">
@@ -54,10 +55,7 @@
         <!-- LEAVE REPORT PAGE -->
         <section class="page-section active fade-in" id="page-leave-report">
           <div class="card admin-menu-card">
-            <div class="admin-card-actions">
-              <button class="btn btn-sm btn-ghost" onclick="loadLeaveReport()"><i class="bi bi-arrow-clockwise"></i>
-                Refresh</button>
-            </div>
+
 
             <!-- Periode Filter Row -->
             <div class="filter-row" style="margin-bottom: 20px;">
@@ -78,13 +76,31 @@
                 <thead id="leaveReportThead">
                   <tr>
                     <th style="width: 70px; text-align: center;">Foto</th>
-                    <th style="cursor:pointer;" onclick="sortLeaveReportTable('name')" data-sort="name">Karyawan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer;" onclick="sortLeaveReportTable('position')" data-sort="position">Jabatan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('allowed_leave_quota')" data-sort="allowed_leave_quota">Jatah Cuti Tahunan <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('remaining_leave_quota')" data-sort="remaining_leave_quota">Sisa Cuti <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('sick_count')" data-sort="sick_count">Total Sakit (Periode) <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('permit_count')" data-sort="permit_count">Total Izin (Periode) <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
-                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('cuti_count')" data-sort="cuti_count">Total Cuti (Periode) <i class="bi bi-arrow-down-up bi-sort-icon" style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortLeaveReportTable('name')" data-sort="name">Karyawan <i
+                        class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer;" onclick="sortLeaveReportTable('position')" data-sort="position">Jabatan
+                      <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                    </th>
+                    <th style="cursor:pointer; text-align: center;"
+                      onclick="sortLeaveReportTable('allowed_leave_quota')" data-sort="allowed_leave_quota">Jatah Cuti
+                      <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i>
+                    </th>
+                    <th style="cursor:pointer; text-align: center;"
+                      onclick="sortLeaveReportTable('remaining_leave_quota')" data-sort="remaining_leave_quota">Sisa
+                      Cuti <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('sick_count')"
+                      data-sort="sick_count">Total Sakit <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('permit_count')"
+                      data-sort="permit_count">Total Izin <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
+                    <th style="cursor:pointer; text-align: center;" onclick="sortLeaveReportTable('cuti_count')"
+                      data-sort="cuti_count">Total Cuti <i class="bi bi-arrow-down-up bi-sort-icon"
+                        style="font-size:10px; margin-left:4px; opacity:0.35;"></i></th>
                     <th style="text-align: center;">Aksi</th>
                   </tr>
                 </thead>
@@ -109,7 +125,8 @@
     <div class="modal border-animated-modal" style="max-width: 480px;">
       <div class="card-border-glow"></div>
       <div class="modal-header" style="position:relative; z-index:2;">
-        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary" style="margin-right:8px"></i> Tambah Karyawan</h3>
+        <h3 class="modal-title" id="modalUserTitle"><i class="bi bi-person-fill-add text-primary"
+            style="margin-right:8px"></i> Tambah Karyawan</h3>
         <button class="modal-close" onclick="closeModal('modalUser')"><i class="bi bi-x"></i></button>
       </div>
       <form id="adminUserForm" onsubmit="event.preventDefault(); saveUser();" style="display:contents;">
@@ -118,9 +135,8 @@
         <div class="modal-body" style="position:relative; z-index:2;">
           <div class="avatar-upload-group">
             <div class="avatar-preview-wrapper">
-              <img id="mu_preview" class="avatar-preview-img"
-                src="/img/profile.png"
-                alt="Preview" onerror="this.src='/img/profile.png'; this.onerror=null;">
+              <img id="mu_preview" class="avatar-preview-img" src="/img/profile.png" alt="Preview"
+                onerror="this.src='/img/profile.png'; this.onerror=null;">
               <label for="mu_file" class="avatar-edit-btn">
                 <i class="bi bi-camera-fill"></i>
               </label>
@@ -451,4 +467,5 @@
     });
   </script>
 </body>
+
 </html>

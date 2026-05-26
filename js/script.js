@@ -2313,15 +2313,15 @@ if (currentPage === 'admin.html' || (currentPage === '' && 'admin.js' === 'index
                 return `
                     <tr>
                         <td style="text-align:center; padding: 6px 12px;">
-                            <img src="${profileSrc}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #c2c2c24f; display:block; margin:0 auto;" alt="${r.name}" onerror="this.src='/img/profile.png'; this.onerror=null;">
+                            <img src="${profileSrc}" style="width:36px; height:36px; min-width:36px; min-height:36px; border-radius:50%; object-fit:cover; border:2px solid #c2c2c24f; display:block; margin:0 auto;" alt="${r.name}" onerror="this.src='/img/profile.png'; this.onerror=null;">
                         </td>
                         <td><strong>${r.name}</strong></td>
                         <td><span class="badge badge-info">${r.position}</span></td>
-                        <td style="text-align:center; font-weight:700; font-size:14px; color:var(--primary);">${r.allowed_leave_quota} Hari</td>
-                        <td style="text-align:center; font-weight:700; font-size:14px; color:var(--success);">${r.remaining_leave_quota} Hari</td>
-                        <td style="text-align:center; font-weight:600; color:var(--danger);">${r.sick_count} Hari</td>
-                        <td style="text-align:center; font-weight:600; color:var(--warning);">${r.permit_count} Hari</td>
-                        <td style="text-align:center; font-weight:600; color:var(--primary);">${r.cuti_count} Hari</td>
+                        <td style="text-align:center; font-weight:700; font-size:14px; color:var(--primary);">${r.allowed_leave_quota > 0 ? r.allowed_leave_quota + ' Hari' : '-'}</td>
+                        <td style="text-align:center; font-weight:700; font-size:14px; color:var(--success);">${r.remaining_leave_quota > 0 ? r.remaining_leave_quota + ' Hari' : '-'}</td>
+                        <td style="text-align:center; font-weight:600; color:var(--danger);">${r.sick_count > 0 ? r.sick_count + ' Hari' : '-'}</td>
+                        <td style="text-align:center; font-weight:600; color:var(--warning);">${r.permit_count > 0 ? r.permit_count + ' Hari' : '-'}</td>
+                        <td style="text-align:center; font-weight:600; color:var(--primary);">${r.cuti_count > 0 ? r.cuti_count + ' Hari' : '-'}</td>
                         <td style="text-align:center;">
                             <button class="btn btn-sm btn-ghost" onclick="adjustQuota('${r.user_id}', '${r.name}', ${r.allowed_leave_quota})" style="padding:6px 12px; border-radius:50px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
                                 <i class="bi bi-pencil-square"></i> Edit Jatah
