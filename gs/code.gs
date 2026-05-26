@@ -1126,7 +1126,6 @@ function getAttendanceTrend(params) {
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const users = sheetToObjects(getSheet(SHEET.USERS));
   const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
-  const config = getAllConfig();
 
   // Only count Employee role
   const employeeIds = new Set();
@@ -1165,29 +1164,10 @@ function getAttendanceTrend(params) {
     startDate = new Date(today.getFullYear(), 0, 1);
     endDate = new Date(today);
   }
-
-  // Time helpers for status calculation
-  function normalizeConfigValue(value, defaultVal) {
-    if (value === '' || value === null || value === undefined) return defaultVal;
-    if (Object.prototype.toString.call(value) === '[object Date]') {
-      return Utilities.formatDate(value, 'GMT+7', 'HH:mm');
-    }
-    return String(value).trim() || defaultVal;
-  }
-  function timeToMinutes(value) {
-    const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
-    if (!match) return null;
-    return (parseInt(match[1], 10) * 60) + parseInt(match[2], 10);
-  }
-  const weekdayStartMinutes = timeToMinutes(normalizeConfigValue(config.weekday_start, '10:00'));
-  const saturdayStartMinutes = timeToMinutes(normalizeConfigValue(config.saturday_start, '09:00'));
-  const toleranceMinutes = parseInt(normalizeConfigValue(config.tolerance_minutes, '15'), 10) || 0;
-  const weekdayDeadline = (weekdayStartMinutes !== null ? weekdayStartMinutes : 600) + toleranceMinutes;
-  const saturdayDeadline = (saturdayStartMinutes !== null ? saturdayStartMinutes : 540) + toleranceMinutes;
-
   // Build per-date counts — deduplicate: 1 employee = 1 count per day
+  // Use status_in directly from database for 100% data consistency
   const dateCounts = {};
-  const seenPerDay = {}; // 'uid|date' => true
+  const seenPerDay = {};
 
   attendance.forEach(a => {
     const uid = String(a.user_id).trim();
@@ -1205,16 +1185,9 @@ function getAttendanceTrend(params) {
     if (day === 0 || day === 6) return; // skip Sat/Sun
     if (holidaySet.has(dateStr)) return; // skip holidays
 
-    const clockInStr = formatTimeVal(a.clock_in_time);
-    if (!clockInStr) return;
-    const clockMinutes = timeToMinutes(clockInStr);
-    if (clockMinutes === null) return;
-
-    const deadline = weekdayDeadline; // Mon-Fri only (Sat/Sun already skipped)
-    const isLate = clockMinutes > deadline;
-
+    const statusIn = String(a.status_in || '').trim();
     if (!dateCounts[dateStr]) dateCounts[dateStr] = { tepat: 0, terlambat: 0 };
-    if (isLate) {
+    if (statusIn === 'Terlambat') {
       dateCounts[dateStr].terlambat++;
     } else {
       dateCounts[dateStr].tepat++;
@@ -1411,36 +1384,8 @@ function getAdminDashboard(params) {
 
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;
 
-  // Recalculate status_in from clock time for accuracy
-  function normalizeConfigVal(value, defaultVal) {
-    if (value === '' || value === null || value === undefined) return defaultVal;
-    if (Object.prototype.toString.call(value) === '[object Date]') {
-      return Utilities.formatDate(value, 'GMT+7', 'HH:mm');
-    }
-    return String(value).trim() || defaultVal;
-  }
-  function timeToMin(value) {
-    const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
-    if (!match) return null;
-    return (parseInt(match[1], 10) * 60) + parseInt(match[2], 10);
-  }
-  const cfg = getAllConfig();
-  const wdStart = timeToMin(normalizeConfigVal(cfg.weekday_start, '10:00'));
-  const satStart = timeToMin(normalizeConfigVal(cfg.saturday_start, '09:00'));
-  const tolMin = parseInt(normalizeConfigVal(cfg.tolerance_minutes, '15'), 10) || 0;
-  const wdDeadline = (wdStart !== null ? wdStart : 600) + tolMin;
-  const satDeadline = (satStart !== null ? satStart : 540) + tolMin;
-
-  let lateCount = 0;
-  todayAtt.forEach(a => {
-    const clockInStr = formatTimeVal(a.clock_in_time);
-    const clockMin = timeToMin(clockInStr);
-    if (clockMin === null) return;
-    const todayDate = new Date(today + 'T00:00:00');
-    const isSat = todayDate.getDay() === 6;
-    const deadline = isSat ? satDeadline : wdDeadline;
-    if (clockMin > deadline) lateCount++;
-  });
+  // Count late using status_in directly from database (100% data consistency)
+  const lateCount = todayAtt.filter(a => String(a.status_in || '').trim() === 'Terlambat').length;
 
   // Live log with user names (all users including admin)
   const allTodayAtt = attendance.filter(a => formatDate(a.date) === today);
