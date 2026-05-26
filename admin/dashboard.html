@@ -132,18 +132,18 @@
           <section class="card fade-in" style="margin-top: 12px; margin-bottom: 24px;">
             <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
               <div style="display:flex; flex-direction:column; min-width:0;">
-                <h3 class="card-title"><i class="bi bi-graph-up-arrow text-primary" style="margin-right:8px"></i>Statistik Keterlambatan</h3>
-                <p class="card-subtitle">Tren keterlambatan karyawan</p>
+                <h3 class="card-title"><i class="bi bi-graph-up-arrow text-primary" style="margin-right:8px"></i>Statistik Kehadiran</h3>
+                <p class="card-subtitle">Tren tepat waktu vs keterlambatan karyawan</p>
               </div>
               <div style="display:flex; align-items:center;">
-                <select class="form-control" id="lateChartRange" onchange="renderLateChart()" style="width: auto; min-width: 130px; cursor: pointer; border-radius: 50px; font-size: 13px; font-weight: 600; padding: 8px 16px;">
+                <select class="form-control" id="lateChartRange" onchange="fetchAndRenderLateChart()" style="width: auto; min-width: 130px; cursor: pointer; border-radius: 50px; font-size: 13px; font-weight: 600; padding: 8px 16px;">
                   <option value="weekly">Mingguan</option>
                   <option value="monthly" selected>Bulanan</option>
                   <option value="yearly">Tahunan</option>
                 </select>
               </div>
             </div>
-            <div style="position: relative; height: 320px; width: 100%; margin-top: 20px;">
+            <div style="position: relative; height: 260px; width: 100%; margin-top: 16px;">
               <canvas id="lateChart"></canvas>
             </div>
           </section>
@@ -475,7 +475,11 @@
   <script>
     // Initialize Dashboard Chart and Belum Absen Table
     window.renderChart = function (stats) {
-      if (window.renderLateChart) window.renderLateChart();
+      // Only fetch on first call; subsequent calls (theme switch) use cache
+      if (!window._lateChartInitialized && window.fetchAndRenderLateChart) {
+        window._lateChartInitialized = true;
+        window.fetchAndRenderLateChart();
+      }
 
       if (!document.getElementById('dashChart')) return;
       const ctx = document.getElementById('dashChart').getContext('2d');
@@ -566,39 +570,56 @@
       `).join('');
     }
 
-    window.renderLateChart = async function () {
+    // Cache for attendance trend data per range
+    window._trendCache = {};
+
+    // Fetch data from API and render chart (called on range change & initial load)
+    window.fetchAndRenderLateChart = async function () {
       if (!document.getElementById('lateChart')) return;
-      const ctx = document.getElementById('lateChart').getContext('2d');
-      if (window.lateChartInstance) window.lateChartInstance.destroy();
-
       const range = document.getElementById('lateChartRange').value;
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const textColor = isDark ? '#FFFFFF' : '#1E293B';
-      const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
-      // Fetch real data from backend
-      let labels = [], tepatData = [], terlambatData = [];
       try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getAttendanceTrend&range=${range}`);
         const json = await res.json();
         if (json.success) {
-          labels = json.labels || [];
-          tepatData = json.tepat || [];
-          terlambatData = json.terlambat || [];
+          window._trendCache[range] = {
+            labels: json.labels || [],
+            tepat: json.tepat || [],
+            terlambat: json.terlambat || []
+          };
         }
       } catch (err) {
         console.warn('Failed to fetch attendance trend', err);
       }
 
-      if (!labels.length) return;
+      window.renderLateChart();
+    }
+
+    // Render chart from cached data (called on theme switch, no API call)
+    window.renderLateChart = function () {
+      if (!document.getElementById('lateChart')) return;
+      const ctx = document.getElementById('lateChart').getContext('2d');
+      if (window.lateChartInstance) window.lateChartInstance.destroy();
+
+      const range = document.getElementById('lateChartRange').value;
+      const cached = window._trendCache[range];
+      if (!cached || !cached.labels.length) return;
+
+      const labels = cached.labels;
+      const tepatData = cached.tepat;
+      const terlambatData = cached.terlambat;
+
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#FFFFFF' : '#1E293B';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)';
 
       // Gradient for Tepat Waktu (green)
-      const gradientGreen = ctx.createLinearGradient(0, 0, 0, 320);
+      const gradientGreen = ctx.createLinearGradient(0, 0, 0, 260);
       gradientGreen.addColorStop(0, 'rgba(34, 197, 94, 0.35)');
       gradientGreen.addColorStop(1, 'rgba(34, 197, 94, 0.01)');
 
       // Gradient for Terlambat (red)
-      const gradientRed = ctx.createLinearGradient(0, 0, 0, 320);
+      const gradientRed = ctx.createLinearGradient(0, 0, 0, 260);
       gradientRed.addColorStop(0, 'rgba(239, 68, 68, 0.35)');
       gradientRed.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
 
@@ -615,7 +636,7 @@
               borderWidth: 3,
               fill: true,
               tension: 0.4,
-              pointBackgroundColor: '#FFFFFF',
+              pointBackgroundColor: isDark ? '#1E293B' : '#FFFFFF',
               pointBorderColor: '#22C55E',
               pointBorderWidth: 2,
               pointRadius: 4,
@@ -629,7 +650,7 @@
               borderWidth: 3,
               fill: true,
               tension: 0.4,
-              pointBackgroundColor: '#FFFFFF',
+              pointBackgroundColor: isDark ? '#1E293B' : '#FFFFFF',
               pointBorderColor: '#EF4444',
               pointBorderWidth: 2,
               pointRadius: 4,
@@ -658,7 +679,7 @@
               }
             },
             tooltip: {
-              backgroundColor: 'rgba(26, 26, 26, 0.9)',
+              backgroundColor: 'rgba(26, 26, 26, 0.92)',
               titleColor: '#FFFFFF',
               bodyColor: '#E5E7EB',
               borderColor: 'rgba(255,255,255,0.1)',

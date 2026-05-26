@@ -1123,8 +1123,15 @@ function getAttendanceTrend(params) {
   const todayStr = Utilities.formatDate(today, 'GMT+7', 'yyyy-MM-dd');
 
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
+  const users = sheetToObjects(getSheet(SHEET.USERS));
   const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
   const config = getAllConfig();
+
+  // Only count Employee role
+  const employeeIds = new Set();
+  users.forEach(u => {
+    if (u.role === 'Employee' && u.status === 'Active') employeeIds.add(String(u.user_id).trim());
+  });
 
   // Build holiday set
   const holidaySet = new Set();
@@ -1184,6 +1191,8 @@ function getAttendanceTrend(params) {
   const dateCounts = {}; // { 'YYYY-MM-DD': { tepat: N, terlambat: N } }
 
   attendance.forEach(a => {
+    const uid = String(a.user_id).trim();
+    if (!employeeIds.has(uid)) return; // Only count employees
     const dateStr = formatDate(a.date);
     if (!dateStr) return;
     const dt = new Date(dateStr + 'T00:00:00');
@@ -1369,7 +1378,12 @@ function getAdminDashboard(params) {
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
 
-  const todayAtt = attendance.filter(a => formatDate(a.date) === today);
+  const todayAtt = attendance.filter(a => {
+    if (formatDate(a.date) !== today) return false;
+    // Only count Employee role
+    const user = users.find(u => u.user_id === a.user_id);
+    return user && user.role === 'Employee';
+  });
   const todayLeaves = leaves.filter(l =>
     l.status === 'Approved' &&
     formatDate(l.start_date) <= today &&
@@ -1387,8 +1401,40 @@ function getAdminDashboard(params) {
 
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;
 
-  // Live log with user names
-  const liveLog = todayAtt.map(a => {
+  // Recalculate status_in from clock time for accuracy
+  function normalizeConfigVal(value, defaultVal) {
+    if (value === '' || value === null || value === undefined) return defaultVal;
+    if (Object.prototype.toString.call(value) === '[object Date]') {
+      return Utilities.formatDate(value, 'GMT+7', 'HH:mm');
+    }
+    return String(value).trim() || defaultVal;
+  }
+  function timeToMin(value) {
+    const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    return (parseInt(match[1], 10) * 60) + parseInt(match[2], 10);
+  }
+  const cfg = getAllConfig();
+  const wdStart = timeToMin(normalizeConfigVal(cfg.weekday_start, '10:00'));
+  const satStart = timeToMin(normalizeConfigVal(cfg.saturday_start, '09:00'));
+  const tolMin = parseInt(normalizeConfigVal(cfg.tolerance_minutes, '15'), 10) || 0;
+  const wdDeadline = (wdStart !== null ? wdStart : 600) + tolMin;
+  const satDeadline = (satStart !== null ? satStart : 540) + tolMin;
+
+  let lateCount = 0;
+  todayAtt.forEach(a => {
+    const clockInStr = formatTimeVal(a.clock_in_time);
+    const clockMin = timeToMin(clockInStr);
+    if (clockMin === null) return;
+    const todayDate = new Date(today + 'T00:00:00');
+    const isSat = todayDate.getDay() === 6;
+    const deadline = isSat ? satDeadline : wdDeadline;
+    if (clockMin > deadline) lateCount++;
+  });
+
+  // Live log with user names (all users including admin)
+  const allTodayAtt = attendance.filter(a => formatDate(a.date) === today);
+  const liveLog = allTodayAtt.map(a => {
     const user = users.find(u => u.user_id === a.user_id);
     return {
       name: user ? user.name : 'Unknown',
@@ -1409,7 +1455,7 @@ function getAdminDashboard(params) {
     stats: {
       hadir: todayAtt.length,
       total: employeeUsers.length,
-      terlambat: todayAtt.filter(a => a.status_in === 'Terlambat').length,
+      terlambat: lateCount,
       cuti: todayLeaves.length,
       absen: absenCount
     },

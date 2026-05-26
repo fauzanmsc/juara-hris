@@ -249,6 +249,7 @@ window.toggleTheme = function () {
     if (window.renderChart && window.lastChartStats) {
         setTimeout(() => {
             window.renderChart(window.lastChartStats);
+            if (window.renderLateChart) window.renderLateChart();
         }, 100);
     }
 };
