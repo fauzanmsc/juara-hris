@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2026-05-26-admin-compat';
+const CACHE_VERSION = 'v2026-05-28-admin-compat';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
