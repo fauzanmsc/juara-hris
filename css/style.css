@@ -922,6 +922,7 @@ body.image-preview-open {
   font-size: 12px;
   border: 1px dashed var(--border);
   border-radius: var(--radius-md);
+  text-align: center;
 }
 
 @media (max-width: 920px) {
@@ -1219,7 +1220,6 @@ body.image-preview-open {
   -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  padding: 0 10px 0;
   position: relative;
 }
 
@@ -1467,7 +1467,10 @@ body.admin-layout {
 
   .admin-layout.sidebar-compact .sidebar-link {
     justify-content: center;
-    padding: 12px 10px;
+    padding: 10px;
+    aspect-ratio: 1 / 1;
+    max-width: 42px;
+    margin: 0 auto 8px auto;
     gap: 0;
     font-size: 0 !important;
   }
@@ -1475,6 +1478,13 @@ body.admin-layout {
   .admin-layout.sidebar-compact .sidebar-link i {
     font-size: 20px !important;
     margin: 0 !important;
+  }
+
+  .admin-layout.sidebar-compact .sidebar-link img {
+    margin: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    object-fit: contain;
   }
 
   .admin-layout.sidebar-compact .sidebar-user {
@@ -6716,6 +6726,7 @@ table.table-modern tbody td:last-child {
 
 /* Allow scrolling for table layout pages on mobile, lock on desktop so tables scroll internally */
 @media (max-width: 999px) {
+
   .admin-content:has(#page-users.active),
   .admin-content:has(#page-approval.active),
   .admin-content:has(#page-attendance.active),
@@ -6724,7 +6735,9 @@ table.table-modern tbody td:last-child {
     overflow-y: auto !important;
   }
 }
+
 @media (min-width: 1000px) {
+
   .admin-content:has(#page-users.active),
   .admin-content:has(#page-approval.active),
   .admin-content:has(#page-attendance.active),
@@ -7252,8 +7265,9 @@ body.employee-page .content {
     gap: 12px;
   }
 }
+
 @media (min-width: 1000px) {
-  #page-attendance .attendance-main-column > .card {
+  #page-attendance .attendance-main-column>.card {
     display: flex;
     flex-direction: column;
     min-height: 0;
