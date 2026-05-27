@@ -142,27 +142,131 @@ window.renderAdminLayout = function () {
                     <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
                         <i class="bi bi-list"></i>
                     </button>
-                    <div>
-                        <h2 class="topbar-title" id="topbarTitle">Dashboard</h2>
-                        <p class="topbar-subtitle" id="topbarSub">Overview kehadiran real-time</p>
+                    <div style="display:flex; align-items:center;">
+                        <h2 class="topbar-title" id="topbarTitle" style="margin:0;">Dashboard</h2>
                     </div>
                 </div>
-                <div class="topbar-actions" style="display:flex; align-items:center; gap:12px;">
-                    <button class="refresh-toggle-btn hide-on-mobile" onclick="window.location.reload()" title="Refresh Halaman"
-                        style="background:var(--bg-deep); border:1px solid var(--border); box-shadow:inset 2px 2px 5px rgba(0,0,0,0.08), inset -2px -2px 5px rgba(255,255,255,0.3); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
-                        <i class="bi bi-arrow-clockwise text-primary"></i>
+                <div class="topbar-actions" style="display:flex; align-items:center; gap:8px;">
+                    <button class="topbar-btn btn-pill hide-on-mobile">
+                        ID <i class="bi bi-chevron-down" style="font-size:12px; opacity:0.6;"></i>
                     </button>
-                    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Ganti Mode"
-                        style="background:var(--bg-deep); border:1px solid var(--border); box-shadow:inset 2px 2px 5px rgba(0,0,0,0.08), inset -2px -2px 5px rgba(255,255,255,0.3); border-radius:50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; transition: all var(--transition); cursor:pointer;">
-                        <i class="bi bi-sun-fill text-primary"></i>
+                    
+                    <div class="user-dropdown-wrap hover-dropdown">
+                        <button class="topbar-btn" data-tooltip="Notifikasi">
+                            <i class="bi bi-bell"></i>
+                            <span class="topbar-badge" id="notifBadgeCount">99+</span>
+                        </button>
+                        <div class="user-dropdown-menu" id="notifDropdownMenu" style="width: 380px; right: -120px; padding: 0; cursor: default;">
+                            <div class="notif-header" style="display:flex; justify-content:space-between; align-items:center; padding: 16px 20px; border-bottom: 1px solid var(--border);">
+                                <h3 style="font-size: 18px; font-weight: 800; margin: 0; color: var(--text);">Notifikasi</h3>
+                                <button class="btn btn-ghost btn-sm" style="font-size: 12px; color: var(--text-muted); font-weight: 500; padding: 0;"><i class="bi bi-envelope-open" style="margin-right: 4px;"></i> Tandai semua sebagai sudah dibaca</button>
+                            </div>
+                            <div class="notif-categories scroll-x" style="display:flex; gap: 16px; padding: 16px 20px; overflow-x: auto; border-bottom: 1px solid var(--border);">
+                                <div class="notif-cat-item active">
+                                    <div class="notif-cat-icon" style="background: rgba(14, 165, 233, 0.1); color: #0ea5e9;">
+                                        <i class="bi bi-grid-fill"></i>
+                                        <span class="topbar-badge">99+</span>
+                                    </div>
+                                    <span class="notif-cat-label">Semua</span>
+                                </div>
+                                <div class="notif-cat-item">
+                                    <div class="notif-cat-icon">
+                                        <i class="bi bi-people-fill"></i>
+                                        <span class="topbar-badge">80</span>
+                                    </div>
+                                    <span class="notif-cat-label">Kreator</span>
+                                </div>
+                                <div class="notif-cat-item">
+                                    <div class="notif-cat-icon">
+                                        <i class="bi bi-shield-fill-exclamation"></i>
+                                        <span class="topbar-badge">99+</span>
+                                    </div>
+                                    <span class="notif-cat-label">Pelanggar...</span>
+                                </div>
+                                <div class="notif-cat-item">
+                                    <div class="notif-cat-icon">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span class="topbar-badge">18</span>
+                                    </div>
+                                    <span class="notif-cat-label">Operasi</span>
+                                </div>
+                                <div class="notif-cat-item">
+                                    <div class="notif-cat-icon">
+                                        <i class="bi bi-briefcase-fill"></i>
+                                    </div>
+                                    <span class="notif-cat-label">Administr...</span>
+                                </div>
+                                <div class="notif-cat-item">
+                                    <div class="notif-cat-icon">
+                                        <i class="bi bi-hand-thumbs-up-fill"></i>
+                                    </div>
+                                    <span class="notif-cat-label">Ekspo...</span>
+                                </div>
+                            </div>
+                            <div class="notif-list" id="notifList" style="max-height: 380px; overflow-y: auto; background: var(--bg-deep); padding: 12px;">
+                                <!-- Item 1 -->
+                                <div class="notif-card">
+                                    <div class="notif-card-content">
+                                        <h4 class="notif-card-title">Permohonan pengunduran diri <span class="notif-dot"></span></h4>
+                                        <p class="notif-card-body">Permohonan pengunduran diri <span>ixsan</span> telah ditolak. Hubungan manajemen antara host dan agensi Anda akan berlanjut.</p>
+                                        <span class="notif-card-time">2 jam lalu</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right notif-card-arrow"></i>
+                                </div>
+                                <!-- Item 2 -->
+                                <div class="notif-card">
+                                    <div class="notif-card-content">
+                                        <h4 class="notif-card-title">Tata kelola konten: pelanggaran dengan tingkat keparahan tertinggi oleh kreator agensi <span class="notif-dot"></span></h4>
+                                        <p class="notif-card-body">japlen_, kreator LIVE yang Anda kelola, melakukan pelanggaran dengan tingkat keparahan tertinggi berdasarkan aturan tata kelola konten.</p>
+                                        <span class="notif-card-time">3 jam lalu</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right notif-card-arrow"></i>
+                                </div>
+                                <!-- Item 3 -->
+                                <div class="notif-card">
+                                    <div class="notif-card-content">
+                                        <h4 class="notif-card-title">Permohonan pengunduran diri <span class="notif-dot"></span></h4>
+                                        <p class="notif-card-body">Permohonan pengunduran diri OM RECORD telah ditolak. Hubungan manajemen antara host dan agensi Anda akan berlanjut.</p>
+                                        <span class="notif-card-time">3 jam lalu</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right notif-card-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="topbar-btn" data-tooltip="Pusat Bantuan">
+                        <i class="bi bi-question-circle"></i>
                     </button>
-                    <button class="header-logout-btn" onclick="logout()" title="Keluar"
-                        style="background:rgba(220,53,69,0.1); border:1px solid rgba(220,53,69,0.2); border-radius:50%; width: 36px; height: 36px; display:none; align-items:center; justify-content:center; color:var(--danger); font-size:16px; transition: all var(--transition); cursor:pointer;">
-                        <i class="bi bi-box-arrow-right"></i>
+
+                    <div class="user-dropdown-wrap hover-dropdown hide-on-mobile">
+                        <button class="topbar-btn" data-tooltip="Bahasa">
+                            <i class="bi bi-translate"></i>
+                        </button>
+                        <div class="user-dropdown-menu" id="langDropdownMenu" style="min-width: 180px; right: -50px; padding: 8px 0;">
+                            <a href="#" class="dropdown-item" style="color: var(--text);"><i class="bi bi-check2"></i> Bahasa Indonesia</a>
+                            <a href="#" class="dropdown-item" style="padding-left: 44px;">English</a>
+                        </div>
+                    </div>
+
+                    <button class="topbar-btn" id="themeToggleBtn" onclick="toggleTheme()" data-tooltip="Beralih ke mode gelap">
+                        <i class="bi bi-brightness-high"></i>
                     </button>
-                    <div class="clock-chip">
-                        <i class="bi bi-clock-fill text-primary" style="font-size:11px;"></i>
-                        <span id="liveTopClock">--:--:--</span>
+
+                    <div class="topbar-divider hide-on-mobile"></div>
+
+                    <div class="user-dropdown-wrap hover-dropdown">
+                        <button class="topbar-btn user-btn">
+                            <i class="bi bi-person"></i>
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu">
+                            <div class="dropdown-header">JEF GROUP AGENCY</div>
+                            <a href="#" class="dropdown-item"><i class="bi bi-shield-exclamation"></i> Laporkan pelanggaran</a>
+                            <a href="#" class="dropdown-item"><i class="bi bi-file-earmark-text"></i> Ketentuan dan kebijakan</a>
+                            <a href="/admin/config.html" class="dropdown-item"><i class="bi bi-gear"></i> Pengaturan</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item" onclick="logout()" style="justify-content:center; color:var(--danger); font-weight:600;">Log Keluar</a>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -259,11 +363,14 @@ window.updateThemeToggleBtn = function () {
     const btn = document.getElementById('themeToggleBtn');
     if (btn) {
         btn.innerHTML = currentTheme === 'dark'
-            ? '<i class="bi bi-sun-fill"></i>'
-            : '<i class="bi bi-moon-stars-fill"></i>';
-        btn.title = currentTheme === 'dark' ? 'Mode Terang' : 'Mode Gelap';
+            ? '<i class="bi bi-brightness-high"></i>'
+            : '<i class="bi bi-moon-stars"></i>';
+        btn.title = '';
+        btn.setAttribute('data-tooltip', currentTheme === 'dark' ? 'Mode Terang' : 'Mode Gelap');
     }
 };
+
+// Dropdowns are now handled via CSS :hover (hover-dropdown class)
 
 // Auto-run on script load
 (function () {
