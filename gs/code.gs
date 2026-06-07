@@ -5,8 +5,8 @@
 // ============================================================
 
 // ============ KONFIGURASI SPREADSHEET ============
-const SPREADSHEET_ID = '1EXmtgASni2x2dzdDhYIYyH7F_E_Jqi_wUncLrf2U1KM'; // Ganti dengan ID Google Sheets Anda
-const DRIVE_FOLDER_ID = '1wciBOc5tFFwzMPVI1G42bUmfpOxamlMQ'; // Folder Google Drive untuk foto
+const SPREADSHEET_ID = '1wQ7PB5Zl7UpXE8kVuAD6fZDyPGxY1_pPMNJS5NiHg9E'; // Ganti dengan ID Google Sheets Anda
+const DRIVE_FOLDER_ID = '1BGiuWcUZlIQSSFsnqfsfRjZC6ZoO7iRq'; // Folder Google Drive untuk foto
 
 // Sheet names
 const SHEET = {
@@ -216,12 +216,15 @@ function uploadBase64ToDrive(base64Data, filename, folder) {
 // ============ HELPER: CONFIG ============
 
 function getAllConfig() {
-  const rows = sheetToObjects(getSheet(SHEET.CONFIG));
-  const config = {
-    wa_admin: '628123456789',
-    email_hrd: 'hrd@jefgroup.id'
-  };
-  rows.forEach(r => { config[r.key] = r.value; });
+  const keys = [
+    'office_latitude', 'office_longitude', 'max_radius_meters',
+    'weekday_start', 'weekday_end', 'saturday_start', 'saturday_end',
+    'tolerance_minutes', 'wa_admin', 'email_hrd'
+  ];
+  const config = {};
+  keys.forEach(k => {
+    config[k] = getConfigVal(k, '');
+  });
   return config;
 }
 

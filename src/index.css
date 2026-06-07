@@ -6783,8 +6783,7 @@ table.table-modern tbody td:last-child {
 @media (max-width: 480px) {
   .overlay {
     padding: 12px 8px;
-    align-items: flex-start;
-    padding-top: 24px;
+    align-items: center;
   }
 
   .modal {
@@ -6827,7 +6826,7 @@ table.table-modern tbody td:last-child {
 @media (max-height: 600px) {
   .overlay {
     padding: 8px;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .modal {
@@ -7647,3 +7646,11 @@ body.employee-page .content {
   z-index: 10000;
   pointer-events: none;
 }
+/* Fix for React root div on login page */
+body.login-page #root {
+  display: flex;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+.reg-modal-card .input-wrap.no-icon input, .reg-modal-card .input-wrap.no-icon select { padding-left: 14px !important; }
