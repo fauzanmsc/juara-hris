@@ -839,7 +839,9 @@ function updateUser(body) {
   let profilePicUrl = body.profile_pic_url;
   if (body.profile_pic_base64) {
     const photoData = uploadBase64ToDrive(body.profile_pic_base64, `profile_${user_id}_${Date.now()}.jpg`, 'foto_profil');
-    if (photoData.url && !photoData.url.startsWith('ERROR')) {
+    if (photoData.id) {
+      profilePicUrl = `https://drive.google.com/thumbnail?id=${photoData.id}&sz=w800`;
+    } else if (photoData.url && !photoData.url.startsWith('ERROR')) {
       profilePicUrl = photoData.url;
     }
   }
@@ -1281,7 +1283,11 @@ function getEmployeeDashboard(params) {
 
   // Check today's holiday
   const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
-  const todayHoliday = holidays.find(h => formatDate(h.date) === today);
+  const todayHoliday = holidays.find(h => {
+    const s = h.start_date ? formatDate(h.start_date) : '';
+    const e = h.end_date ? formatDate(h.end_date) : s;
+    return s && today >= s && today <= e;
+  });
 
   // Check today's active leave
   const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
@@ -1435,7 +1441,7 @@ function saveConfig(body) {
 
   const keys = ['office_latitude','office_longitude','max_radius_meters',
                  'weekday_start','weekday_end','saturday_start','saturday_end','tolerance_minutes',
-                 'wa_admin', 'email_hrd'];
+                 'wa_admin', 'email_hrd', 'radius_enabled'];
 
   keys.forEach(key => {
     if (body[key] === undefined) return;
@@ -1986,7 +1992,9 @@ function registerEmployee(body) {
   let profilePicUrl = '';
   if (profile_pic_base64) {
     const photoData = uploadBase64ToDrive(profile_pic_base64, `profile_${newId}_${Date.now()}.jpg`, 'foto_profil');
-    if (photoData.url && !photoData.url.startsWith('ERROR')) {
+    if (photoData.id) {
+      profilePicUrl = `https://drive.google.com/thumbnail?id=${photoData.id}&sz=w800`;
+    } else if (photoData.url && !photoData.url.startsWith('ERROR')) {
       profilePicUrl = photoData.url;
     }
   }

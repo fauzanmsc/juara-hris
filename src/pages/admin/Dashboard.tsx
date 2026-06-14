@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchApi } from '../../api';
 
 // Assuming Chart.js is loaded globally via index.html or we can rely on window.Chart
@@ -56,7 +56,6 @@ const Dashboard = () => {
         setLiveLogs(res.live_log || []);
         setBelumAbsen(res.belum_absen_users || []);
         renderPieChart(res.stats);
-        renderLineChart(res.stats?.trend_labels || [], res.stats?.trend_tepat || [], res.stats?.trend_terlambat || []);
       }
     } catch (err) {
       console.error(err);
@@ -66,7 +65,14 @@ const Dashboard = () => {
   };
 
   const fetchAndRenderLateChart = async () => {
-    // Trend chart is now fetched as part of adminDashboard stats in legacy
+    try {
+      const res = await fetchApi('getAttendanceTrend', { range: chartRange }, 'GET');
+      if (res.success) {
+        renderLineChart(res.labels, res.tepat, res.terlambat);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const renderPieChart = (st: any) => {

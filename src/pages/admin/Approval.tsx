@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchApi } from '../../api';
 
 const Approval = () => {
@@ -44,11 +45,6 @@ const Approval = () => {
     });
   };
 
-  const handleEdit = (app: any) => {
-    setEditApp(app);
-    setEditModalOpen(true);
-  };
-
   const saveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editApp) return;
@@ -62,7 +58,7 @@ const Approval = () => {
         status: editApp.status
       });
       if (res.success) {
-        setEditModalOpen(false);
+        setEditApp(null);
         loadApprovals();
       } else {
         alert('Gagal menyimpan perubahan');
@@ -148,58 +144,60 @@ const Approval = () => {
         </div>
       </div>
 
-      {editApp && (
-        <div className="overlay" style={{ display: 'block' }}>
-          <div className="modal border-animated-modal" style={{ maxWidth: 450, display: 'block' }}>
-            <div className="card-border-glow"></div>
-            <div className="modal-header" style={{ position: 'relative', zIndex: 2 }}>
-              <h3 className="modal-title"><i className="bi bi-pencil-square text-primary" style={{ marginRight: 8 }}></i> Edit Pengajuan</h3>
-              <button className="modal-close" onClick={() => setEditApp(null)}><i className="bi bi-x"></i></button>
+      {editApp && createPortal(
+        <div className="reg-modal-overlay">
+          <div className="reg-modal-container">
+            <div className="reg-modal-card fade-in">
+              <div className="reg-modal-header">
+                <h3 className="reg-modal-title"><i className="bi bi-pencil-square text-primary" style={{ marginRight: 8 }}></i> Edit Pengajuan</h3>
+                <button className="reg-modal-close" onClick={() => setEditApp(null)}><i className="bi bi-x"></i></button>
+              </div>
+              <form onSubmit={saveEdit} style={{ display: 'contents' }}>
+                <div className="reg-modal-body">
+                  <div className="form-group">
+                    <label className="form-label">Nama Karyawan</label>
+                    <input type="text" className="form-control" readOnly value={editApp.user_name} style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--text-muted)' }} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Jenis</label>
+                    <select className="form-control" required value={editApp.type} onChange={e => setEditApp({ ...editApp, type: e.target.value })}>
+                      <option value="Cuti">Cuti</option>
+                      <option value="Sakit">Sakit</option>
+                      <option value="Izin">Izin</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">Mulai</label>
+                      <input type="date" className="form-control" required value={editApp.start_date} onChange={e => setEditApp({ ...editApp, start_date: e.target.value })} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">Hingga</label>
+                      <input type="date" className="form-control" required value={editApp.end_date} onChange={e => setEditApp({ ...editApp, end_date: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Catatan</label>
+                    <textarea className="form-control" rows={2} required value={editApp.reason} onChange={e => setEditApp({ ...editApp, reason: e.target.value })}></textarea>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Status</label>
+                    <select className="form-control" required value={editApp.status} onChange={e => setEditApp({ ...editApp, status: e.target.value })}>
+                      <option value="Pending">Menunggu</option>
+                      <option value="Approved">Disetujui</option>
+                      <option value="Rejected">Ditolak</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="reg-modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setEditApp(null)}>Batal</button>
+                  <button type="submit" className="btn btn-primary">Simpan</button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={saveEdit} style={{ display: 'contents' }}>
-              <div className="modal-body" style={{ position: 'relative', zIndex: 2 }}>
-                <div className="form-group">
-                  <label className="form-label">Nama Karyawan</label>
-                  <input type="text" className="form-control" readOnly value={editApp.user_name} style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--text-muted)' }} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Jenis</label>
-                  <select className="form-control" required value={editApp.type} onChange={e => setEditApp({ ...editApp, type: e.target.value })}>
-                    <option value="Cuti">Cuti</option>
-                    <option value="Sakit">Sakit</option>
-                    <option value="Izin">Izin</option>
-                  </select>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Mulai</label>
-                    <input type="date" className="form-control" required value={editApp.start_date} onChange={e => setEditApp({ ...editApp, start_date: e.target.value })} />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Hingga</label>
-                    <input type="date" className="form-control" required value={editApp.end_date} onChange={e => setEditApp({ ...editApp, end_date: e.target.value })} />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Catatan</label>
-                  <textarea className="form-control" rows={2} required value={editApp.reason} onChange={e => setEditApp({ ...editApp, reason: e.target.value })}></textarea>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Status</label>
-                  <select className="form-control" required value={editApp.status} onChange={e => setEditApp({ ...editApp, status: e.target.value })}>
-                    <option value="Pending">Menunggu</option>
-                    <option value="Approved">Disetujui</option>
-                    <option value="Rejected">Ditolak</option>
-                  </select>
-                </div>
-              </div>
-              <div className="modal-footer" style={{ position: 'relative', zIndex: 2 }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setEditApp(null)}>Batal</button>
-                <button type="submit" className="btn btn-primary">Simpan</button>
-              </div>
-            </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

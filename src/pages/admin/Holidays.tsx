@@ -38,7 +38,7 @@ const Holidays = () => {
       const res = await fetchApi('addHoliday', { start_date: startDate, end_date: endDate, description: desc });
       if (res.success) {
         alert('Hari libur disimpan');
-        setEditId(null);
+        setEditId('');
         setStartDate('');
         setEndDate('');
         setDesc('');
@@ -184,7 +184,7 @@ const Holidays = () => {
                    </div>
                    <div style={{ display: 'flex', gap: 8 }}>
                      <button className="btn btn-sm btn-ghost" onClick={() => editHoliday(h)}><i className="bi bi-pencil-square"></i></button>
-                     <button className="btn btn-sm btn-ghost text-danger" onClick={() => deleteHoliday(h.id)}><i className="bi bi-trash"></i></button>
+                     <button className="btn btn-sm btn-ghost text-danger" onClick={() => deleteHoliday(h.holiday_id)}><i className="bi bi-trash"></i></button>
                    </div>
                  </div>
                ))}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
 
@@ -10,7 +10,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [regData, setRegData] = useState({ name: '', email: '', pin: '', position: '' });
-  const [regPhoto, setRegPhoto] = useState<File | null>(null);
+
   const [regPhotoPreview, setRegPhotoPreview] = useState('');
   const [regError, setRegError] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
@@ -117,7 +117,6 @@ const Login = () => {
   
   const handleRegPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setRegPhoto(e.target.files[0]);
       setRegPhotoPreview(URL.createObjectURL(e.target.files[0]));
     }
   };
@@ -313,7 +312,7 @@ const Login = () => {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 12, marginTop: 8 }}>
-                  <button className="btn btn-muted btn-neu-3d" type="button" onClick={() => { setRegData({name:'', email:'', pin:'', position:''}); setRegPhotoPreview(''); setRegPhoto(null); }} style={{ height: 42, borderRadius: 50, fontWeight: 700, fontSize: 12, textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--bg-deep)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+                  <button className="btn btn-muted btn-neu-3d" type="button" onClick={() => { setRegData({name:'', email:'', pin:'', position:''}); setRegPhotoPreview(''); }} style={{ height: 42, borderRadius: 50, fontWeight: 700, fontSize: 12, textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--bg-deep)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
                     <i className="bi bi-arrow-counterclockwise"></i> Reset Data
                   </button>
                   <button className="btn-login btn-neu-3d" type="submit" style={{ margin: 0, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, borderRadius: 50 }}>

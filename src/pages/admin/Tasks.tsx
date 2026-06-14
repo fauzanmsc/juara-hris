@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchApi } from '../../api';
 
 const Tasks = () => {
@@ -232,112 +233,117 @@ const Tasks = () => {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div className="overlay" style={{ display: 'block', zIndex: 999 }}>
-          <div className="modal border-animated-modal" style={{ maxWidth: 500, display: 'block' }}>
-            <div className="card-border-glow"></div>
-            <div className="modal-header" style={{ position: 'relative', zIndex: 2 }}>
-              <h3 className="modal-title"><i className="bi bi-list-task text-primary" style={{ marginRight: 8 }}></i> {form.id ? 'Edit Tugas' : 'Tambah Tugas'}</h3>
-              <button className="modal-close" onClick={() => setIsModalOpen(false)}><i className="bi bi-x"></i></button>
+      {isModalOpen && createPortal(
+        <div className="reg-modal-overlay">
+          <div className="reg-modal-container">
+            <div className="reg-modal-card fade-in">
+              <div className="reg-modal-header">
+                <h3 className="reg-modal-title"><i className="bi bi-list-task text-primary" style={{ marginRight: 8 }}></i> {form.id ? 'Edit Tugas' : 'Tambah Tugas'}</h3>
+                <button className="reg-modal-close" onClick={() => setIsModalOpen(false)}><i className="bi bi-x"></i></button>
+              </div>
+              <form onSubmit={saveTask} style={{ display: 'contents' }}>
+                <div className="reg-modal-body">
+                  <div className="form-group">
+                    <label className="form-label">Karyawan</label>
+                    <select className="form-control" required value={form.user_id} onChange={e => setForm({ ...form, user_id: e.target.value })} disabled={!!form.id}>
+                      <option value="">Pilih Karyawan...</option>
+                      {users.map((u, i) => <option key={i} value={u.user_id}>{u.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Nama / Judul Tugas*</label>
+                    <input type="text" className="form-control" required value={form.task_name} onChange={e => setForm({ ...form, task_name: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Target / Goals*</label>
+                    <input type="text" className="form-control" required value={form.target} onChange={e => setForm({ ...form, target: e.target.value })} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">Mulai Jam*</label>
+                      <input type="time" className="form-control" required value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">Selesai Jam*</label>
+                      <input type="time" className="form-control" required value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Output Yang Dihasilkan*</label>
+                    <input type="text" className="form-control" required value={form.output} onChange={e => setForm({ ...form, output: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Status Tugas*</label>
+                    <select className="form-control" required value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+                      <option value="Pending">Belum Selesai (Pending)</option>
+                      <option value="In Progress">Sedang Dikerjakan (In Progress)</option>
+                      <option value="Completed">Selesai (Completed)</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Kategori</label>
+                    <select className="form-control" required value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                      <option value="Development">Development</option>
+                      <option value="Operations">Operations</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Administrative">Administrative</option>
+                      <option value="Sales">Sales</option>
+                      <option value="Other">Lain-lain (Other)</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Tanggal</label>
+                    <input type="date" className="form-control" required value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Productivity Score (0 - 100)</label>
+                    <input type="number" className="form-control" min="0" max="100" value={form.score} onChange={e => setForm({ ...form, score: e.target.value })} />
+                  </div>
+                </div>
+                <div className="reg-modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>Batal</button>
+                  <button type="submit" className="btn btn-primary">Simpan</button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={saveTask} style={{ display: 'contents' }}>
-              <div className="modal-body" style={{ position: 'relative', zIndex: 2 }}>
-                <div className="form-group">
-                  <label className="form-label">Karyawan</label>
-                  <select className="form-control" required value={form.user_id} onChange={e => setForm({ ...form, user_id: e.target.value })} disabled={!!form.id}>
-                    <option value="">Pilih Karyawan...</option>
-                    {users.map((u, i) => <option key={i} value={u.user_id}>{u.name}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Nama / Judul Tugas*</label>
-                  <input type="text" className="form-control" required value={form.task_name} onChange={e => setForm({ ...form, task_name: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Target / Goals*</label>
-                  <input type="text" className="form-control" required value={form.target} onChange={e => setForm({ ...form, target: e.target.value })} />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Mulai Jam*</label>
-                    <input type="time" className="form-control" required value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Selesai Jam*</label>
-                    <input type="time" className="form-control" required value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Output Yang Dihasilkan*</label>
-                  <input type="text" className="form-control" required value={form.output} onChange={e => setForm({ ...form, output: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Status Tugas*</label>
-                  <select className="form-control" required value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                    <option value="Pending">Belum Selesai (Pending)</option>
-                    <option value="In Progress">Sedang Dikerjakan (In Progress)</option>
-                    <option value="Completed">Selesai (Completed)</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Kategori</label>
-                  <select className="form-control" required value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                    <option value="Development">Development</option>
-                    <option value="Operations">Operations</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Administrative">Administrative</option>
-                    <option value="Sales">Sales</option>
-                    <option value="Other">Lain-lain (Other)</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Tanggal</label>
-                  <input type="date" className="form-control" required value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Productivity Score (0 - 100)</label>
-                  <input type="number" className="form-control" min="0" max="100" value={form.score} onChange={e => setForm({ ...form, score: e.target.value })} />
-                </div>
-              </div>
-              <div className="modal-footer" style={{ position: 'relative', zIndex: 2 }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>Batal</button>
-                <button type="submit" className="btn btn-primary">Simpan</button>
-              </div>
-            </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {isViewModalOpen && activeTask && (
-        <div className="overlay" style={{ display: 'block', zIndex: 999 }}>
-          <div className="modal modal-lg" style={{ maxWidth: 550, display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
-            <div className="modal-header">
-              <h3 className="modal-title"><i className="bi bi-journal-text text-primary" style={{ marginRight: 8 }}></i> Detail Tugas &amp; Produktivitas</h3>
-              <button className="modal-close" onClick={() => setIsViewModalOpen(false)}><i className="bi bi-x"></i></button>
-            </div>
-            <div className="modal-body" style={{ flex: 1, overflowY: 'auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-                <img src={activeTask.profile_pic_url || '/img/profile.png'} className="avatar" style={{ width: 60, height: 60 }} alt="P" />
-                <div>
-                  <h3 style={{ margin: 0 }}>{activeTask.name}</h3>
-                  <p style={{ margin: 0, color: 'var(--text-muted)' }}>{activeTask.position}</p>
+      {isViewModalOpen && activeTask && createPortal(
+        <div className="reg-modal-overlay">
+          <div className="reg-modal-container">
+            <div className="reg-modal-card fade-in">
+              <div className="reg-modal-header">
+                <h3 className="reg-modal-title"><i className="bi bi-journal-text text-primary" style={{ marginRight: 8 }}></i> Detail Tugas &amp; Produktivitas</h3>
+                <button className="reg-modal-close" onClick={() => setIsViewModalOpen(false)}><i className="bi bi-x"></i></button>
+              </div>
+              <div className="reg-modal-body">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                  <img src={activeTask.profile_pic_url || '/img/profile.png'} className="avatar" style={{ width: 60, height: 60 }} alt="P" />
+                  <div>
+                    <h3 style={{ margin: 0 }}>{activeTask.name}</h3>
+                    <p style={{ margin: 0, color: 'var(--text-muted)' }}>{activeTask.position}</p>
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(0,0,0,0.02)', padding: 16, borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ marginBottom: 12 }}><strong>Tugas:</strong> {activeTask.task_name}</div>
+                  <div style={{ marginBottom: 12 }}><strong>Kategori:</strong> <span className="status-chip chip-primary">{activeTask.category}</span></div>
+                  <div style={{ marginBottom: 12 }}><strong>Waktu:</strong> {activeTask.dateStr} | {activeTask.start_time} - {activeTask.end_time}</div>
+                  <div style={{ marginBottom: 12 }}><strong>Target:</strong> {activeTask.target}</div>
+                  <div style={{ marginBottom: 12 }}><strong>Output:</strong> {activeTask.output}</div>
+                  <div style={{ marginBottom: 12 }}><strong>Status:</strong> {activeTask.status}</div>
+                  <div style={{ marginBottom: 12 }}><strong>Skor:</strong> {activeTask.score || '-'}</div>
                 </div>
               </div>
-              <div style={{ background: 'rgba(0,0,0,0.02)', padding: 16, borderRadius: 12, border: '1px solid var(--border)' }}>
-                <div style={{ marginBottom: 12 }}><strong>Tugas:</strong> {activeTask.task_name}</div>
-                <div style={{ marginBottom: 12 }}><strong>Kategori:</strong> <span className="status-chip chip-primary">{activeTask.category}</span></div>
-                <div style={{ marginBottom: 12 }}><strong>Waktu:</strong> {activeTask.dateStr} | {activeTask.start_time} - {activeTask.end_time}</div>
-                <div style={{ marginBottom: 12 }}><strong>Target:</strong> {activeTask.target}</div>
-                <div style={{ marginBottom: 12 }}><strong>Output:</strong> {activeTask.output}</div>
-                <div style={{ marginBottom: 12 }}><strong>Status:</strong> {activeTask.status}</div>
-                <div style={{ marginBottom: 12 }}><strong>Skor:</strong> {activeTask.score || '-'}</div>
+              <div className="reg-modal-footer">
+                <button className="btn btn-primary" onClick={() => setIsViewModalOpen(false)}>Tutup</button>
               </div>
             </div>
-            <div className="modal-footer">
-              <button className="btn btn-primary" onClick={() => setIsViewModalOpen(false)}>Tutup</button>
-            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

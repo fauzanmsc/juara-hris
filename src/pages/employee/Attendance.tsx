@@ -30,7 +30,6 @@ const Attendance = () => {
     // Clock
     const updateTime = () => {
       const now = new Date();
-      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
       const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
       
       setClockDate(`${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`);
@@ -91,16 +90,21 @@ const Attendance = () => {
           const officeLat = parseFloat(config.office_latitude || 0);
           const officeLng = parseFloat(config.office_longitude || 0);
           const maxRadius = parseFloat(config.max_radius_meters || 100);
+          const radiusEnabled = config.radius_enabled !== 'false';
 
           const dist = Math.round(getDistance(lat, lng, officeLat, officeLng));
           setGeoLoading(false);
           
-          if (dist <= maxRadius) {
-            setGeoStatus('Anda berada di area kantor');
+          if (!radiusEnabled || dist <= maxRadius) {
+            setGeoStatus(radiusEnabled ? 'Anda berada di area kantor' : 'Lokasi Bebas (Radius Nonaktif)');
             setGeoDistance(
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div>Jarak dari kantor: <strong>{dist} meter</strong></div>
-              <div style={{ color: 'var(--text-muted)' }}>Maksimal radius: <strong>{maxRadius} meter</strong></div>
+              {radiusEnabled ? (
+                <div style={{ color: 'var(--text-muted)' }}>Maksimal radius: <strong>{maxRadius} meter</strong></div>
+              ) : (
+                <div style={{ color: 'var(--success)', fontSize: 11 }}>Batasan Radius Dinonaktifkan</div>
+              )}
             </div>
             );
             setInRadius(true);
@@ -115,7 +119,7 @@ const Attendance = () => {
             setInRadius(false);
           }
         },
-        (err) => {
+        () => {
           setGeoLoading(false);
           setGeoStatus('Akses Lokasi Ditolak');
           setGeoDistance('Harap izinkan GPS pada browser');

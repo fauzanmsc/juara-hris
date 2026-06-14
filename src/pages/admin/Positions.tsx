@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchApi } from '../../api';
 
 // Assuming Chart.js is loaded globally
@@ -57,8 +57,11 @@ const Positions = () => {
     const textColor = isDark ? '#FFFFFF' : '#1E293B';
     const chartBorderColor = isDark ? '#13192E' : '#FFFFFF';
 
-    const labels = divs.map(d => d.name || d.division);
-    const data = divs.map(d => pos.filter(p => p.division === (d.name || d.division)).length);
+    const labels = divs.map(d => typeof d === 'string' ? d : (d.name || d.division));
+    const data = divs.map(d => {
+      const divName = typeof d === 'string' ? d : (d.name || d.division);
+      return pos.filter(p => p.division === divName).length;
+    });
 
     // generate random colors
     const bgColors = labels.map((_, i) => `hsl(${(i * 360) / labels.length}, 70%, 50%)`);
@@ -157,7 +160,7 @@ const Positions = () => {
               <label className="form-label">Divisi</label>
               <select className="form-control" value={posDivision} onChange={e => setPosDivision(e.target.value)}>
                 <option value="" disabled>Pilih Divisi...</option>
-                {divisions.map((d, i) => <option key={i} value={d.name}>{d.name}</option>)}
+                {divisions.map((d, i) => <option key={i} value={typeof d === 'string' ? d : (d.name || d.division)}>{typeof d === 'string' ? d : (d.name || d.division)}</option>)}
               </select>
             </div>
             <button className="btn btn-primary" style={{ marginTop: 4 }} onClick={addPosition}><i className="bi bi-plus-circle-fill"></i> Simpan Jabatan</button>
@@ -190,7 +193,7 @@ const Positions = () => {
             <h3 className="card-title" style={{ margin: 0 }}><i className="bi bi-list-task text-primary" style={{ marginRight: 8 }}></i> Daftar Jabatan</h3>
             <select className="form-control" style={{ width: 'auto' }} value={filterDivision} onChange={e => setFilterDivision(e.target.value)}>
               <option value="">Semua Divisi</option>
-              {divisions.map((d, i) => <option key={i} value={d.name}>{d.name}</option>)}
+              {divisions.map((d, i) => <option key={i} value={typeof d === 'string' ? d : (d.name || d.division)}>{typeof d === 'string' ? d : (d.name || d.division)}</option>)}
             </select>
           </div>
           <div className="table-wrap" style={{ border: 'none' }}>
@@ -207,9 +210,9 @@ const Positions = () => {
                  filteredPositions.length === 0 ? <tr><td colSpan={3} style={{ textAlign: 'center' }}>Tidak ada data</td></tr> :
                  filteredPositions.map((p, i) => (
                    <tr key={i}>
-                     <td>{p.name}</td>
+                     <td>{p.position || p.name}</td>
                      <td>{p.division}</td>
-                     <td style={{ textAlign: 'center' }}><button className="btn btn-sm btn-ghost text-danger" onClick={() => deletePosition(p.id)}><i className="bi bi-trash"></i></button></td>
+                     <td style={{ textAlign: 'center' }}><button className="btn btn-sm btn-ghost text-danger" onClick={() => deletePosition(p.position || p.name)}><i className="bi bi-trash"></i></button></td>
                    </tr>
                  ))}
               </tbody>
@@ -230,12 +233,15 @@ const Positions = () => {
               <tbody>
                 {loading ? <tr><td colSpan={2} style={{ textAlign: 'center' }}>Memuat...</td></tr> :
                  divisions.length === 0 ? <tr><td colSpan={2} style={{ textAlign: 'center' }}>Tidak ada data</td></tr> :
-                 divisions.map((d, i) => (
-                   <tr key={i}>
-                     <td>{d.name}</td>
-                     <td style={{ textAlign: 'center' }}><button className="btn btn-sm btn-ghost text-danger" onClick={() => deleteDivision(d.id)}><i className="bi bi-trash"></i></button></td>
-                   </tr>
-                 ))}
+                 divisions.map((d, i) => {
+                   const divName = typeof d === 'string' ? d : (d.name || d.division);
+                   return (
+                     <tr key={i}>
+                       <td>{divName}</td>
+                       <td style={{ textAlign: 'center' }}><button className="btn btn-sm btn-ghost text-danger" onClick={() => deleteDivision(divName)}><i className="bi bi-trash"></i></button></td>
+                     </tr>
+                   );
+                 })}
               </tbody>
             </table>
           </div>

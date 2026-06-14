@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import { fetchApi } from '../../api';
 import './Tasks.css';
@@ -274,26 +275,32 @@ const Tasks = () => {
         )}
       </div>
 
-      {viewTask && (
-        <div className="overlay" style={{ display: 'block' }}>
-          <div className="modal" style={{ display: 'block' }}>
-            <div className="modal-header">
-              <h3>Detail Tugas</h3>
-              <button className="modal-close" onClick={() => setViewTask(null)}><i className="bi bi-x"></i></button>
-            </div>
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div><strong>Judul:</strong> {viewTask.task_name}</div>
-              <div><strong>Target:</strong> {viewTask.target_goals}</div>
-              <div><strong>Output:</strong> {viewTask.output}</div>
-              <div><strong>Status:</strong> {viewTask.status}</div>
-              <div><strong>Waktu:</strong> {viewTask.start_time} - {viewTask.end_time}</div>
-              {viewTask.notes && <div><strong>Catatan:</strong> {viewTask.notes}</div>}
-              {viewTask.attachment_url && (
-                <a href={viewTask.attachment_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-primary">Lihat Lampiran</a>
-              )}
+      {viewTask && createPortal(
+        <div className="reg-modal-overlay">
+          <div className="reg-modal-container">
+            <div className="reg-modal-card fade-in">
+              <div className="reg-modal-header">
+                <h3 className="reg-modal-title">Detail Tugas</h3>
+                <button className="reg-modal-close" onClick={() => setViewTask(null)}><i className="bi bi-x"></i></button>
+              </div>
+              <div className="reg-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div><strong>Judul:</strong> {viewTask.task_name}</div>
+                <div><strong>Target:</strong> {viewTask.target_goals}</div>
+                <div><strong>Output:</strong> {viewTask.output}</div>
+                <div><strong>Status:</strong> {viewTask.status}</div>
+                <div><strong>Waktu:</strong> {viewTask.start_time} - {viewTask.end_time}</div>
+                {viewTask.notes && <div><strong>Catatan:</strong> {viewTask.notes}</div>}
+                {viewTask.attachment_url && (
+                  <a href={viewTask.attachment_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-primary">Lihat Lampiran</a>
+                )}
+              </div>
+              <div className="reg-modal-footer">
+                <button className="btn btn-primary" onClick={() => setViewTask(null)}>Tutup</button>
+              </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

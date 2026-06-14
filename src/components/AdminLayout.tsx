@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 const AdminLayout = () => {
@@ -77,7 +77,7 @@ const AdminLayout = () => {
       </div>
 
       <div className={`admin-layout ${compact ? 'sidebar-compact' : ''} ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        
+
         {sidebarOpen && (
           <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} style={{ display: 'block' }}></div>
         )}
@@ -99,7 +99,7 @@ const AdminLayout = () => {
               <i className="bi bi-x-lg"></i>
             </button>
           </div>
-          
+
           <nav className="sidebar-nav">
             <div className="nav-section-label">HUB UTAMA</div>
             <NavLink to="/admin/dashboard" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
@@ -135,11 +135,11 @@ const AdminLayout = () => {
             </NavLink>
 
             <div className="nav-section-label">INTEGRASI</div>
-            <a className="sidebar-link" href="https://docs.google.com/spreadsheets/d/1EXmtgASni2x2dzdDhYIYyH7F_E_Jqi_wUncLrf2U1KM" target="_blank" rel="noopener noreferrer">
+            <a className="sidebar-link" href="https://docs.google.com/spreadsheets/d/1wQ7PB5Zl7UpXE8kVuAD6fZDyPGxY1_pPMNJS5NiHg9E/" target="_blank" rel="noopener noreferrer">
               <img src="/img/icons/g-sheets.svg" alt="Google Sheets" style={{ width: 20, height: 20, marginRight: 12, flexShrink: 0, display: 'block' }} />
               <span>Akses Database</span>
             </a>
-            <a className="sidebar-link" href="https://drive.google.com/drive/folders/1wciBOc5tFFwzMPVI1G42bUmfpOxamlMQ" target="_blank" rel="noopener noreferrer">
+            <a className="sidebar-link" href="https://drive.google.com/drive/folders/1BGiuWcUZlIQSSFsnqfsfRjZC6ZoO7iRq" target="_blank" rel="noopener noreferrer">
               <img src="/img/icons/g-drive.svg" alt="Google Drive" style={{ width: 20, height: 20, marginRight: 12, flexShrink: 0, display: 'block' }} />
               <span>Akses Drive</span>
             </a>
@@ -179,72 +179,72 @@ const AdminLayout = () => {
                   <span className="topbar-badge" id="notifBadgeCount">99+</span>
                 </button>
                 <div className="user-dropdown-menu" id="notifDropdownMenu" style={{ width: 380, right: -120, padding: 0, cursor: 'default' }}>
-                    <div className="notif-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-                        <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: 'var(--text)' }}>Notifikasi</h3>
-                        <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500, padding: 0 }}><i className="bi bi-envelope-open" style={{ marginRight: 4 }}></i> Tandai semua sebagai sudah dibaca</button>
+                  <div className="notif-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: 'var(--text)' }}>Notifikasi</h3>
+                    <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500, padding: 0 }}><i className="bi bi-envelope-open" style={{ marginRight: 4 }}></i> Tandai semua sebagai sudah dibaca</button>
+                  </div>
+                  <div className="notif-categories scroll-x" style={{ display: 'flex', gap: 16, padding: '16px 20px', overflowX: 'auto', borderBottom: '1px solid var(--border)' }}>
+                    <div className="notif-cat-item active">
+                      <div className="notif-cat-icon" style={{ background: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
+                        <i className="bi bi-grid-fill"></i>
+                        <span className="topbar-badge">99+</span>
+                      </div>
+                      <span className="notif-cat-label">Semua</span>
                     </div>
-                    <div className="notif-categories scroll-x" style={{ display: 'flex', gap: 16, padding: '16px 20px', overflowX: 'auto', borderBottom: '1px solid var(--border)' }}>
-                        <div className="notif-cat-item active">
-                            <div className="notif-cat-icon" style={{ background: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
-                                <i className="bi bi-grid-fill"></i>
-                                <span className="topbar-badge">99+</span>
-                            </div>
-                            <span className="notif-cat-label">Semua</span>
-                        </div>
-                        <div className="notif-cat-item">
-                            <div className="notif-cat-icon">
-                                <i className="bi bi-people-fill"></i>
-                                <span className="topbar-badge">80</span>
-                            </div>
-                            <span className="notif-cat-label">Kreator</span>
-                        </div>
-                        <div className="notif-cat-item">
-                            <div className="notif-cat-icon">
-                                <i className="bi bi-shield-exclamation-fill"></i>
-                                <span className="topbar-badge">99+</span>
-                            </div>
-                            <span className="notif-cat-label">Pelanggar...</span>
-                        </div>
-                        <div className="notif-cat-item">
-                            <div className="notif-cat-icon">
-                                <i className="bi bi-star-fill"></i>
-                                <span class="topbar-badge">18</span>
-                            </div>
-                            <span className="notif-cat-label">Operasi</span>
-                        </div>
-                        <div className="notif-cat-item">
-                            <div className="notif-cat-icon">
-                                <i className="bi bi-briefcase-fill"></i>
-                            </div>
-                            <span className="notif-cat-label">Administr...</span>
-                        </div>
+                    <div className="notif-cat-item">
+                      <div className="notif-cat-icon">
+                        <i className="bi bi-people-fill"></i>
+                        <span className="topbar-badge">80</span>
+                      </div>
+                      <span className="notif-cat-label">Kreator</span>
                     </div>
-                    <div className="notif-list" id="notifList" style={{ maxHeight: 380, overflowY: 'auto', background: 'var(--bg-deep)', padding: 12 }}>
-                        <div className="notif-card">
-                            <div className="notif-card-content">
-                                <h4 className="notif-card-title">Permohonan pengunduran diri <span className="notif-dot"></span></h4>
-                                <p className="notif-card-body">Permohonan pengunduran diri <span>ixsan</span> telah ditolak. Hubungan manajemen antara host dan agensi Anda akan berlanjut.</p>
-                                <span className="notif-card-time">2 jam lalu</span>
-                            </div>
-                            <i className="bi bi-chevron-right notif-card-arrow"></i>
-                        </div>
-                        <div className="notif-card">
-                            <div className="notif-card-content">
-                                <h4 className="notif-card-title">Tata kelola konten: pelanggaran dengan tingkat keparahan tertinggi oleh kreator agensi <span className="notif-dot"></span></h4>
-                                <p className="notif-card-body">japlen_, kreator LIVE yang Anda kelola, melakukan pelanggaran dengan tingkat keparahan tertinggi berdasarkan aturan tata kelola konten.</p>
-                                <span className="notif-card-time">3 jam lalu</span>
-                            </div>
-                            <i className="bi bi-chevron-right notif-card-arrow"></i>
-                        </div>
-                        <div className="notif-card">
-                            <div className="notif-card-content">
-                                <h4 className="notif-card-title">Permohonan pengunduran diri <span className="notif-dot"></span></h4>
-                                <p className="notif-card-body">Permohonan pengunduran diri OM RECORD telah ditolak. Hubungan manajemen antara host dan agensi Anda akan berlanjut.</p>
-                                <span className="notif-card-time">3 jam lalu</span>
-                            </div>
-                            <i className="bi bi-chevron-right notif-card-arrow"></i>
-                        </div>
+                    <div className="notif-cat-item">
+                      <div className="notif-cat-icon">
+                        <i className="bi bi-shield-exclamation-fill"></i>
+                        <span className="topbar-badge">99+</span>
+                      </div>
+                      <span className="notif-cat-label">Pelanggar...</span>
                     </div>
+                    <div className="notif-cat-item">
+                      <div className="notif-cat-icon">
+                        <i className="bi bi-star-fill"></i>
+                        <span className="topbar-badge">18</span>
+                      </div>
+                      <span className="notif-cat-label">Operasi</span>
+                    </div>
+                    <div className="notif-cat-item">
+                      <div className="notif-cat-icon">
+                        <i className="bi bi-briefcase-fill"></i>
+                      </div>
+                      <span className="notif-cat-label">Administr...</span>
+                    </div>
+                  </div>
+                  <div className="notif-list" id="notifList" style={{ maxHeight: 380, overflowY: 'auto', background: 'var(--bg-deep)', padding: 12 }}>
+                    <div className="notif-card">
+                      <div className="notif-card-content">
+                        <h4 className="notif-card-title">Permohonan pengunduran diri <span className="notif-dot"></span></h4>
+                        <p className="notif-card-body">Permohonan pengunduran diri <span>ixsan</span> telah ditolak. Hubungan manajemen antara host dan agensi Anda akan berlanjut.</p>
+                        <span className="notif-card-time">2 jam lalu</span>
+                      </div>
+                      <i className="bi bi-chevron-right notif-card-arrow"></i>
+                    </div>
+                    <div className="notif-card">
+                      <div className="notif-card-content">
+                        <h4 className="notif-card-title">Tata kelola konten: pelanggaran dengan tingkat keparahan tertinggi oleh kreator agensi <span className="notif-dot"></span></h4>
+                        <p className="notif-card-body">japlen_, kreator LIVE yang Anda kelola, melakukan pelanggaran dengan tingkat keparahan tertinggi berdasarkan aturan tata kelola konten.</p>
+                        <span className="notif-card-time">3 jam lalu</span>
+                      </div>
+                      <i className="bi bi-chevron-right notif-card-arrow"></i>
+                    </div>
+                    <div className="notif-card">
+                      <div className="notif-card-content">
+                        <h4 className="notif-card-title">Permohonan pengunduran diri <span className="notif-dot"></span></h4>
+                        <p className="notif-card-body">Permohonan pengunduran diri OM RECORD telah ditolak. Hubungan manajemen antara host dan agensi Anda akan berlanjut.</p>
+                        <span className="notif-card-time">3 jam lalu</span>
+                      </div>
+                      <i className="bi bi-chevron-right notif-card-arrow"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
 

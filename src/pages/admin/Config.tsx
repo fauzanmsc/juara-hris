@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchApi } from '../../api';
 
 // Assuming Leaflet is loaded globally
@@ -15,6 +15,7 @@ const Config = () => {
     latitude: '',
     longitude: '',
     radius: '50',
+    radius_enabled: 'true',
     wday_start: '10:00',
     wday_end: '19:00',
     tolerance: '15',
@@ -37,13 +38,14 @@ const Config = () => {
     setLoading(true);
     try {
       const res = await fetchApi('getConfig', {}, 'GET');
-      if (res.success && res.data) {
-        const d = res.data;
+      if (res.success && (res.config || res.data)) {
+        const d = res.config || res.data;
         setForm(prev => ({
           ...prev,
           latitude: d.office_latitude || prev.latitude,
           longitude: d.office_longitude || prev.longitude,
           radius: d.max_radius_meters || prev.radius,
+          radius_enabled: d.radius_enabled || prev.radius_enabled,
           wday_start: d.weekday_start || prev.wday_start,
           wday_end: d.weekday_end || prev.wday_end,
           sat_start: d.saturday_start || prev.sat_start,
@@ -100,6 +102,7 @@ const Config = () => {
         office_latitude: form.latitude,
         office_longitude: form.longitude,
         max_radius_meters: form.radius,
+        radius_enabled: form.radius_enabled,
         weekday_start: form.wday_start,
         weekday_end: form.wday_end,
         saturday_start: form.sat_start,
@@ -141,10 +144,17 @@ const Config = () => {
               <input type="text" className="form-control" placeholder="106.8456" value={form.longitude} onChange={e => setForm({ ...form, longitude: e.target.value })} />
             </div>
             <div className="form-group">
-              <label className="form-label">Radius Maksimal (meter)</label>
-              <input type="number" className="form-control" value={form.radius} onChange={e => setForm({ ...form, radius: e.target.value })} />
+              <label className="form-label">Aktifkan Batasan Radius</label>
+              <select className="form-control" value={form.radius_enabled} onChange={e => setForm({ ...form, radius_enabled: e.target.value })}>
+                <option value="true">Aktif (Wajib dalam radius)</option>
+                <option value="false">Nonaktif (Bebas lokasi)</option>
+              </select>
             </div>
-            <div ref={mapRef} style={{ height: 180, borderRadius: 'var(--radius-md)', marginTop: 15, border: '1px solid var(--border)', boxShadow: 'var(--shadow-neu-inset)', zIndex: 1 }}></div>
+            <div className="form-group" style={{ opacity: form.radius_enabled === 'true' ? 1 : 0.5 }}>
+              <label className="form-label">Radius Maksimal (meter)</label>
+              <input type="number" className="form-control" value={form.radius} onChange={e => setForm({ ...form, radius: e.target.value })} disabled={form.radius_enabled !== 'true'} />
+            </div>
+            <div ref={mapRef} style={{ height: 180, borderRadius: 'var(--radius-md)', marginTop: 15, border: '1px solid var(--border)', boxShadow: 'var(--shadow-neu-inset)', zIndex: 1, opacity: form.radius_enabled === 'true' ? 1 : 0.5, pointerEvents: form.radius_enabled === 'true' ? 'auto' : 'none' }}></div>
           </div>
 
           {/* Jam Kerja */}

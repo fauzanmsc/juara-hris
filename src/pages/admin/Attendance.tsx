@@ -174,14 +174,14 @@ const Attendance = () => {
                         </div>
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>{a.dateStr || a.date}</td>
-                      <td><strong style={{ color: 'var(--text)' }}>{a.clock_in}</strong></td>
-                      <td><strong style={{ color: 'var(--text)' }}>{a.clock_out || '--:--'}</strong></td>
-                      <td>{a.distance ? `${a.distance}m` : '—'}</td>
+                      <td><strong style={{ color: 'var(--text)' }}>{a.clock_in_time || a.clock_in}</strong></td>
+                      <td><strong style={{ color: 'var(--text)' }}>{a.clock_out_time || a.clock_out || '--:--'}</strong></td>
+                      <td>{a.distance_in_meters || a.distance_meters || a.distance ? `${a.distance_in_meters || a.distance_meters || a.distance}m` : '—'}</td>
                       <td>
                         <span className={`badge ${a.status_in === 'Terlambat' ? 'badge-warn' : a.status_in === 'Absen' ? 'badge-danger' : 'badge-success'}`}>{a.status_in || '—'}</span>
                       </td>
                       <td>
-                        {a.photo_url ? <a href={a.photo_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost"><i className="bi bi-camera"></i></a> : '—'}
+                        {(a.photo_in_url || a.photo_url) ? <a href={a.photo_in_url || a.photo_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost"><i className="bi bi-camera"></i></a> : '—'}
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
@@ -219,11 +219,11 @@ const Attendance = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label">Jam Masuk</label>
-                    <input type="time" className="form-control" required value={editAtt.clock_in} onChange={e => setEditAtt({ ...editAtt, clock_in: e.target.value })} />
+                    <input type="time" className="form-control" required value={editAtt.clock_in_time || editAtt.clock_in} onChange={e => setEditAtt({ ...editAtt, clock_in_time: e.target.value, clock_in: e.target.value })} />
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label">Jam Pulang</label>
-                    <input type="time" className="form-control" value={editAtt.clock_out} onChange={e => setEditAtt({ ...editAtt, clock_out: e.target.value })} />
+                    <input type="time" className="form-control" value={editAtt.clock_out_time || editAtt.clock_out} onChange={e => setEditAtt({ ...editAtt, clock_out_time: e.target.value, clock_out: e.target.value })} />
                   </div>
                 </div>
                 <div className="form-group">
@@ -236,7 +236,7 @@ const Attendance = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Jarak (m)</label>
-                  <input type="number" className="form-control" value={editAtt.distance} onChange={e => setEditAtt({ ...editAtt, distance: e.target.value })} />
+                  <input type="number" className="form-control" value={editAtt.distance_in_meters || editAtt.distance_meters || editAtt.distance} onChange={e => setEditAtt({ ...editAtt, distance_in_meters: e.target.value, distance_meters: e.target.value, distance: e.target.value })} />
                 </div>
               </div>
               <div className="modal-footer" style={{ position: 'relative', zIndex: 2 }}>

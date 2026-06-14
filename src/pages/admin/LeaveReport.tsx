@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchApi } from '../../api';
 
 const LeaveReport = () => {
@@ -111,32 +112,34 @@ const LeaveReport = () => {
         </div>
       </div>
 
-      {adjustQuotaModal && (
-        <div className="overlay" style={{ display: 'block' }}>
-          <div className="modal border-animated-modal" style={{ maxWidth: 400, display: 'block' }}>
-            <div className="card-border-glow"></div>
-            <div className="modal-header" style={{ position: 'relative', zIndex: 2 }}>
-              <h3 className="modal-title"><i className="bi bi-calendar-check-fill text-primary" style={{ marginRight: 8 }}></i> Sesuaikan Jatah Cuti</h3>
-              <button className="modal-close" onClick={() => setAdjustQuotaModal(null)}><i className="bi bi-x"></i></button>
+      {adjustQuotaModal && createPortal(
+        <div className="reg-modal-overlay">
+          <div className="reg-modal-container">
+            <div className="reg-modal-card fade-in">
+              <div className="reg-modal-header">
+                <h3 className="reg-modal-title"><i className="bi bi-calendar-check-fill text-primary" style={{ marginRight: 8 }}></i> Sesuaikan Jatah Cuti</h3>
+                <button className="reg-modal-close" onClick={() => setAdjustQuotaModal(null)}><i className="bi bi-x"></i></button>
+              </div>
+              <form onSubmit={saveQuota} style={{ display: 'contents' }}>
+                <div className="reg-modal-body">
+                  <div className="form-group">
+                    <label className="form-label">Nama Karyawan</label>
+                    <input type="text" className="form-control" readOnly value={adjustQuotaModal.name} style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--text-muted)' }} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Jatah Cuti Tahunan</label>
+                    <input type="number" className="form-control" required min={0} max={365} value={adjustQuotaModal.newQuota} onChange={e => setAdjustQuotaModal({ ...adjustQuotaModal, newQuota: e.target.value })} />
+                  </div>
+                </div>
+                <div className="reg-modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setAdjustQuotaModal(null)}>Batal</button>
+                  <button type="submit" className="btn btn-primary">Simpan</button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={saveQuota} style={{ display: 'contents' }}>
-              <div className="modal-body" style={{ position: 'relative', zIndex: 2 }}>
-                <div className="form-group">
-                  <label className="form-label">Nama Karyawan</label>
-                  <input type="text" className="form-control" readOnly value={adjustQuotaModal.name} style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--text-muted)' }} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Jatah Cuti Tahunan</label>
-                  <input type="number" className="form-control" required min={0} max={365} value={adjustQuotaModal.newQuota} onChange={e => setAdjustQuotaModal({ ...adjustQuotaModal, newQuota: e.target.value })} />
-                </div>
-              </div>
-              <div className="modal-footer" style={{ position: 'relative', zIndex: 2 }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setAdjustQuotaModal(null)}>Batal</button>
-                <button type="submit" className="btn btn-primary">Simpan</button>
-              </div>
-            </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
