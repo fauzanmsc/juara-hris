@@ -5,8 +5,8 @@
 // ============================================================
 
 // ============ KONFIGURASI SPREADSHEET ============
-const SPREADSHEET_ID = '1wQ7PB5Zl7UpXE8kVuAD6fZDyPGxY1_pPMNJS5NiHg9E'; // Ganti dengan ID Google Sheets Anda
-const DRIVE_FOLDER_ID = '1BGiuWcUZlIQSSFsnqfsfRjZC6ZoO7iRq'; // Folder Google Drive untuk foto
+const SPREADSHEET_ID = '1EXmtgASni2x2dzdDhYIYyH7F_E_Jqi_wUncLrf2U1KM'; // Ganti dengan ID Google Sheets Anda
+const DRIVE_FOLDER_ID = '1wciBOc5tFFwzMPVI1G42bUmfpOxamlMQ'; // Folder Google Drive untuk foto
 
 // Sheet names
 const SHEET = {
@@ -159,5 +159,6 @@ function saveConfig(body) {
 
   return { success: true };
 }
+
 
 

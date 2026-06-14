@@ -1,5 +1,4 @@
-const _e = "Y2V4ZS9ndFNtM3hIdFVydmtRZHhkaUxGVHk2QzM2YnNDNENUQkdjSWxlY09GQ2p6OVBuWEVVUEliVmhLR3VybkRjSUtmeXliY3lmS0Evcy9zb3JjYW0vbW9jLmVsZ29vZy50cGlyY3MvLzpzcHR0aA==";
-export const APPS_SCRIPT_URL = import.meta.env.VITE_GAS_URL || atob(_e).split('').reverse().join('');
+export const APPS_SCRIPT_URL = import.meta.env.VITE_GAS_URL || 'https://script.google.com/macros/s/AKfycbwUEmYMbulz-MNWO4TC6RXPqxp6yCcrMhn9Qx_ktlqsHeuAVYLiiHOfpahzVLgA3_ec/exec';
 
 export interface ApiResponse {
   success: boolean;
