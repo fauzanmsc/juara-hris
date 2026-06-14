@@ -119,7 +119,7 @@ const AdminLayout = () => {
             <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
               <img src="/img/logomark.png" alt="JEF" className="sidebar-brand-icon" />
               <div className="sidebar-brand-text">
-                <h3>JEF HRIS</h3>
+                <h3>Juara HRIS</h3>
                 <p>HC Admin Panel</p>
               </div>
             </div>
@@ -303,7 +303,7 @@ const AdminLayout = () => {
                   )}
                 </button>
                 <div className="user-dropdown-menu" id="userDropdownMenu">
-                  <div className="dropdown-header">{user.name || 'JEF GROUP AGENCY'}</div>
+                  <div className="dropdown-header">{user.name || 'Juara Agency'}</div>
                   <a href="#!" onClick={(e) => e.preventDefault()} className="dropdown-item"><i className="bi bi-shield-exclamation"></i> Laporkan pelanggaran</a>
                   <a href="#!" onClick={(e) => e.preventDefault()} className="dropdown-item"><i className="bi bi-file-earmark-text"></i> Ketentuan dan kebijakan</a>
                   <a href="#!" onClick={(e) => { e.preventDefault(); navigate('/admin/config'); }} className="dropdown-item"><i className="bi bi-gear"></i> Pengaturan</a>

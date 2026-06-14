@@ -116,7 +116,7 @@ const Beranda = () => {
       <div className="header">
         <div className="header-top">
           <div className="brand-row">
-            <span>JEF HRIS</span>
+            <span>Juara HRIS</span>
             <span className="live-badge">LIVE</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>

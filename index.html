@@ -5,7 +5,9 @@
     <meta name="theme-color" content="#FFB703">
     <link rel="icon" type="image/png" href="/img/logomark.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>JEF HRIS — Portal HRIS</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/img/logomark.png" />
+    <title>Juara HRIS — Portal HRIS</title>
   </head>
   <body>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,11 +17,13 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister()
-          } 
-        })
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            console.log('ServiceWorker registration successful');
+          }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
       }
     </script>
   </body>

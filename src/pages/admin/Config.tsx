@@ -212,7 +212,7 @@ const Config = () => {
           </div>
           <div className="form-group">
             <label className="form-label">Email HRD Utama</label>
-            <input type="email" className="form-control" placeholder="Contoh: hrd@jefgroup.id" value={form.email_hrd} onChange={e => setForm({ ...form, email_hrd: e.target.value })} />
+            <input type="email" className="form-control" placeholder="Contoh: hrd@juara.id" value={form.email_hrd} onChange={e => setForm({ ...form, email_hrd: e.target.value })} />
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Email resmi HRD untuk koordinasi data kehadiran.</p>
           </div>
         </div>

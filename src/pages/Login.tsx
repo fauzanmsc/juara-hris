@@ -153,13 +153,13 @@ const Login = () => {
 
       <div className="left-panel">
         <div className="brand" onClick={() => window.location.reload()} style={{ cursor: 'pointer' }}>
-          <img src="/img/logo-jef.png" alt="JEF GROUP" className="logo-dark" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
-          <img src="/img/logo-jef-light.png" alt="JEF GROUP" className="logo-light" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
+          <img src="/img/logo-jef.png" alt="JUARA" className="logo-dark" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
+          <img src="/img/logo-jef-light.png" alt="JUARA" className="logo-light" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
         </div>
 
         <div className="hero">
           <h1 className="animate-h1" dangerouslySetInnerHTML={{ __html: typewriterText }}></h1>
-          <p className="animate-p" style={{ opacity: showSubText ? 1 : 0, transform: showSubText ? 'translateY(0)' : 'translateY(10px)' }}>Platform manajemen kehadiran karyawan berbasis Google Workspace untuk seluruh tim JEF Group.</p>
+          <p className="animate-p" style={{ opacity: showSubText ? 1 : 0, transform: showSubText ? 'translateY(0)' : 'translateY(10px)' }}>Platform manajemen kehadiran karyawan berbasis Google Workspace untuk seluruh tim Juara.</p>
 
           <div className="login-clock-container fade-in-clock">
             <div className="login-clock-face">
@@ -179,8 +179,8 @@ const Login = () => {
 
       <div className="right-panel">
         <div className="brand mobile-brand" onClick={() => window.location.reload()} style={{ cursor: 'pointer' }}>
-          <img src="/img/logo-jef.png" alt="JEF GROUP" className="logo-dark" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
-          <img src="/img/logo-jef-light.png" alt="JEF GROUP" className="logo-light" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
+          <img src="/img/logo-jef.png" alt="JUARA" className="logo-dark" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
+          <img src="/img/logo-jef-light.png" alt="JUARA" className="logo-light" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
         </div>
 
         <div id="loginFormSection" style={{ display: isRegistering ? 'none' : 'block' }}>
@@ -201,7 +201,7 @@ const Login = () => {
             <label className="form-label">Email Karyawan</label>
             <div className="input-wrap">
               <i className="bi bi-envelope input-icon"></i>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@jefgroup.id" autoComplete="email" />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@juara.id" autoComplete="email" />
             </div>
           </div>
 
@@ -226,7 +226,7 @@ const Login = () => {
         </div>
 
         <div className="form-footer" style={{ lineHeight: 1.6, textAlign: 'center' }}>
-          <div>JEF GROUP HRIS v2.0 &copy; 2026</div>
+          <div>JUARA HRIS v2.0 &copy; 2026</div>
           <div style={{ fontSize: 11, marginTop: 4, opacity: 0.8 }}>Powered by Google Workspace</div>
         </div>
       </div>
@@ -282,7 +282,7 @@ const Login = () => {
                     <div className="input-wrap reg-email-wrap">
                       <i className="bi bi-envelope input-icon"></i>
                       <input type="text" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} placeholder="username" required />
-                      <span className="reg-email-suffix">@jefgroup.id</span>
+                      <span className="reg-email-suffix">@juara.id</span>
                     </div>
                   </div>
 

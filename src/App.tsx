@@ -19,12 +19,14 @@ import EmployeeAttendance from './pages/employee/Attendance';
 import EmployeeLeave from './pages/employee/Leave';
 import EmployeeTasks from './pages/employee/Tasks';
 import EmployeeHistory from './pages/employee/History';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 import './index.css';
 
 function App() {
   return (
     <BrowserRouter>
+      <PwaInstallPrompt />
       <Routes>
         <Route path="/" element={<Login />} />
         
