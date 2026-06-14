@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { fetchApi } from '../api';
+
+function getInitials(name: string) {
+  if (!name) return 'A';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+}
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -27,8 +37,29 @@ const AdminLayout = () => {
         ...parsedUser,
         name: parsedUser.name || 'Admin',
         position: 'Administrator',
-        initial: (parsedUser.name || 'A').charAt(0).toUpperCase() + 'D'
+        initial: getInitials(parsedUser.name || 'Admin')
       });
+
+      // Load latest profile from DB
+      const loadLatestProfile = async () => {
+        try {
+          const res = await fetchApi('getUsers', {});
+          if (res.success && res.users) {
+            const me = res.users.find((u: any) => String(u.user_id) === String(parsedUser.user_id));
+            if (me) {
+              const updated = { ...parsedUser, ...me, role: parsedUser.role };
+              localStorage.setItem('hris_user', JSON.stringify(updated));
+              setUser({
+                ...updated,
+                name: updated.name || 'Admin',
+                position: 'Administrator',
+                initial: getInitials(updated.name || 'Admin')
+              });
+            }
+          }
+        } catch (e) {}
+      };
+      loadLatestProfile();
     }
   }, [navigate]);
 

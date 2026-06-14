@@ -104,7 +104,7 @@ function uploadBase64ToDrive(base64Data, filename, folder) {
       Logger.log('Sharing restricted: ' + shareErr.message);
     }
     return {
-      url: `https://lh3.googleusercontent.com/d/${file.getId()}`,
+      url: `https://drive.google.com/uc?id=${file.getId()}`,
       id: file.getId()
     };
   } catch(e) {

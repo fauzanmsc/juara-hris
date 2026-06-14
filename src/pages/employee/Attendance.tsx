@@ -171,6 +171,7 @@ const Attendance = () => {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    setCameraActive(false);
   };
 
   const capturePhoto = () => {
@@ -303,7 +304,8 @@ const Attendance = () => {
               {cameraActive && (
                 <>
                   <span className="camera-toggle" style={{ color: 'var(--success)' }}>On-Cam <i className="bi bi-check"></i></span>
-                  <span className="camera-toggle" onClick={flipCamera} style={{ cursor: 'pointer', background: 'rgba(255,183,3,0.1)', padding: '2px 8px', borderRadius: 12, color: 'var(--primary)' }}><i className="bi bi-arrow-repeat"></i> Flip</span>
+                  <span className="camera-toggle" onClick={stopCamera} style={{ cursor: 'pointer', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 8px', borderRadius: 12, color: 'var(--danger)' }} title="Matikan Kamera"><i className="bi bi-camera-video-off"></i> Tutup</span>
+                  <span className="camera-toggle" onClick={flipCamera} style={{ cursor: 'pointer', background: 'rgba(255,183,3,0.1)', padding: '2px 8px', borderRadius: 12, color: 'var(--primary)' }} title="Putar Kamera"><i className="bi bi-arrow-repeat"></i> Flip</span>
                 </>
               )}
             </div>

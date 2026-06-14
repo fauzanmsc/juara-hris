@@ -132,7 +132,10 @@ function getAdminDashboard(params) {
   const employeeUsers = users.filter(u => u.role === 'Employee');
   const absenUsers = employeeUsers.filter(u =>
     !hadirUserIds.includes(u.user_id) && !cutiUserIds.includes(u.user_id)
-  );
+  ).map(u => ({
+    ...u,
+    profile_pic_url: formatImageUrl(u.profile_pic_url || '')
+  }));
   const absenCount = absenUsers.length;
 
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;

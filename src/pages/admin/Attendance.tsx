@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchApi } from '../../api';
 
 const Attendance = () => {
@@ -15,6 +16,8 @@ const Attendance = () => {
   const [statusFilter, setStatusFilter] = useState('');
 
   const [editAtt, setEditAtt] = useState<any>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
     loadData();
@@ -75,7 +78,7 @@ const Attendance = () => {
                  <div key={i} className="top-emp-item">
                    <div className="top-emp-left">
                      <span className="top-emp-rank">{i + 1}</span>
-                     <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: 'cover' }} alt="" />
+                     <img src={u.profile_pic_url || u.profile_pic || '/img/profile.png'} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: 'cover' }} alt="" onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
                      <div className="top-emp-info">
                        <span className="top-emp-name">{u.name || 'Karyawan'}</span>
                        <span className="top-emp-pos">{u.position || 'Employee'}</span>
@@ -94,7 +97,7 @@ const Attendance = () => {
                  <div key={i} className="top-emp-item">
                    <div className="top-emp-left">
                      <span className="top-emp-rank">{i + 1}</span>
-                     <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: 'cover' }} alt="" />
+                     <img src={u.profile_pic_url || u.profile_pic || '/img/profile.png'} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: 'cover' }} alt="" onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
                      <div className="top-emp-info">
                        <span className="top-emp-name">{u.name || 'Karyawan'}</span>
                        <span className="top-emp-pos">{u.position || 'Employee'}</span>
@@ -113,7 +116,7 @@ const Attendance = () => {
                  <div key={i} className="top-emp-item">
                    <div className="top-emp-left">
                      <span className="top-emp-rank">{i + 1}</span>
-                     <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: 'cover' }} alt="" />
+                     <img src={u.profile_pic_url || u.profile_pic || '/img/profile.png'} className="avatar avatar-sm" style={{ width: 36, height: 36, objectFit: 'cover' }} alt="" onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
                      <div className="top-emp-info">
                        <span className="top-emp-name">{u.name || 'Karyawan'}</span>
                        <span className="top-emp-pos">{u.position || 'Employee'}</span>
@@ -169,7 +172,7 @@ const Attendance = () => {
                     <tr key={i}>
                       <td>
                         <div className="user-cell" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
-                          <img src={a.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} alt="" />
+                          <img src={a.profile_pic_url || a.profile_pic || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} alt="" onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
                           <strong>{a.name}</strong>
                         </div>
                       </td>
@@ -181,7 +184,7 @@ const Attendance = () => {
                         <span className={`badge ${a.status_in === 'Terlambat' ? 'badge-warn' : a.status_in === 'Absen' ? 'badge-danger' : 'badge-success'}`}>{a.status_in || '—'}</span>
                       </td>
                       <td>
-                        {(a.photo_in_url || a.photo_url) ? <a href={a.photo_in_url || a.photo_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost"><i className="bi bi-camera"></i></a> : '—'}
+                        {(a.photo_in_url || a.photo_url) ? <button type="button" onClick={() => { setPreviewPhoto(a.photo_in_url || a.photo_url); setZoomLevel(1); }} className="btn btn-sm btn-ghost"><i className="bi bi-camera"></i></button> : '—'}
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
@@ -246,6 +249,23 @@ const Attendance = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {previewPhoto && createPortal(
+        <div className="overlay" style={{ zIndex: 999999, background: 'rgba(25, 25, 25, 0.9)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'relative', width: '80%', maxWidth: 640, background: '#1c1c1c', borderRadius: 12, overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+            <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#222', borderBottom: '1px solid #333' }}>
+               <button onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.25))} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s' }}><i className="bi bi-zoom-out" style={{ fontSize: 14 }}></i></button>
+               <button onClick={() => setZoomLevel(1)} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s' }}><i className="bi bi-arrows-fullscreen" style={{ fontSize: 14 }}></i></button>
+               <button onClick={() => setZoomLevel(z => z + 0.25)} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s' }}><i className="bi bi-zoom-in" style={{ fontSize: 14 }}></i></button>
+               <button onClick={() => setPreviewPhoto(null)} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s', marginLeft: 8 }}><i className="bi bi-x-lg" style={{ fontSize: 14 }}></i></button>
+            </div>
+            <div style={{ padding: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', height: 480, background: '#121212' }}>
+               <img src={previewPhoto} style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 16, objectFit: 'contain', transform: `scale(${zoomLevel})`, transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)', transformOrigin: 'center center' }} />
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

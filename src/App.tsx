@@ -6,6 +6,7 @@ import EmployeeLayout from './components/EmployeeLayout';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
 import AdminApproval from './pages/admin/Approval';
+import AdminApprovalDetail from './pages/admin/ApprovalDetail';
 import AdminAttendance from './pages/admin/Attendance';
 import AdminLeaveReport from './pages/admin/LeaveReport';
 import AdminPositions from './pages/admin/Positions';
@@ -31,6 +32,7 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="approval" element={<AdminApproval />} />
+          <Route path="approval/:id" element={<AdminApprovalDetail />} />
           <Route path="attendance" element={<AdminAttendance />} />
           <Route path="leave-report" element={<AdminLeaveReport />} />
           <Route path="positions" element={<AdminPositions />} />

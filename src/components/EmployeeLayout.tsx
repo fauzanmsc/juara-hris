@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { fetchApi } from '../api';
+
+function getInitials(name: string) {
+  if (!name) return 'U';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+}
 
 const EmployeeLayout = () => {
   const navigate = useNavigate();
@@ -41,8 +51,29 @@ const EmployeeLayout = () => {
         ...parsedUser,
         name: parsedUser.name || 'Employee',
         position: parsedUser.position || 'Employee',
-        initial: (parsedUser.name || 'E').charAt(0).toUpperCase()
+        initial: getInitials(parsedUser.name || 'Employee')
       });
+
+      // Load latest profile from DB
+      const loadLatestProfile = async () => {
+        try {
+          const res = await fetchApi('getUsers', {});
+          if (res.success && res.users) {
+            const me = res.users.find((u: any) => String(u.user_id) === String(parsedUser.user_id));
+            if (me) {
+              const updated = { ...parsedUser, ...me };
+              localStorage.setItem('hris_user', JSON.stringify(updated));
+              setUser({
+                ...updated,
+                name: updated.name || 'Employee',
+                position: updated.position || 'Employee',
+                initial: getInitials(updated.name || 'Employee')
+              });
+            }
+          }
+        } catch (e) {}
+      };
+      loadLatestProfile();
     }
   }, [navigate]);
 

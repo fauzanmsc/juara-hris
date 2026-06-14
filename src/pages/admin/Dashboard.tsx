@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchApi } from '../../api';
 
 // Assuming Chart.js is loaded globally via index.html or we can rely on window.Chart
@@ -21,6 +22,8 @@ const Dashboard = () => {
   const [belumAbsen, setBelumAbsen] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [chartRange, setChartRange] = useState('monthly');
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const dashChartRef = useRef<HTMLCanvasElement>(null);
   const lateChartRef = useRef<HTMLCanvasElement>(null);
@@ -252,7 +255,7 @@ const Dashboard = () => {
               else if (status !== 'Tepat Waktu' && status !== 'Belum Absen') badgeClass = 'is-primary';
               
               return (
-                <button key={i} type="button" className="live-feed-card" onClick={() => window.open(photo, '_blank')} aria-label={`Preview foto absensi ${log.name}`}>
+                <button key={i} type="button" className="live-feed-card" onClick={() => { setPreviewPhoto(photo); setZoomLevel(1); }} aria-label={`Preview foto absensi ${log.name}`}>
                   <img src={photo} alt={`Foto absensi ${log.name}`} loading="lazy" decoding="async" onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
                   <div className="live-feed-overlay">
                     <span className="live-feed-name">{log.name}</span>
@@ -293,42 +296,58 @@ const Dashboard = () => {
             <button className="btn btn-sm btn-primary" onClick={loadDashboard}><i className="bi bi-arrow-clockwise"></i> Refresh</button>
           </div>
           <div className="table-wrap" style={{ border: 'none', borderRadius: 0, marginTop: 20 }}>
-            <table>
+            <table className="table-modern">
               <thead>
                 <tr>
-                  <th>Karyawan</th>
-                  <th>Masuk</th>
-                  <th>Pulang</th>
-                  <th>Jarak</th>
-                  <th>Status</th>
-                  <th>Foto</th>
+                  <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>KARYAWAN</th>
+                  <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>WAKTU ABSENSI</th>
+                  <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>JARAK</th>
+                  <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>STATUS</th>
+                  <th style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>FOTO</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30 }}>Memuat data...</td></tr>
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 30 }}>Memuat data...</td></tr>
                 ) : liveLogs.length === 0 ? (
-                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ada log absensi hari ini</td></tr>
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ada log absensi hari ini</td></tr>
                 ) : (
                   liveLogs.map((log, i) => (
                     <tr key={i}>
                       <td>
-                        <div className="user-cell">
-                          <img src={log.profile_pic_url || '/img/profile.png'} alt="P" className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
-                          <div className="user-cell-info">
-                            <span className="user-cell-name">{log.name}</span>
-                            <span className="user-cell-role">{log.position}</span>
+                        <div className="user-cell" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <img src={log.profile_pic_url || log.profile_pic || '/img/profile.png'} alt="P" className="avatar avatar-sm" style={{ objectFit: 'cover', width: 36, height: 36, borderRadius: '50%' }} onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
+                          <div className="user-cell-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span className="user-cell-name" style={{ fontWeight: 700, fontSize: 13 }}>{log.name}</span>
+                            <span className="user-cell-role" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{log.position}</span>
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 600 }}>{log.clock_in}</td>
-                      <td style={{ fontWeight: 600 }}>{log.clock_out || '-'}</td>
-                      <td>{log.distance ? `${log.distance}m` : '-'}</td>
                       <td>
-                        <span className={`status-chip ${log.status_in === 'Terlambat' ? 'chip-warn' : 'chip-ok'}`}>{log.status_in}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
+                            <i className="bi bi-box-arrow-in-right text-primary" style={{ marginRight: 6 }}></i> {log.clock_in}
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            <i className="bi bi-box-arrow-right text-danger" style={{ marginRight: 6 }}></i> {log.clock_out || '-'}
+                          </div>
+                        </div>
                       </td>
                       <td>
-                        {log.photo_url && <a href={log.photo_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost"><i className="bi bi-camera"></i></a>}
+                        <span className="status-chip chip-empty" style={{ padding: '4px 10px', borderRadius: 6, fontWeight: 600, fontSize: 12 }}>
+                          <i className="bi bi-geo-alt-fill text-primary" style={{ marginRight: 4 }}></i>
+                          {log.distance ? `${log.distance}m` : '-'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`status-chip ${log.status_in === 'Terlambat' ? 'chip-late' : 'chip-ok'}`}>
+                          {log.status_in === 'Terlambat' ? <><i className="bi bi-exclamation-circle-fill" style={{ marginRight: 4 }}></i>Terlambat</> : <><i className="bi bi-check-circle-fill" style={{ marginRight: 4 }}></i>Tepat Waktu</>}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {(log.photo_in || log.photo_url) ? (
+                           <button type="button" onClick={() => { setPreviewPhoto(log.photo_in || log.photo_url); setZoomLevel(1); }} className="btn btn-sm btn-ghost" title="Lihat Foto"><i className="bi bi-camera text-primary"></i></button>
+                        ) : '-'}
                       </td>
                     </tr>
                   ))
@@ -363,7 +382,7 @@ const Dashboard = () => {
                       <tr key={i}>
                         <td>
                           <div className="user-cell" style={{ justifyContent: 'flex-start' }}>
-                            <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
+                            <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
                             <div className="user-cell-info" style={{ textAlign: 'left', alignItems: 'flex-start' }}>
                               <span className="user-cell-name">{u.name}</span>
                               <span className="user-cell-role">{u.position}</span>
@@ -379,6 +398,23 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {previewPhoto && createPortal(
+        <div className="overlay" style={{ zIndex: 999999, background: 'rgba(25, 25, 25, 0.9)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'relative', width: '80%', maxWidth: 640, background: '#1c1c1c', borderRadius: 12, overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+            <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#222', borderBottom: '1px solid #333' }}>
+               <button onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.25))} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s' }}><i className="bi bi-zoom-out" style={{ fontSize: 14 }}></i></button>
+               <button onClick={() => setZoomLevel(1)} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s' }}><i className="bi bi-arrows-fullscreen" style={{ fontSize: 14 }}></i></button>
+               <button onClick={() => setZoomLevel(z => z + 0.25)} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s' }}><i className="bi bi-zoom-in" style={{ fontSize: 14 }}></i></button>
+               <button onClick={() => setPreviewPhoto(null)} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s', marginLeft: 8 }}><i className="bi bi-x-lg" style={{ fontSize: 14 }}></i></button>
+            </div>
+            <div style={{ padding: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', height: 480, background: '#121212' }}>
+               <img src={previewPhoto} style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 16, objectFit: 'contain', transform: `scale(${zoomLevel})`, transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)', transformOrigin: 'center center' }} />
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

@@ -72,7 +72,11 @@ function updateUser(body) {
 
   let profilePicUrl = body.profile_pic_url;
   if (body.profile_pic_base64) {
-    profilePicUrl = body.profile_pic_base64;
+    const safeName = name ? name.replace(/\s+/g, '') : 'User';
+    const photoData = uploadBase64ToDrive(body.profile_pic_base64, `profile_${safeName}_v${Date.now()}.jpg`, 'foto_profil');
+    if (photoData.id) {
+      profilePicUrl = photoData.url;
+    }
   }
 
   // Cari divisi dari jabatan
@@ -104,7 +108,7 @@ function updateUser(body) {
       if (role) sheet.getRange(i+1, idx.role+1).setValue(role);
       if (profilePicUrl) sheet.getRange(i+1, idx.profile_pic_url+1).setValue(profilePicUrl);
       
-      return { success: true, profile_pic_url: profilePicUrl };
+      return { success: true, profile_pic_url: formatImageUrl(profilePicUrl) };
     }
   }
   return { success: false, message: 'User tidak ditemukan' };

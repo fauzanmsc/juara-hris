@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { fetchApi } from '../../api';
 
 const Approval = () => {
@@ -90,51 +91,48 @@ const Approval = () => {
         </div>
 
         <div className="table-wrap" style={{ maxHeight: 500, overflowY: 'auto' }}>
-          <table>
+          <table className="table-modern">
             <thead>
               <tr>
-                <th>Karyawan</th>
-                <th>Jenis</th>
-                <th>Mulai</th>
-                <th>Hingga</th>
-                <th>Catatan</th>
-                <th>Dokumen</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'center' }}>Keputusan</th>
-                <th style={{ textAlign: 'center' }}>Aksi</th>
+                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>KARYAWAN</th>
+                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>KETERANGAN</th>
+                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>STATUS</th>
+                <th style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>AKSI</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 30 }}>Memuat pengajuan...</td></tr>
+                <tr><td colSpan={4} style={{ textAlign: 'center', padding: 30 }}>Memuat pengajuan...</td></tr>
               ) : filteredApprovals.length === 0 ? (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ada pengajuan ditemukan</td></tr>
+                <tr><td colSpan={4} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ada pengajuan ditemukan</td></tr>
               ) : (
                 filteredApprovals.map((a, i) => (
                   <tr key={i}>
-                    <td style={{ fontWeight: 800 }}>{a.user_name}</td>
-                    <td>{a.leave_type || a.type}</td>
-                    <td>{a.start_date}</td>
-                    <td>{a.end_date}</td>
-                    <td style={{ maxWidth: 150, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.reason}>{a.reason}</td>
                     <td>
-                      {a.attachment_url ? (
-                        <a href={a.attachment_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost"><i className="bi bi-file-earmark-text text-primary"></i></a>
-                      ) : '-'}
+                      <div className="user-cell" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <img src={a.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover', width: 36, height: 36, borderRadius: '50%' }} onError={(e) => { (e.target as any).src = '/img/profile.png'; }} alt="" />
+                        <span className="user-cell-name" style={{ fontWeight: 700, fontSize: 13 }}>{a.user_name}</span>
+                      </div>
                     </td>
                     <td>
-                      <span className={`status-chip ${a.status === 'Approved' ? 'chip-ok' : a.status === 'Rejected' ? 'chip-warn' : 'chip-empty'}`}>
-                        {a.status === 'Approved' ? 'Disetujui' : a.status === 'Rejected' ? 'Ditolak' : 'Menunggu'}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>Pengajuan {a.leave_type || a.type}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                          <i className="bi bi-calendar3" style={{ marginRight: 6 }}></i>
+                          {a.start_date} {a.start_date !== a.end_date ? ` s/d ${a.end_date}` : ''}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`status-chip ${a.status === 'Approved' ? 'chip-ok' : a.status === 'Rejected' ? 'chip-warn' : 'chip-empty'}`} style={{ padding: '6px 12px', borderRadius: 20 }}>
+                        {a.status === 'Approved' ? <><i className="bi bi-check-circle-fill" style={{ marginRight: 6 }}></i>Disetujui</> : a.status === 'Rejected' ? <><i className="bi bi-x-circle-fill" style={{ marginRight: 6 }}></i>Ditolak</> : <><i className="bi bi-clock-fill" style={{ marginRight: 6 }}></i>Menunggu</>}
                       </span>
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
-                        <button className="btn btn-sm btn-primary" onClick={() => updateStatus(a.request_id, 'Approved')} title="Setujui"><i className="bi bi-check-lg"></i></button>
-                        <button className="btn btn-sm btn-ghost text-danger" onClick={() => updateStatus(a.request_id, 'Rejected')} title="Tolak"><i className="bi bi-x-lg"></i></button>
+                        <button className="btn btn-sm btn-ghost" onClick={() => setEditApp(a)} title="Edit"><i className="bi bi-pencil-square"></i></button>
+                        <Link to={`/admin/approval/${a.request_id}`} className="btn btn-sm btn-primary" title="Lihat Detail"><i className="bi bi-eye"></i></Link>
                       </div>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button className="btn btn-sm btn-ghost" onClick={() => setEditApp(a)}><i className="bi bi-pencil-square"></i></button>
                     </td>
                   </tr>
                 ))

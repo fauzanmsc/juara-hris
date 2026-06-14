@@ -215,10 +215,10 @@ const Users = () => {
           <table className="table-modern">
             <thead>
               <tr>
-                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>KARYAWAN <i className="bi bi-arrow-down-up" style={{ fontSize: 8, marginLeft: 4 }}></i></th>
-                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>EMAIL <i className="bi bi-arrow-down-up" style={{ fontSize: 8, marginLeft: 4 }}></i></th>
-                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>JABATAN <i className="bi bi-arrow-down-up" style={{ fontSize: 8, marginLeft: 4 }}></i></th>
-                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>STATUS <i className="bi bi-arrow-down-up" style={{ fontSize: 8, marginLeft: 4 }}></i></th>
+                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>KARYAWAN</th>
+                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>EMAIL</th>
+                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>JABATAN</th>
+                <th style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>STATUS</th>
                 <th style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>AKSI</th>
               </tr>
             </thead>

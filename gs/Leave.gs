@@ -146,8 +146,8 @@ function getPendingLeaves() {
   const users = sheetToObjects(getSheet(SHEET.USERS));
 
   const enriched = leaves.map(l => {
-    const user = users.find(u => u.user_id === l.user_id);
-    return { ...l, user_name: user ? user.name : 'Unknown', start_date: formatDate(l.start_date), end_date: formatDate(l.end_date) };
+    const user = users.find(u => String(u.user_id).trim() === String(l.user_id).trim());
+    return { ...l, user_name: user ? user.name : 'Unknown', profile_pic_url: user ? formatImageUrl(user.profile_pic_url || '') : '', start_date: formatDate(l.start_date), end_date: formatDate(l.end_date) };
   }).sort((a, b) => {
     // Pending first
     if (a.status === 'Pending' && b.status !== 'Pending') return -1;
@@ -459,7 +459,11 @@ function registerEmployee(body) {
 
   let profilePicUrl = '';
   if (profile_pic_base64) {
-    profilePicUrl = profile_pic_base64;
+    const safeName = name ? name.replace(/\s+/g, '') : 'User';
+    const photoData = uploadBase64ToDrive(profile_pic_base64, `profile_${safeName}_v${Date.now()}.jpg`, 'foto_profil');
+    if (photoData.id) {
+      profilePicUrl = photoData.url;
+    }
   }
 
   // Cari divisi dari jabatan

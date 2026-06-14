@@ -5811,6 +5811,18 @@ body.employee-page .icon-blue {
   overflow: hidden;
 }
 
+.reg-modal-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.reg-modal-footer button {
+  min-width: 120px;
+}
+
 .reg-modal-close {
   position: absolute;
   top: 16px;
@@ -6085,6 +6097,48 @@ table.table-modern tbody td {
   padding: 6px 12px !important;
   word-break: break-word;
   /* Maximize readability for long descriptive texts */
+}
+
+/* Global Status Chips */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chip-empty {
+  background: rgba(138, 138, 154, 0.1);
+  color: var(--text-muted);
+  border: 1px solid rgba(138, 138, 154, 0.2);
+}
+
+.chip-ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.chip-warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.chip-late, .chip-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.chip-primary {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 /* Optimize Table Columns Cell Width Distribution Maximally */
