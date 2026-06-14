@@ -151,11 +151,11 @@ const Users = () => {
     }
   };
 
-  const toggleStatus = async (user_id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'Aktif' ? 'Nonaktif' : 'Aktif';
-    (window as any).showModalConfirm('Konfirmasi', 'Yakin ingin merubah status karyawan ini?', async () => {
+  const toggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = (currentStatus === 'Aktif' || currentStatus === 'Active') ? 'Nonaktif' : 'Aktif';
+    (window as any).showModalConfirm('Konfirmasi', `Ubah status menjadi ${newStatus}?`, async () => {
       try {
-        const res = await fetchApi('updateUserStatus', { user_id, status: newStatus });
+        const res = await fetchApi('updateUserStatus', { user_id: id, status: newStatus });
         if (res.success) {
           loadUsers();
         } else {
@@ -246,8 +246,8 @@ const Users = () => {
                         <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>{u.email}</td>
                         <td style={{ fontSize: 13, fontWeight: 600 }}>{u.position}</td>
                         <td>
-                          <span className={`status-chip ${u.status === 'Aktif' ? 'chip-ok' : 'chip-warn'}`} style={{ fontSize: 11, padding: '4px 12px', borderRadius: 50, background: u.status === 'Aktif' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: u.status === 'Aktif' ? 'var(--success)' : 'var(--danger)' }}>
-                            {u.status}
+                          <span className={`status-chip ${(u.status === 'Aktif' || u.status === 'Active') ? 'chip-ok' : 'chip-warn'}`} style={{ fontSize: 11, padding: '4px 12px', borderRadius: 50, background: (u.status === 'Aktif' || u.status === 'Active') ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: (u.status === 'Aktif' || u.status === 'Active') ? 'var(--success)' : 'var(--danger)' }}>
+                            {(u.status === 'Aktif' || u.status === 'Active') ? 'Aktif' : 'Nonaktif'}
                           </span>
                         </td>
                         <td>
@@ -255,8 +255,8 @@ const Users = () => {
                             <button className="btn btn-sm" onClick={() => handleEdit(u)} title="Edit" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 50, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                               <i className="bi bi-pencil-fill" style={{ fontSize: 12 }}></i>
                             </button>
-                            <button className={`btn btn-sm ${u.status === 'Aktif' ? 'btn-danger' : 'btn-success'}`} onClick={() => toggleStatus(u.user_id, u.status)} style={{ borderRadius: 50, padding: '0 16px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, height: 32 }}>
-                              <i className={`bi ${u.status === 'Aktif' ? 'bi-power' : 'bi-check-circle-fill'}`} style={{ fontSize: 12 }}></i> {u.status === 'Aktif' ? 'Nonaktif' : 'Aktif'}
+                            <button className={`btn btn-sm ${(u.status === 'Aktif' || u.status === 'Active') ? 'btn-danger' : 'btn-success'}`} onClick={() => toggleStatus(u.user_id, u.status)} style={{ borderRadius: 50, padding: '0 16px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, height: 32 }}>
+                              <i className={`bi ${(u.status === 'Aktif' || u.status === 'Active') ? 'bi-power' : 'bi-check-circle-fill'}`} style={{ fontSize: 12 }}></i> {(u.status === 'Aktif' || u.status === 'Active') ? 'Nonaktif' : 'Aktif'}
                             </button>
                           </div>
                         </td>
