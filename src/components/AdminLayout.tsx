@@ -57,7 +57,7 @@ const AdminLayout = () => {
               });
             }
           }
-        } catch (e) {}
+        } catch (e) { }
       };
       loadLatestProfile();
     }
@@ -74,12 +74,12 @@ const AdminLayout = () => {
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   const handleLogout = () => {
     if ((window as any).showModalConfirm) {
-      (window as any).showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem HRIS?', () => {
+      (window as any).showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar ?', () => {
         localStorage.removeItem('hris_user');
         navigate('/');
       });
     } else {
-      if (confirm('Apakah Anda yakin ingin keluar dari sistem HRIS?')) {
+      if (confirm('Apakah Anda yakin ingin keluar ?')) {
         localStorage.removeItem('hris_user');
         navigate('/');
       }
@@ -167,11 +167,11 @@ const AdminLayout = () => {
             </NavLink>
 
             <div className="nav-section-label">INTEGRASI</div>
-            <a className="sidebar-link" href="https://docs.google.com/spreadsheets/d/1wQ7PB5Zl7UpXE8kVuAD6fZDyPGxY1_pPMNJS5NiHg9E/" target="_blank" rel="noopener noreferrer">
+            <a className="sidebar-link" href="https://docs.google.com/spreadsheets/d/1EXmtgASni2x2dzdDhYIYyH7F_E_Jqi_wUncLrf2U1KM" target="_blank" rel="noopener noreferrer">
               <img src="/img/icons/g-sheets.svg" alt="Google Sheets" style={{ width: 20, height: 20, marginRight: 12, flexShrink: 0, display: 'block' }} />
               <span>Akses Database</span>
             </a>
-            <a className="sidebar-link" href="https://drive.google.com/drive/folders/1BGiuWcUZlIQSSFsnqfsfRjZC6ZoO7iRq" target="_blank" rel="noopener noreferrer">
+            <a className="sidebar-link" href="https://drive.google.com/drive/folders/1wciBOc5tFFwzMPVI1G42bUmfpOxamlMQ" target="_blank" rel="noopener noreferrer">
               <img src="/img/icons/g-drive.svg" alt="Google Drive" style={{ width: 20, height: 20, marginRight: 12, flexShrink: 0, display: 'block' }} />
               <span>Akses Drive</span>
             </a>

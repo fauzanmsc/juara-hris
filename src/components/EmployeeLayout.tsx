@@ -34,7 +34,7 @@ const EmployeeLayout = () => {
 
     document.body.className = '';
     document.body.classList.add(bodyClass);
-    
+
     return () => {
       document.body.classList.remove(bodyClass);
     };
@@ -71,7 +71,7 @@ const EmployeeLayout = () => {
               });
             }
           }
-        } catch (e) {}
+        } catch (e) { }
       };
       loadLatestProfile();
     }
@@ -83,12 +83,12 @@ const EmployeeLayout = () => {
 
   const handleLogout = () => {
     if ((window as any).showModalConfirm) {
-      (window as any).showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar dari sistem HRIS?', () => {
+      (window as any).showModalConfirm('Keluar Akun', 'Apakah Anda yakin ingin keluar ?', () => {
         localStorage.removeItem('hris_user');
         navigate('/');
       });
     } else {
-      if (confirm('Apakah Anda yakin ingin keluar dari sistem HRIS?')) {
+      if (confirm('Apakah Anda yakin ingin keluar ?')) {
         localStorage.removeItem('hris_user');
         navigate('/');
       }
@@ -107,7 +107,7 @@ const EmployeeLayout = () => {
           <NavLink to="/employee/tasks" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <i className="bi bi-list-task"></i>Tugas
           </NavLink>
-          
+
           {/* Middle Absensi Button */}
           <NavLink to="/employee/attendance" className={({ isActive }) => `nav-item nav-item-special ${isActive ? 'active' : ''}`}>
             <div className="special-icon-wrap">
@@ -115,7 +115,7 @@ const EmployeeLayout = () => {
             </div>
             <span>Absensi</span>
           </NavLink>
-          
+
           <NavLink to="/employee/leave" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <i className="bi bi-calendar2-check-fill"></i>Pengajuan
           </NavLink>
