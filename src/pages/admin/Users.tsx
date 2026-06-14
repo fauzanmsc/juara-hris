@@ -279,7 +279,7 @@ const Users = () => {
               <div className="card-border-glow"></div>
               
               <div style={{ padding: '24px 32px 16px', position: 'relative', zIndex: 2, flexShrink: 0 }}>
-                <button className="reg-modal-close" onClick={() => setIsModalOpen(false)} type="button" style={{ top: 20, right: 20 }}>&times;</button>
+                <button className="reg-modal-close" onClick={() => setIsModalOpen(false)} type="button" style={{ top: 20, right: 20 }}><i className="bi bi-x-lg"></i></button>
                 <div className="form-header" style={{ textAlign: 'left' }}>
                   <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', fontFamily: 'var(--font-head)', margin: 0 }}>
                     {form.user_id ? 'Edit Karyawan' : 'Tambah Karyawan'}

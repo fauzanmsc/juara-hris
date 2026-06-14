@@ -16,14 +16,15 @@ const Login = () => {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [waChatOpen, setWaChatOpen] = useState(false);
   const [waMessage, setWaMessage] = useState('');
-  
+
   const [theme, setTheme] = useState(localStorage.getItem('hris_theme') || 'dark');
   const [clockTime, setClockTime] = useState('00:00:00');
   const [clockDate, setClockDate] = useState('Memuat waktu...');
   const [typewriterText, setTypewriterText] = useState('');
   const [showSubText, setShowSubText] = useState(false);
   const [showLoader, setShowLoader] = useState(true);
-  
+  const [positions, setPositions] = useState<any[]>([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +35,18 @@ const Login = () => {
   useEffect(() => {
     document.body.classList.add('login-page');
     return () => document.body.classList.remove('login-page');
+  }, []);
+
+  useEffect(() => {
+    const loadPositions = async () => {
+      try {
+        const res = await fetchApi('getPositions', {}, 'GET');
+        if (res.success && res.data) {
+          setPositions(res.data);
+        }
+      } catch (e) { }
+    };
+    loadPositions();
   }, []);
 
   useEffect(() => {
@@ -85,10 +98,10 @@ const Login = () => {
       setError('Email dan PIN wajib diisi.');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       const data = await fetchApi('login', { email, password_pin: pin });
       if (data.success) {
@@ -114,7 +127,7 @@ const Login = () => {
       setLoading(false);
     }
   };
-  
+
   const handleRegPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setRegPhotoPreview(URL.createObjectURL(e.target.files[0]));
@@ -201,7 +214,7 @@ const Login = () => {
             <label className="form-label">Email Karyawan</label>
             <div className="input-wrap">
               <i className="bi bi-envelope input-icon"></i>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@juara.id" autoComplete="email" />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@jefgroup.id" autoComplete="email" />
             </div>
           </div>
 
@@ -236,7 +249,7 @@ const Login = () => {
           <div className="reg-modal-container">
             <div className="reg-modal-card">
               <div className="card-border-glow"></div>
-              <button className="reg-modal-close" onClick={() => setIsRegistering(false)} type="button">&times;</button>
+              <button className="reg-modal-close" onClick={() => setIsRegistering(false)} type="button"><i className="bi bi-x-lg"></i></button>
 
               <div className="form-header" style={{ marginBottom: 20, textAlign: 'center' }}>
                 <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', fontFamily: 'var(--font-head)', margin: 0 }}>Registrasi Karyawan</h2>
@@ -272,7 +285,7 @@ const Login = () => {
                   <label className="form-label" style={{ textAlign: 'left', fontSize: 11 }}>Nama Lengkap</label>
                   <div className="input-wrap">
                     <i className="bi bi-person input-icon"></i>
-                    <input type="text" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} placeholder="Masukkan nama lengkap Anda" required />
+                    <input type="text" value={regData.name} onChange={e => setRegData({ ...regData, name: e.target.value })} placeholder="Masukkan nama lengkap Anda" required />
                   </div>
                 </div>
 
@@ -281,16 +294,16 @@ const Login = () => {
                     <label className="form-label" style={{ textAlign: 'left', fontSize: 11 }}>Email Karyawan</label>
                     <div className="input-wrap reg-email-wrap">
                       <i className="bi bi-envelope input-icon"></i>
-                      <input type="text" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} placeholder="username" required />
-                      <span className="reg-email-suffix">@juara.id</span>
+                      <input type="text" value={regData.email} onChange={e => setRegData({ ...regData, email: e.target.value })} placeholder="username" required />
+                      <span className="reg-email-suffix">@jefgroup.id</span>
                     </div>
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ textAlign: 'left', fontSize: 11 }}>PIN Login (6 Digit)</label>
+                    <label className="form-label" style={{ textAlign: 'left', fontSize: 11 }}>Password</label>
                     <div className="input-wrap">
                       <i className="bi bi-shield-lock input-icon"></i>
-                      <input type={showRegPassword ? 'text' : 'password'} value={regData.pin} onChange={e => setRegData({...regData, pin: e.target.value})} placeholder="Buat PIN" required maxLength={6} pattern="\d{6}" inputMode="numeric" />
+                      <input type={showRegPassword ? 'text' : 'password'} value={regData.pin} onChange={e => setRegData({ ...regData, pin: e.target.value })} placeholder="Buat PIN" required maxLength={6} pattern="\d{6}" inputMode="numeric" />
                       <button className="toggle-pass reg-toggle-pass" onClick={() => setShowRegPassword(!showRegPassword)} type="button">
                         <i className={showRegPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
                       </button>
@@ -302,17 +315,18 @@ const Login = () => {
                   <label className="form-label" style={{ textAlign: 'left', fontSize: 11 }}>Jabatan (Position)</label>
                   <div className="input-wrap" style={{ position: 'relative' }}>
                     <i className="bi bi-briefcase input-icon"></i>
-                    <select className="form-control reg-custom-select" value={regData.position} onChange={e => setRegData({...regData, position: e.target.value})} required>
+                    <select className="form-control reg-custom-select" value={regData.position} onChange={e => setRegData({ ...regData, position: e.target.value })} required>
                       <option value="" disabled>Pilih jabatan...</option>
-                      <option value="Staff">Staff</option>
-                      <option value="Manager">Manager</option>
+                      {positions.map((p, i) => (
+                        <option key={i} value={p.position || p.name}>{p.position || p.name}</option>
+                      ))}
                     </select>
                     <i className="bi bi-chevron-down" style={{ position: 'absolute', right: 14, pointerEvents: 'none', color: 'var(--text-muted)', fontSize: 12 }}></i>
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 12, marginTop: 8 }}>
-                  <button className="btn btn-muted btn-neu-3d" type="button" onClick={() => { setRegData({name:'', email:'', pin:'', position:''}); setRegPhotoPreview(''); }} style={{ height: 42, borderRadius: 50, fontWeight: 700, fontSize: 12, textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--bg-deep)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+                  <button className="btn btn-muted btn-neu-3d" type="button" onClick={() => { setRegData({ name: '', email: '', pin: '', position: '' }); setRegPhotoPreview(''); }} style={{ height: 42, borderRadius: 50, fontWeight: 700, fontSize: 12, textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--bg-deep)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
                     <i className="bi bi-arrow-counterclockwise"></i> Reset Data
                   </button>
                   <button className="btn-login btn-neu-3d" type="submit" style={{ margin: 0, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, borderRadius: 50 }}>

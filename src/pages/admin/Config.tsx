@@ -10,7 +10,7 @@ declare global {
 
 const Config = () => {
   const [loading, setLoading] = useState(true);
-  
+
   const [form, setForm] = useState({
     latitude: '',
     longitude: '',
@@ -72,7 +72,7 @@ const Config = () => {
 
   const initMap = () => {
     if (!window.L) return;
-    
+
     const lat = parseFloat(form.latitude) || -6.2088;
     const lng = parseFloat(form.longitude) || 106.8456;
     const r = parseFloat(form.radius) || 50;
@@ -133,7 +133,7 @@ const Config = () => {
     <div className="fade-in" style={{ padding: 20 }}>
       <div className="card" style={{ marginBottom: 24 }}>
         <h3 className="card-title" style={{ marginBottom: 20 }}><i className="bi bi-sliders text-primary" style={{ marginRight: 8 }}></i> Pengaturan Sistem &amp; Jam Kerja</h3>
-        
+
         <div className="grid-2-resp">
           {/* Geofence */}
           <div className="config-group" style={{ border: 'none', padding: 0, margin: 0 }}>
@@ -212,7 +212,7 @@ const Config = () => {
           </div>
           <div className="form-group">
             <label className="form-label">Email HRD Utama</label>
-            <input type="email" className="form-control" placeholder="Contoh: hrd@juara.id" value={form.email_hrd} onChange={e => setForm({ ...form, email_hrd: e.target.value })} />
+            <input type="email" className="form-control" placeholder="Contoh: hrd@jefgroup.id" value={form.email_hrd} onChange={e => setForm({ ...form, email_hrd: e.target.value })} />
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Email resmi HRD untuk koordinasi data kehadiran.</p>
           </div>
         </div>

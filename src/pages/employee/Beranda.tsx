@@ -102,15 +102,6 @@ const Beranda = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 20 }}>
-        <div style={{ width: 48, height: 48, border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>Memuat Dashboard...</p>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="header">
@@ -159,7 +150,7 @@ const Beranda = () => {
         <div className="profile-row">
           <div className="avatar-container" style={{ position: 'relative', flexShrink: 0 }}>
             {user.profile_pic_url ? (
-              <img src={user.profile_pic_url} alt="Profile" className="avatar-emp" style={{ objectFit: 'cover' }} />
+              <img src={user.profile_pic_url} alt="Profile" className="avatar-emp" style={{ objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/img/profile.png'; }} />
             ) : (
               <div className="avatar-emp">{user.initial}</div>
             )}
@@ -180,8 +171,15 @@ const Beranda = () => {
       </div>
 
       <div className="content pb-nav">
-      <div className="date-bar">
-        <div className="date-info">
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 20 }}>
+            <div style={{ width: 48, height: 48, border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>Memuat Dashboard...</p>
+          </div>
+        ) : (
+          <>
+            <div className="date-bar">
+              <div className="date-info">
           <div className="day">{getDayName()}</div>
           <div className="date-full">{clockDate}</div>
         </div>
@@ -303,13 +301,15 @@ const Beranda = () => {
           </div>
         )}
       </div>
+          </>
+        )}
       </div>
       {editModalOpen && (
         <div className="overlay reg-modal-overlay" style={{ zIndex: 9999 }}>
           <div className="reg-modal-container">
             <div className="reg-modal-card border-animated-modal" style={{ maxWidth: 400, width: '100%' }}>
               <div className="card-border-glow"></div>
-              <button className="reg-modal-close" onClick={() => setEditModalOpen(false)} type="button">&times;</button>
+              <button className="reg-modal-close" onClick={() => setEditModalOpen(false)} type="button"><i className="bi bi-x-lg"></i></button>
 
               <div className="form-header" style={{ marginBottom: 24, textAlign: 'left', position: 'relative', zIndex: 2 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', fontFamily: 'var(--font-head)', margin: 0 }}>
