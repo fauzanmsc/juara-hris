@@ -24,20 +24,30 @@ export const initModals = () => {
         }
     
         overlay.innerHTML = `
-            <div class="modal border-animated-modal" style="text-align:center; padding: 40px 30px; max-width: 400px; width: 95%; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); overflow-y: auto;">
-                <div class="card-border-glow"></div>
-                <button onclick="document.getElementById('globalModalOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
+            <div style="text-align:center; padding: 32px 24px; max-width: 320px; width: 90%; background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1); animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position:relative; overflow:hidden;">
+                <div style="position:absolute; top:0; left:0; right:0; height:4px; background: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--primary)'};"></div>
                 <div style="position:relative; z-index:2;">
                     ${iconHTML}
-                    <h3 style="font-size:20px; font-weight:800; margin-bottom:12px; font-family:var(--font-head); color:var(--text);">${title}</h3>
-                    <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;">${message}</p>
-                    <div style="display:flex; flex-direction:column; gap:8px;">
-                        ${extraBtnHTML}
-                        <button class="btn btn-primary btn-xl btn-neu-3d" onclick="document.getElementById('globalModalOverlay').remove()" style="width:100%; border-radius:50px;">Tutup</button>
-                    </div>
+                    <h3 style="font-size:18px; font-weight:800; margin-bottom:8px; font-family:var(--font-head); color:var(--text); letter-spacing: 0.5px;">${title}</h3>
+                    <p style="font-size:13px; color:var(--text-muted); line-height:1.6; margin:0; font-weight: 500;">${message}</p>
+                    ${extraBtnHTML ? `<div style="margin-top:20px;">${extraBtnHTML}</div>` : ''}
                 </div>
             </div>
         `;
+
+        let duration = 2500;
+        if (type === 'error') duration = 3500;
+        if (actionBtn) duration = 8000;
+
+        setTimeout(() => {
+            const el = document.getElementById('globalModalOverlay');
+            if (el) {
+                el.children[0].setAttribute('style', el.children[0].getAttribute('style') + ' animation: zoomOut 0.3s forwards;');
+                el.style.transition = 'opacity 0.3s ease';
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            }
+        }, duration);
     };
     
     (window as any).showModalConfirm = function (title: string, message: string, onConfirm: () => void) {

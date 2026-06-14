@@ -19,9 +19,12 @@ const Beranda = () => {
   const [editPin, setEditPin] = useState('');
   const [editPinVis, setEditPinVis] = useState(false);
   const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
+  const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
 
   const handleEditProfileClick = () => {
     setEditPhotoPreview(user.profile_pic_url || null);
+    setEditPhotoFile(null);
     setEditPin('');
     setEditPinVis(false);
     setEditModalOpen(true);
@@ -30,6 +33,7 @@ const Beranda = () => {
   const handleEditPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setEditPhotoFile(file);
       const reader = new FileReader();
       reader.onload = (evt) => {
         setEditPhotoPreview(evt.target?.result as string);
@@ -352,12 +356,61 @@ const Beranda = () => {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
-                  <button type="button" className="btn btn-ghost" onClick={() => setEditModalOpen(false)}>Batal</button>
-                  <button type="button" className="btn btn-primary" onClick={() => {
-                    // Mock saving
-                    setEditModalOpen(false);
-                    alert("Profil berhasil diperbarui!");
-                  }} style={{ padding: '8px 24px', borderRadius: 50, fontWeight: 700 }}>Simpan</button>
+                  <button type="button" className="btn btn-ghost" onClick={() => setEditModalOpen(false)} disabled={editSaving}>Batal</button>
+                  <button type="button" className="btn btn-primary" disabled={editSaving} onClick={async () => {
+                    setEditSaving(true);
+                    try {
+                      let base64Photo = undefined;
+                      if (editPhotoFile) {
+                        const reader = new FileReader();
+                        base64Photo = await new Promise((resolve, reject) => {
+                          reader.onload = (e) => {
+                            const img = new Image();
+                            img.onload = () => {
+                              const canvas = document.createElement('canvas');
+                              let width = img.width;
+                              let height = img.height;
+                              const max_size = 150;
+                              if (width > height && width > max_size) { height *= max_size / width; width = max_size; }
+                              else if (height > max_size) { width *= max_size / height; height = max_size; }
+                              canvas.width = width; canvas.height = height;
+                              const ctx = canvas.getContext('2d');
+                              if (ctx) { ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.7)); }
+                              else resolve(e.target?.result as string);
+                            };
+                            img.onerror = () => reject(new Error('Gagal memuat gambar'));
+                            img.src = e.target?.result as string;
+                          };
+                          reader.onerror = error => reject(error);
+                          reader.readAsDataURL(editPhotoFile);
+                        });
+                      }
+                      
+                      const payload: any = { user_id: user.user_id, name: user.name, email: user.email };
+                      if (editPin) payload.password_pin = editPin;
+                      if (base64Photo) payload.profile_pic_base64 = base64Photo;
+
+                      const res = await fetchApi('updateUser', payload);
+                      if (res.success) {
+                        const loggedUser = localStorage.getItem('hris_user');
+                        if (loggedUser) {
+                           const parsed = JSON.parse(loggedUser);
+                           if (editPin) parsed.password_pin = editPin;
+                           if (res.profile_pic_url) parsed.profile_pic_url = res.profile_pic_url;
+                           localStorage.setItem('hris_user', JSON.stringify(parsed));
+                        }
+                        setEditModalOpen(false);
+                        alert("Profil berhasil diperbarui!");
+                        setTimeout(() => window.location.reload(), 1500);
+                      } else {
+                        alert(res.message || 'Gagal menyimpan data');
+                      }
+                    } catch (err) {
+                      alert('Terjadi kesalahan koneksi');
+                    } finally {
+                      setEditSaving(false);
+                    }
+                  }} style={{ padding: '8px 24px', borderRadius: 50, fontWeight: 700 }}>{editSaving ? 'Menyimpan...' : 'Simpan'}</button>
                 </div>
               </div>
             </div>

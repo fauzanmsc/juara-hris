@@ -72,13 +72,7 @@ function updateUser(body) {
 
   let profilePicUrl = body.profile_pic_url;
   if (body.profile_pic_base64) {
-    const safeName = name ? name.replace(/\s+/g, '') : 'User';
-    const photoData = uploadBase64ToDrive(body.profile_pic_base64, `profile_${safeName}_v${Date.now()}.jpg`, 'foto_profil');
-    if (photoData.id) {
-      profilePicUrl = `https://lh3.googleusercontent.com/d/${photoData.id}`;
-    } else if (photoData.url && !photoData.url.startsWith('ERROR')) {
-      profilePicUrl = photoData.url;
-    }
+    profilePicUrl = body.profile_pic_base64;
   }
 
   // Cari divisi dari jabatan

@@ -59,7 +59,10 @@ function preflightCheck(params) {
   // 1.5 Cek otomatis Hari Minggu (Libur Operasional)
   const checkDate = new Date(today + 'T00:00:00');
   if (checkDate.getDay() === 0) { // 0 = Hari Minggu
-    return { success: false, lock_type: 'holiday', message: 'Libur Operasional (Hari Kerja: Senin - Sabtu)' };
+    const sundayEnabled = getConfigVal('sunday_attendance_enabled', 'false') === 'true';
+    if (!sundayEnabled) {
+      return { success: false, lock_type: 'holiday', message: 'Libur Operasional (Hari Kerja: Senin - Sabtu)' };
+    }
   }
 
   // 2. Cek status cuti/izin/sakit yang approved
@@ -91,7 +94,8 @@ function preflightCheck(params) {
     config: {
       office_latitude: getConfigVal('office_latitude', '-6.4063219'),
       office_longitude: getConfigVal('office_longitude', '106.7731088'),
-      max_radius_meters: getConfigVal('max_radius_meters', '200')
+      max_radius_meters: getConfigVal('max_radius_meters', '200'),
+      radius_enabled: getConfigVal('radius_enabled', 'true')
     }
   };
 }

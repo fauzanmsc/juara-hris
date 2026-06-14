@@ -22,7 +22,8 @@ const Config = () => {
     sat_start: '09:00',
     sat_end: '17:00',
     wa_admin: '',
-    email_hrd: ''
+    email_hrd: '',
+    sunday_enabled: 'false'
   });
 
   const mapRef = useRef<HTMLDivElement>(null);
@@ -52,7 +53,8 @@ const Config = () => {
           sat_end: d.saturday_end || prev.sat_end,
           tolerance: d.tolerance_minutes || prev.tolerance,
           wa_admin: d.wa_admin || prev.wa_admin,
-          email_hrd: d.email_hrd || prev.email_hrd
+          email_hrd: d.email_hrd || prev.email_hrd,
+          sunday_enabled: d.sunday_attendance_enabled || prev.sunday_enabled
         }));
       }
     } catch (err) {
@@ -109,7 +111,8 @@ const Config = () => {
         saturday_end: form.sat_end,
         tolerance_minutes: form.tolerance,
         wa_admin: form.wa_admin,
-        email_hrd: form.email_hrd
+        email_hrd: form.email_hrd,
+        sunday_attendance_enabled: form.sunday_enabled
       };
       const res = await fetchApi('saveConfig', payload);
       if (res.success) {
@@ -183,6 +186,13 @@ const Config = () => {
                 <label className="form-label">Pulang (Sabtu)</label>
                 <input type="time" className="form-control" value={form.sat_end} onChange={e => setForm({ ...form, sat_end: e.target.value })} />
               </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Absensi Hari Minggu</label>
+              <select className="form-control" value={form.sunday_enabled} onChange={e => setForm({ ...form, sunday_enabled: e.target.value })}>
+                <option value="false">Nonaktif (Libur Operasional)</option>
+                <option value="true">Aktif (Dapat Absen di Hari Minggu)</option>
+              </select>
             </div>
           </div>
         </div>

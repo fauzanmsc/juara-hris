@@ -26,7 +26,7 @@ function getAllConfig() {
   const keys = [
     'office_latitude', 'office_longitude', 'max_radius_meters',
     'weekday_start', 'weekday_end', 'saturday_start', 'saturday_end',
-    'tolerance_minutes', 'wa_admin', 'email_hrd'
+    'tolerance_minutes', 'wa_admin', 'email_hrd', 'radius_enabled', 'sunday_attendance_enabled'
   ];
   const config = {};
   keys.forEach(k => {
@@ -113,8 +113,10 @@ function validateAttendanceLocation(lat, lng) {
     };
   }
 
+  const radiusEnabled = getConfigVal('radius_enabled', 'true') !== 'false';
+
   const distance = haversineMeters(userLat, userLng, officeLat, officeLng);
-  if (distance > maxRadius) {
+  if (radiusEnabled && distance > maxRadius) {
     return {
       valid: false,
       distance: distance,
@@ -141,7 +143,7 @@ function saveConfig(body) {
 
   const keys = ['office_latitude','office_longitude','max_radius_meters',
                  'weekday_start','weekday_end','saturday_start','saturday_end','tolerance_minutes',
-                 'wa_admin', 'email_hrd', 'radius_enabled'];
+                 'wa_admin', 'email_hrd', 'radius_enabled', 'sunday_attendance_enabled'];
 
   keys.forEach(key => {
     if (body[key] === undefined) return;

@@ -38,6 +38,7 @@ const EmployeeLayout = () => {
     } else {
       const parsedUser = JSON.parse(loggedUser);
       setUser({
+        ...parsedUser,
         name: parsedUser.name || 'Employee',
         position: parsedUser.position || 'Employee',
         initial: (parsedUser.name || 'E').charAt(0).toUpperCase()

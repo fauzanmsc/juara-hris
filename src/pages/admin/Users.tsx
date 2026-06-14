@@ -51,7 +51,7 @@ const Users = () => {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const max_size = 800;
+          const max_size = 150;
 
           if (width > height) {
             if (width > max_size) {
@@ -94,6 +94,8 @@ const Users = () => {
 
   const handleEdit = (u: any) => {
     setForm(u);
+    setAvatarPreview(u.profile_pic_url || '/img/profile.png');
+    setAvatarFile(null);
     setIsModalOpen(true);
   };
 

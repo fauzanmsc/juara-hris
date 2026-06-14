@@ -135,6 +135,7 @@ const Attendance = () => {
   }, [config]);
 
   const startCamera = async (mode = facingMode) => {
+    if (!inRadius) return alert('Kamera terkunci: Lokasi Anda berada di luar radius absensi.');
     try {
       stopCamera();
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -297,7 +298,7 @@ const Attendance = () => {
             <span className="camera-label"><i className="bi bi-camera-fill"></i> &nbsp;FOTO SELFIE</span>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               {!cameraActive && !photo && (
-                <span className="camera-toggle" onClick={() => startCamera(facingMode)} style={{ cursor: 'pointer' }}>Aktifkan Kamera</span>
+                <span className="camera-toggle" onClick={() => { if (inRadius) startCamera(facingMode); }} style={{ cursor: inRadius ? 'pointer' : 'not-allowed', opacity: inRadius ? 1 : 0.5 }}>Aktifkan Kamera</span>
               )}
               {cameraActive && (
                 <>
@@ -312,9 +313,9 @@ const Attendance = () => {
             {photo && <img id="capturedImg" src={photo} alt="Selfie" style={{ transform: `scaleX(${isFlipped ? -1 : 1})` }} />}
             {cameraActive && <div className="face-guide" style={{ display: 'block' }}></div>}
             {!cameraActive && !photo && (
-              <div className="camera-overlay" onClick={() => startCamera(facingMode)}>
-                <i className="bi bi-camera"></i>
-                <p>Klik untuk mengaktifkan kamera</p>
+              <div className="camera-overlay" onClick={() => { if (inRadius) startCamera(facingMode); }} style={{ opacity: inRadius ? 1 : 0.5, cursor: inRadius ? 'pointer' : 'not-allowed' }}>
+                <i className={inRadius ? "bi bi-camera" : "bi bi-camera-video-off"}></i>
+                <p>{inRadius ? 'Klik untuk mengaktifkan kamera' : 'Kamera terkunci (Di Luar Jangkauan)'}</p>
               </div>
             )}
           </div>

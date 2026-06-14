@@ -24,6 +24,7 @@ const AdminLayout = () => {
         navigate('/employee/beranda');
       }
       setUser({
+        ...parsedUser,
         name: parsedUser.name || 'Admin',
         position: 'Administrator',
         initial: (parsedUser.name || 'A').charAt(0).toUpperCase() + 'D'
@@ -148,7 +149,11 @@ const AdminLayout = () => {
           <div className="sidebar-footer">
             <div className="sidebar-user" onClick={handleLogout}>
               <div className="avatar-wrapper" style={{ position: 'relative', width: 38, height: 38, flexShrink: 0 }}>
-                <div className="avatar avatar-sm" style={{ width: '100%', height: '100%' }}>{user.initial}</div>
+                {user.profile_pic_url ? (
+                  <img src={user.profile_pic_url} alt="Profile" className="avatar avatar-sm" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  <div className="avatar avatar-sm" style={{ width: '100%', height: '100%' }}>{user.initial}</div>
+                )}
                 <div className="status-indicator-dot online" title="Online Jaringan"
                   style={{ position: 'absolute', bottom: -2, right: -2, width: 11, height: 11, borderRadius: '50%', border: '2px solid var(--bg-surface)', boxShadow: '0 0 8px rgba(0,0,0,0.3)', zIndex: 10, transition: 'all var(--transition)' }}>
                 </div>
@@ -259,8 +264,12 @@ const AdminLayout = () => {
               <div className="topbar-divider hide-on-mobile"></div>
 
               <div className="user-dropdown-wrap hover-dropdown">
-                <button className="topbar-btn user-btn">
-                  <i className="bi bi-person"></i>
+                <button className="topbar-btn user-btn" style={{ padding: user.profile_pic_url ? 2 : undefined, overflow: 'hidden' }}>
+                  {user.profile_pic_url ? (
+                    <img src={user.profile_pic_url} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    <i className="bi bi-person"></i>
+                  )}
                 </button>
                 <div className="user-dropdown-menu" id="userDropdownMenu">
                   <div className="dropdown-header">{user.name || 'JEF GROUP AGENCY'}</div>

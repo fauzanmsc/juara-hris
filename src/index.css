@@ -2155,6 +2155,16 @@ html[data-theme="dark"] .sidebar-link:hover {
   }
 }
 
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes zoomOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.9); }
+}
+
 .stagger>*:nth-child(1) {
   animation-delay: .05s
 }
@@ -3928,7 +3938,7 @@ body.attendance-page #capturedImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: none;
+  display: block;
 }
 
 body.attendance-page .camera-actions {

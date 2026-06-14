@@ -459,13 +459,7 @@ function registerEmployee(body) {
 
   let profilePicUrl = '';
   if (profile_pic_base64) {
-    const safeName = name ? name.replace(/\s+/g, '') : 'User';
-    const photoData = uploadBase64ToDrive(profile_pic_base64, `profile_${safeName}_v${Date.now()}.jpg`, 'foto_profil');
-    if (photoData.id) {
-      profilePicUrl = `https://lh3.googleusercontent.com/d/${photoData.id}`;
-    } else if (photoData.url && !photoData.url.startsWith('ERROR')) {
-      profilePicUrl = photoData.url;
-    }
+    profilePicUrl = profile_pic_base64;
   }
 
   // Cari divisi dari jabatan
