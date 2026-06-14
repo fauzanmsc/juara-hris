@@ -104,16 +104,18 @@ const EmployeeLayout = () => {
           <NavLink to="/employee/beranda" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <i className="bi bi-house-fill"></i>Beranda
           </NavLink>
-          <NavLink to="/employee/attendance" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <div className="nav-icon-wrapper">
-              <i className="bi bi-person-bounding-box"></i>
-              <div className="nav-indicator"></div>
-            </div>
-            Absensi
-          </NavLink>
           <NavLink to="/employee/tasks" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <i className="bi bi-list-task"></i>Tugas
           </NavLink>
+          
+          {/* Middle Absensi Button */}
+          <NavLink to="/employee/attendance" className={({ isActive }) => `nav-item nav-item-special ${isActive ? 'active' : ''}`}>
+            <div className="special-icon-wrap">
+              <i className="bi bi-person-bounding-box"></i>
+            </div>
+            <span>Absensi</span>
+          </NavLink>
+          
           <NavLink to="/employee/leave" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <i className="bi bi-calendar2-check-fill"></i>Pengajuan
           </NavLink>

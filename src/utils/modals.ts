@@ -60,19 +60,30 @@ export const initModals = () => {
             document.body.appendChild(overlay);
         }
     
+        const lowerTitle = title.toLowerCase();
+        const lowerMsg = message.toLowerCase();
+        const isDanger = lowerTitle.includes('keluar') || lowerTitle.includes('hapus') || lowerMsg.includes('hapus') || lowerMsg.includes('tolak');
+        
+        let iconClass = 'bi-question-circle';
+        if (lowerTitle.includes('keluar')) iconClass = 'bi-box-arrow-right';
+        else if (isDanger) iconClass = 'bi-trash3';
+
+        const colorTheme = isDanger ? 'var(--danger)' : 'var(--primary)';
+        const bgTheme = isDanger ? 'rgba(239, 68, 68, 0.12)' : 'var(--primary-glow)';
+        const btnActionText = lowerTitle.includes('keluar') ? 'Keluar' : (isDanger ? 'Hapus' : 'Lanjutkan');
+
         overlay.innerHTML = `
-            <div class="modal border-animated-modal" style="text-align:center; padding: 24px; max-width: 420px; width: min(420px,95%); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow: visible;">
-                <div class="card-border-glow"></div>
-                <button onclick="document.getElementById('globalConfirmOverlay').remove()" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:14px; transition:all 0.2s;"><i class="bi bi-x-lg"></i></button>
+            <div class="modal" style="text-align:center; padding: 32px 24px; max-width: 400px; width: min(400px, 95%); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position:relative; overflow: visible; background: var(--bg-card); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+                <button onclick="document.getElementById('globalConfirmOverlay').remove()" style="position:absolute; top:16px; right:16px; z-index:10; background:transparent; border:none; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer; font-size:22px; transition:all 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'"><i class="bi bi-x"></i></button>
                 <div style="position:relative; z-index:2;">
-                    <div style="width:64px; height:64px; border-radius:50%; background:rgba(239, 68, 68, 0.12); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:28px; margin: 0 auto 16px;">
-                        <i class="bi bi-box-arrow-right"></i>
+                    <div style="width:72px; height:72px; border-radius:50%; background:${bgTheme}; color:${colorTheme}; display:flex; align-items:center; justify-content:center; font-size:32px; margin: 0 auto 20px;">
+                        <i class="bi ${iconClass}"></i>
                     </div>
-                    <h3 style="font-size:20px; font-weight:800; margin-bottom:8px; font-family:var(--font-head); color:var(--text);">${title}</h3>
-                    <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:20px;">${message}</p>
+                    <h3 style="font-size:22px; font-weight:700; margin-bottom:12px; font-family:var(--font-head); color:var(--text); letter-spacing: -0.5px;">${title}</h3>
+                    <p style="font-size:15px; color:var(--text-muted); line-height:1.5; margin-bottom:32px; padding: 0 10px;">${message}</p>
                     <div style="display:flex; gap:12px;">
-                        <button class="btn btn-ghost" onclick="document.getElementById('globalConfirmOverlay').remove()" style="flex:1; border-radius:12px; height:48px;">Batal</button>
-                        <button class="btn btn-primary btn-neu-3d" id="confirmYesBtn" style="flex:1; border-radius:12px; height:48px; background:linear-gradient(135deg, var(--danger), #dc2626); color:white !important; border:none; cursor:pointer;">Keluar</button>
+                        <button class="btn" onclick="document.getElementById('globalConfirmOverlay').remove()" style="flex:1; border-radius:12px; height:48px; background: var(--bg-deep); color: var(--text); border: 1px solid var(--border); font-weight: 600; font-size: 15px;">Batal</button>
+                        <button class="btn" id="confirmYesBtn" style="flex:1; border-radius:12px; height:48px; background: ${colorTheme}; color: white !important; border: none; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px ${bgTheme};">${btnActionText}</button>
                     </div>
                 </div>
             </div>
