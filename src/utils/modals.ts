@@ -81,9 +81,9 @@ export const initModals = () => {
                     </div>
                     <h3 style="font-size:22px; font-weight:700; margin-bottom:12px; font-family:var(--font-head); color:var(--text); letter-spacing: -0.5px;">${title}</h3>
                     <p style="font-size:15px; color:var(--text-muted); line-height:1.5; margin-bottom:32px; padding: 0 10px;">${message}</p>
-                    <div style="display:flex; gap:12px;">
-                        <button class="btn" onclick="document.getElementById('globalConfirmOverlay').remove()" style="flex:1; border-radius:12px; height:48px; background: var(--bg-deep); color: var(--text); border: 1px solid var(--border); font-weight: 600; font-size: 15px;">Batal</button>
-                        <button class="btn" id="confirmYesBtn" style="flex:1; border-radius:12px; height:48px; background: ${colorTheme}; color: white !important; border: none; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px ${bgTheme};">${btnActionText}</button>
+                    <div style="display:flex; gap:12px; flex-direction: ${lowerTitle.includes('keluar') ? 'column' : 'row'};">
+                        ${!lowerTitle.includes('keluar') ? `<button class="btn" onclick="document.getElementById('globalConfirmOverlay').remove()" style="flex:1; border-radius:12px; height:48px; background: var(--bg-deep); color: var(--text); border: 1px solid var(--border); font-weight: 600; font-size: 15px; cursor: pointer;">Batal</button>` : ''}
+                        <button class="btn" id="confirmYesBtn" style="flex:1; border-radius:12px; height:48px; background: ${colorTheme}; color: white !important; border: none; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px ${bgTheme};">${lowerTitle.includes('keluar') ? 'Ya, Keluar' : btnActionText}</button>
                     </div>
                 </div>
             </div>

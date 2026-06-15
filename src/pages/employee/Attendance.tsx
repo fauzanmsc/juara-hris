@@ -303,9 +303,8 @@ const Attendance = () => {
               )}
               {cameraActive && (
                 <>
-                  <span className="camera-toggle" style={{ color: 'var(--success)' }}>On-Cam <i className="bi bi-check"></i></span>
-                  <span className="camera-toggle" onClick={stopCamera} style={{ cursor: 'pointer', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 8px', borderRadius: 12, color: 'var(--danger)' }} title="Matikan Kamera"><i className="bi bi-camera-video-off"></i> Tutup</span>
-                  <span className="camera-toggle" onClick={flipCamera} style={{ cursor: 'pointer', background: 'rgba(255,183,3,0.1)', padding: '2px 8px', borderRadius: 12, color: 'var(--primary)' }} title="Putar Kamera"><i className="bi bi-arrow-repeat"></i> Flip</span>
+                  <span className="camera-toggle" onClick={stopCamera} style={{ cursor: 'pointer', background: 'rgba(239, 68, 68, 0.1)', padding: '6px 10px', borderRadius: '50%', color: 'var(--danger)', fontSize: 16 }} title="Matikan Kamera"><i className="bi bi-camera-video-off"></i></span>
+                  <span className="camera-toggle" onClick={flipCamera} style={{ cursor: 'pointer', background: 'rgba(255,183,3,0.1)', padding: '6px 10px', borderRadius: '50%', color: 'var(--primary)', fontSize: 16 }} title="Putar Kamera"><i className="bi bi-arrow-repeat"></i></span>
                 </>
               )}
             </div>
@@ -321,12 +320,14 @@ const Attendance = () => {
               </div>
             )}
           </div>
-          <div className="camera-actions">
-            <button className="btn-capture" onClick={capturePhoto} disabled={!cameraActive}>
+          <div className="camera-actions" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'center' }}>
+            <button className="btn-capture" onClick={capturePhoto} disabled={!cameraActive} style={{ flex: 1 }}>
               <i className="bi bi-camera-fill"></i> Ambil Foto
             </button>
             {photo && (
-              <button className="btn-retake" onClick={retakePhoto}><i className="bi bi-arrow-repeat"></i></button>
+              <button onClick={retakePhoto} title="Ambil Ulang Foto" style={{ background: 'rgba(255, 183, 3, 0.1)', border: 'none', color: 'var(--primary)', fontSize: 22, cursor: 'pointer', padding: '10px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44 }}>
+                <i className="bi bi-arrow-repeat"></i>
+              </button>
             )}
           </div>
         </div>

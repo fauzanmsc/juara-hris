@@ -9,6 +9,23 @@ declare global {
   }
 }
 
+const getDirectUrl = (url?: string) => {
+  if (!url) return '';
+  let id = '';
+  if (url.includes('/file/d/')) {
+    id = url.split('/file/d/')[1]?.split('/')[0];
+  } else if (url.includes('id=')) {
+    const match = url.match(/[?&]id=([^&]+)/);
+    if (match) id = match[1];
+  }
+  
+  if (id) {
+    // Use Google Drive thumbnail API for reliable image embedding without cookie/CORS issues
+    return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+  }
+  return url;
+};
+
 const Dashboard = () => {
   const [stats, setStats] = useState({
     hadir: 0,
@@ -20,6 +37,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<any>({});
   const [liveLogs, setLiveLogs] = useState<any[]>([]);
   const [belumAbsen, setBelumAbsen] = useState<any[]>([]);
+  const [cutiSakit, setCutiSakit] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [chartRange, setChartRange] = useState('monthly');
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
@@ -58,6 +76,7 @@ const Dashboard = () => {
         });
         setLiveLogs(res.live_log || []);
         setBelumAbsen(res.belum_absen_users || []);
+        setCutiSakit(res.cuti_users || []);
         renderPieChart(res.stats);
       }
     } catch (err) {
@@ -247,7 +266,8 @@ const Dashboard = () => {
             <div className="live-feed-empty" style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-muted)', fontSize: 13, background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px dashed var(--border)' }}>Belum ada foto absensi terbaru</div>
           ) : (
             liveLogs.filter(l => l.photo_url || l.photo_in_url || l.photo_in).map((log, i) => {
-              const photo = log.photo_url || log.photo_in_url || log.photo_in;
+              const rawPhoto = log.photo_in_url || log.photo_in || log.photo_url;
+              const photo = getDirectUrl(rawPhoto);
               const status = log.status_in || 'Belum Absen';
               let badgeClass = 'is-on-time';
               if (status === 'Terlambat') badgeClass = 'is-late';
@@ -345,8 +365,8 @@ const Dashboard = () => {
                         </span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        {(log.photo_in || log.photo_url) ? (
-                           <button type="button" onClick={() => { setPreviewPhoto(log.photo_in || log.photo_url); setZoomLevel(1); }} className="btn btn-sm btn-ghost" title="Lihat Foto"><i className="bi bi-camera text-primary"></i></button>
+                        {(log.photo_in || log.photo_url || log.photo_in_url) ? (
+                           <button type="button" onClick={() => { setPreviewPhoto(getDirectUrl(log.photo_in_url || log.photo_in || log.photo_url)); setZoomLevel(1); }} className="btn btn-sm btn-ghost" title="Lihat Foto"><i className="bi bi-camera text-primary"></i></button>
                         ) : '-'}
                       </td>
                     </tr>
@@ -396,6 +416,46 @@ const Dashboard = () => {
               </table>
             </div>
           </div>
+
+          <div className="card p-0" style={{ margin: 0 }}>
+            <div style={{ padding: 20 }}>
+              <h3 className="card-title text-primary"><i className="bi bi-calendar-check-fill" style={{ marginRight: 8 }}></i>Cuti / Izin / Sakit</h3>
+              <p className="card-subtitle">Karyawan tidak hadir hari ini</p>
+            </div>
+            <div className="table-wrap" style={{ border: 'none', borderRadius: 0, marginTop: 0, maxHeight: 250, overflowY: 'auto' }}>
+              <table className="table-compact">
+                <tbody>
+                  {loading ? (
+                    <tr><td style={{ textAlign: 'center', padding: 20 }}>Memuat...</td></tr>
+                  ) : cutiSakit.length === 0 ? (
+                    <tr><td style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>Tidak ada karyawan cuti/izin/sakit</td></tr>
+                  ) : (
+                    cutiSakit.map((u, i) => (
+                      <tr key={i}>
+                        <td>
+                          <div className="user-cell" style={{ justifyContent: 'space-between', width: '100%' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
+                              <div className="user-cell-info" style={{ textAlign: 'left', alignItems: 'flex-start' }}>
+                                <span className="user-cell-name">{u.name}</span>
+                                <span className="user-cell-role">{u.position}</span>
+                              </div>
+                            </div>
+                            <span className={`badge ${u.type === 'Sakit' ? 'badge-danger' : u.type === 'Izin' ? 'badge-warn' : 'badge-primary'}`}>
+                              {u.type || 'Cuti'}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+              <a href="/admin/leave-report" className="btn btn-sm btn-ghost" style={{ width: '100%', fontSize: 13 }}>Lihat Selengkapnya</a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -409,7 +469,7 @@ const Dashboard = () => {
                <button onClick={() => setPreviewPhoto(null)} style={{ background: '#333', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', cursor: 'pointer', transition: 'all 0.2s', marginLeft: 8 }}><i className="bi bi-x-lg" style={{ fontSize: 14 }}></i></button>
             </div>
             <div style={{ padding: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', height: 480, background: '#121212' }}>
-               <img src={previewPhoto} style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 16, objectFit: 'contain', transform: `scale(${zoomLevel})`, transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)', transformOrigin: 'center center' }} />
+               <img src={previewPhoto} onError={(e) => { (e.target as any).src = '/img/profile.png'; }} style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 16, objectFit: 'contain', transform: `scale(${zoomLevel})`, transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)', transformOrigin: 'center center' }} />
             </div>
           </div>
         </div>,
