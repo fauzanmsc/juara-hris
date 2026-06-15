@@ -289,7 +289,7 @@ const AdminLayout = () => {
               </button>
 
               <button className="topbar-btn" onClick={toggleTheme} data-tooltip="Beralih ke mode gelap">
-                <i className={theme === 'dark' ? "bi bi-brightness-high" : "bi bi-moon-fill"}></i>
+                <i className={theme === 'dark' ? "bi bi-brightness-high" : "bi bi-moon"}></i>
               </button>
 
               <div className="topbar-divider hide-on-mobile"></div>

@@ -85,11 +85,16 @@ const Leave = () => {
     return diff;
   };
 
+  const isSubmittingRef = React.useRef(false);
+
   const submitLeave = async () => {
+    if (isSubmittingRef.current) return;
     if (!startDate || !endDate || !reason) {
       alert('Harap lengkapi semua bidang');
       return;
     }
+    
+    isSubmittingRef.current = true;
     const days = calculateDays();
     if (days === null || days < 1) {
       alert('Tanggal selesai harus lebih besar atau sama dengan tanggal mulai');
@@ -138,6 +143,7 @@ const Leave = () => {
       alert('Terjadi kesalahan jaringan.');
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 

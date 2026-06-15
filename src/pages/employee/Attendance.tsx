@@ -202,9 +202,18 @@ const Attendance = () => {
     startCamera();
   };
 
+  const isSubmittingRef = useRef(false);
+
   const submitAttendance = async () => {
-    if (!photo || !location || !inRadius || !config) return;
+    if (isSubmittingRef.current) return;
+    if (!photo) {
+      alert('Harap ambil foto terlebih dahulu');
+      return;
+    }
+    
+    isSubmittingRef.current = true;
     setLoading(true);
+    
     try {
       const userStr = localStorage.getItem('hris_user');
       if (!userStr) return;
@@ -239,6 +248,7 @@ const Attendance = () => {
       alert('Terjadi kesalahan jaringan.');
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 

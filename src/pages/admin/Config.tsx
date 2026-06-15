@@ -126,7 +126,42 @@ const Config = () => {
   };
 
   if (loading) {
-    return <div className="fade-in" style={{ padding: 30, textAlign: 'center' }}>Memuat konfigurasi...</div>;
+    return (
+      <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 20 }}>
+        <div className="config-modern-loader"></div>
+        <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>Memuat konfigurasi...</div>
+        <style>{`
+          .config-modern-loader {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: inline-block;
+            border-top: 4px solid var(--primary);
+            border-right: 4px solid transparent;
+            box-sizing: border-box;
+            animation: configRotation 1s linear infinite;
+            position: relative;
+          }
+          .config-modern-loader::after {
+            content: '';  
+            box-sizing: border-box;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border-left: 4px solid rgba(255, 183, 3, 0.5); /* secondary accent */
+            border-bottom: 4px solid transparent;
+            animation: configRotation 0.5s linear infinite reverse;
+          }
+          @keyframes configRotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   return (
@@ -146,16 +181,18 @@ const Config = () => {
               <label className="form-label">Longitude</label>
               <input type="text" className="form-control" placeholder="106.8456" value={form.longitude} onChange={e => setForm({ ...form, longitude: e.target.value })} />
             </div>
-            <div className="form-group">
-              <label className="form-label">Aktifkan Batasan Radius</label>
-              <select className="form-control" value={form.radius_enabled} onChange={e => setForm({ ...form, radius_enabled: e.target.value })}>
-                <option value="true">Aktif (Wajib dalam radius)</option>
-                <option value="false">Nonaktif (Bebas lokasi)</option>
-              </select>
-            </div>
-            <div className="form-group" style={{ opacity: form.radius_enabled === 'true' ? 1 : 0.5 }}>
-              <label className="form-label">Radius Maksimal (meter)</label>
-              <input type="number" className="form-control" value={form.radius} onChange={e => setForm({ ...form, radius: e.target.value })} disabled={form.radius_enabled !== 'true'} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="form-group">
+                <label className="form-label">Aktifkan Batasan Radius</label>
+                <select className="form-control" value={form.radius_enabled} onChange={e => setForm({ ...form, radius_enabled: e.target.value })}>
+                  <option value="true">Aktif</option>
+                  <option value="false">Nonaktif</option>
+                </select>
+              </div>
+              <div className="form-group" style={{ opacity: form.radius_enabled === 'true' ? 1 : 0.5 }}>
+                <label className="form-label">Radius Maksimal (meter)</label>
+                <input type="number" className="form-control" value={form.radius} onChange={e => setForm({ ...form, radius: e.target.value })} disabled={form.radius_enabled !== 'true'} />
+              </div>
             </div>
             <div ref={mapRef} style={{ height: 180, borderRadius: 'var(--radius-md)', marginTop: 15, border: '1px solid var(--border)', boxShadow: 'var(--shadow-neu-inset)', zIndex: 1, opacity: form.radius_enabled === 'true' ? 1 : 0.5, pointerEvents: form.radius_enabled === 'true' ? 'auto' : 'none' }}></div>
           </div>

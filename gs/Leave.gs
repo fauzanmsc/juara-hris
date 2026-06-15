@@ -1,71 +1,80 @@
 // ============ LEAVE ============
 
 function submitLeave(body) {
-  const { user_id, type, start_date, end_date, reason, attachment_base64, attachment_name } = body;
-  if (!user_id || !type || !start_date || !end_date || !reason) {
-    return { success: false, message: 'Data pengajuan tidak lengkap' };
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return { success: false, message: 'Sistem sedang memproses pengajuan Anda. Silakan tunggu.' };
   }
 
-  let photoData = { url: '', id: null };
-  if (attachment_base64) {
-    const ext = (attachment_name || 'doc').split('.').pop();
-    const fname = `leave_${user_id}_${Date.now()}.${ext}`;
-    photoData = uploadBase64ToDrive(attachment_base64, fname, 'dokumen_cuti');
-  }
-
-  const sheet = getSheet(SHEET.LEAVE);
-  const newId = generateId('LVR');
-  const lastRow = sheet.getLastRow() + 1;
-  
-  // If this is a 'Cuti' request, validate remaining quota first
-  if (String(type).toLowerCase() === 'cuti') {
-    try {
-      const quotaSheet = getOrCreateSheet(SHEET.QUOTAS, ['user_id', 'name', 'allowed_leave_quota']);
-      const quotas = sheetToObjects(quotaSheet);
-      let qRecord = quotas.find(q => String(q.user_id) === String(user_id));
-      let allowedQuota = 12;
-      if (qRecord) allowedQuota = Number(qRecord.allowed_leave_quota);
-      else quotaSheet.appendRow([user_id, '', 12]);
-
-      // Calculate requested days (inclusive)
-      const s = new Date(start_date);
-      const e = new Date(end_date);
-      const reqDays = Math.round((e - s) / (24 * 3600 * 1000)) + 1;
-
-      // Count existing Cuti (Approved + Pending) for this user
-      const allLeaves = sheetToObjects(getSheet(SHEET.LEAVE));
-      const usedCuti = allLeaves
-        .filter(l => String(l.user_id) === String(user_id) && String(l.type) === 'Cuti' && String(l.status) !== 'Rejected')
-        .reduce((sum, l) => {
-          const s2 = new Date(l.start_date);
-          const e2 = new Date(l.end_date);
-          const days = Math.round((e2 - s2) / (24 * 3600 * 1000)) + 1;
-          return sum + (isNaN(days) ? 0 : days);
-        }, 0);
-
-      const remaining = allowedQuota - usedCuti;
-      if (reqDays > remaining) {
-        return { success: false, message: `Kuota cuti tidak mencukupi. Sisa kuota: ${remaining} hari` };
-      }
-    } catch (e) {
-      // if quota check fails for any reason, allow submission but log
-      Logger.log('Quota check failed: ' + e.message);
+  try {
+    const { user_id, type, start_date, end_date, reason, attachment_base64, attachment_name } = body;
+    if (!user_id || !type || !start_date || !end_date || !reason) {
+      return { success: false, message: 'Data pengajuan tidak lengkap' };
     }
+
+    let photoData = { url: '', id: null };
+    if (attachment_base64) {
+      const ext = (attachment_name || 'doc').split('.').pop();
+      const fname = `leave_${user_id}_${Date.now()}.${ext}`;
+      photoData = uploadBase64ToDrive(attachment_base64, fname, 'dokumen_cuti');
+    }
+
+    const sheet = getSheet(SHEET.LEAVE);
+    const newId = generateId('LVR');
+    const lastRow = sheet.getLastRow() + 1;
+    
+    // If this is a 'Cuti' request, validate remaining quota first
+    if (String(type).toLowerCase() === 'cuti') {
+      try {
+        const quotaSheet = getOrCreateSheet(SHEET.QUOTAS, ['user_id', 'name', 'allowed_leave_quota']);
+        const quotas = sheetToObjects(quotaSheet);
+        let qRecord = quotas.find(q => String(q.user_id) === String(user_id));
+        let allowedQuota = 12;
+        if (qRecord) allowedQuota = Number(qRecord.allowed_leave_quota);
+        else quotaSheet.appendRow([user_id, '', 12]);
+
+        // Calculate requested days (inclusive)
+        const s = new Date(start_date);
+        const e = new Date(end_date);
+        const reqDays = Math.round((e - s) / (24 * 3600 * 1000)) + 1;
+
+        // Count existing Cuti (Approved + Pending) for this user
+        const allLeaves = sheetToObjects(getSheet(SHEET.LEAVE));
+        const usedCuti = allLeaves
+          .filter(l => String(l.user_id) === String(user_id) && String(l.type) === 'Cuti' && String(l.status) !== 'Rejected')
+          .reduce((sum, l) => {
+            const s2 = new Date(l.start_date);
+            const e2 = new Date(l.end_date);
+            const days = Math.round((e2 - s2) / (24 * 3600 * 1000)) + 1;
+            return sum + (isNaN(days) ? 0 : days);
+          }, 0);
+
+        const remaining = allowedQuota - usedCuti;
+        if (reqDays > remaining) {
+          return { success: false, message: `Kuota cuti tidak mencukupi. Sisa kuota: ${remaining} hari` };
+        }
+      } catch (e) {
+        // if quota check fails for any reason, allow submission but log
+        Logger.log('Quota check failed: ' + e.message);
+      }
+    }
+
+    sheet.appendRow([
+      newId, user_id, type,
+      start_date, end_date, reason,
+      photoData.url, 'Pending', '', // attachment, status, approved_by
+      new Date().toISOString() // created_at
+    ]);
+
+    // Auto Chip Lampiran Cuti
+    if (photoData.id) {
+      try { sheet.getRange(lastRow, 7).insertFileChip(photoData.id); } catch(e) {}
+    }
+
+    return { success: true, request_id: newId };
+  } finally {
+    lock.releaseLock();
   }
-
-  sheet.appendRow([
-    newId, user_id, type,
-    start_date, end_date, reason,
-    photoData.url, 'Pending', '', // attachment, status, approved_by
-    new Date().toISOString() // created_at
-  ]);
-
-  // Auto Chip Lampiran Cuti
-  if (photoData.id) {
-    try { sheet.getRange(lastRow, 7).insertFileChip(photoData.id); } catch(e) {}
-  }
-
-  return { success: true, request_id: newId };
 }
 
 function decideLeave(body) {

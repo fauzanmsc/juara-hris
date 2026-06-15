@@ -35,12 +35,14 @@ function getEmployeeDashboard(params) {
 
   // Check today's active leave
   const leaves = sheetToObjects(getSheet(SHEET.LEAVE));
-  const todayLeave = leaves.find(l => 
-    l.user_id === user_id &&
-    l.status === 'Approved' &&
-    formatDate(l.start_date) <= today &&
-    formatDate(l.end_date) >= today
-  );
+  const todayLeave = leaves.find(l => {
+    if (l.user_id !== user_id) return false;
+    const statusStr = String(l.status || '').trim().toLowerCase();
+    if (statusStr !== 'approved') return false;
+    const s = l.start_date ? formatDate(l.start_date) : '';
+    const e = l.end_date ? formatDate(l.end_date) : s;
+    return s && e && s <= today && e >= today;
+  });
 
   // Get latest approved leave for notifications
   const approvedLeaves = leaves.filter(l => l.user_id === user_id && l.status === 'Approved');
@@ -120,11 +122,13 @@ function getAdminDashboard(params) {
     seenToday.add(uid);
     return true;
   });
-  const todayLeaves = leaves.filter(l =>
-    l.status === 'Approved' &&
-    formatDate(l.start_date) <= today &&
-    formatDate(l.end_date) >= today
-  );
+  const todayLeaves = leaves.filter(l => {
+    const statusStr = String(l.status || '').trim().toLowerCase();
+    if (statusStr !== 'approved') return false;
+    const s = l.start_date ? formatDate(l.start_date) : '';
+    const e = l.end_date ? formatDate(l.end_date) : s;
+    return s && e && s <= today && e >= today;
+  });
 
   const hadirUserIds = todayAtt.map(a => a.user_id);
   const cutiUserIds = todayLeaves.map(l => l.user_id);
@@ -160,6 +164,16 @@ function getAdminDashboard(params) {
     };
   }).reverse();
 
+  const cutiUsers = todayLeaves.map(l => {
+    const user = users.find(u => String(u.user_id) === String(l.user_id));
+    return {
+      name: user ? user.name : 'Unknown',
+      position: user ? user.position : '',
+      profile_pic_url: user ? formatImageUrl(user.profile_pic_url || '') : '',
+      type: l.leave_type || l.type || 'Cuti'
+    };
+  });
+
   return {
     success: true,
     profile_pic_url: admin ? formatImageUrl(admin.profile_pic_url || '') : '',
@@ -172,7 +186,8 @@ function getAdminDashboard(params) {
     },
     pending_count: pendingCount,
     live_log: liveLog,
-    belum_absen_users: absenUsers
+    belum_absen_users: absenUsers,
+    cuti_users: cutiUsers
   };
 }
 

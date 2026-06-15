@@ -1,145 +1,163 @@
 // ============ CLOCK IN ============
 
 function clockIn(body) {
-  const { user_id, lat, lng, photo_base64, client_time } = body;
-  const today = getTodayString();
-  const now = new Date();
-  const timeStr = client_time || Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
-  const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
-  const isSaturday = (dayName === 'Saturday');
-
-  const locationCheck = validateAttendanceLocation(lat, lng);
-  if (!locationCheck.valid) return { success: false, message: locationCheck.message };
-  const distanceMeters = Math.round(locationCheck.distance);
-
-  // Cek sudah clock in hari ini
-  const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
-  const todayAtt = attendance.find(a => a.user_id === user_id && formatDate(a.date) === today);
-  if (todayAtt && todayAtt.clock_in_time) {
-    return { success: false, message: 'Anda sudah melakukan Clock In hari ini' };
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return { success: false, message: 'Sistem sedang memproses absensi Anda. Silakan tunggu.' };
   }
-
-  // Hitung status (Tepat Waktu / Terlambat)
-  let scheduleStart, toleranceMin;
-  toleranceMin = parseInt(getConfigVal('tolerance_minutes', '15'));
-
-  if (isSaturday) { // Sabtu
-    scheduleStart = getConfigVal('saturday_start', '09:00');
-  } else { // Senin-Jumat
-    scheduleStart = getConfigVal('weekday_start', '10:00');
-  }
-
-  const [sH, sM] = scheduleStart.split(':').map(Number);
-  const deadlineMin = sH * 60 + sM + toleranceMin;
-  const [cH, cM] = timeStr.split(':').map(Number);
-  const clockMinutes = cH * 60 + cM;
-  const statusIn = clockMinutes <= deadlineMin ? 'Tepat Waktu' : 'Terlambat';
-
-  // Upload foto
-  let photoData = { url: 'NO_PHOTO_PROVIDED_BY_FRONTEND', id: null };
-  if (photo_base64) {
-    photoData = uploadBase64ToDrive(photo_base64, `in_${user_id}_${today}.jpg`, 'foto_absensi');
-  }
-
-  // Simpan ke sheet
-  const sheet = getSheet(SHEET.ATTENDANCE);
-  const newId = generateId('ATT');
-  const lastRow = sheet.getLastRow() + 1;
   
-  sheet.appendRow([
-    newId, user_id, today,
-    timeStr, '',
-    lat, lng,
-    '', '',
-    distanceMeters, '',
-    photoData.url, '',
-    statusIn, '', ''
-  ]);
+  try {
+    const { user_id, lat, lng, photo_base64, client_time } = body;
+    const today = getTodayString();
+    const now = new Date();
+    const timeStr = client_time || Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
+    const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
+    const isSaturday = (dayName === 'Saturday');
 
-  // Insert Smart Chip jika upload berhasil
-  if (photoData.id) {
-    try {
-      sheet.getRange(lastRow, 12).insertFileChip(photoData.id); // Kolom L (12)
-    } catch (e) { Logger.log('Chip error: ' + e.message); }
+    const locationCheck = validateAttendanceLocation(lat, lng);
+    if (!locationCheck.valid) return { success: false, message: locationCheck.message };
+    const distanceMeters = Math.round(locationCheck.distance);
+
+    // Cek sudah clock in hari ini
+    const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
+    const todayAtt = attendance.find(a => String(a.user_id).trim() === String(user_id).trim() && formatDate(a.date) === today);
+    if (todayAtt && todayAtt.clock_in_time) {
+      return { success: false, message: 'Anda sudah melakukan Clock In hari ini' };
+    }
+
+    // Hitung status (Tepat Waktu / Terlambat)
+    let scheduleStart, toleranceMin;
+    toleranceMin = parseInt(getConfigVal('tolerance_minutes', '15'));
+
+    if (isSaturday) { // Sabtu
+      scheduleStart = getConfigVal('saturday_start', '09:00');
+    } else { // Senin-Jumat
+      scheduleStart = getConfigVal('weekday_start', '10:00');
+    }
+
+    const [sH, sM] = scheduleStart.split(':').map(Number);
+    const deadlineMin = sH * 60 + sM + toleranceMin;
+    const [cH, cM] = timeStr.split(':').map(Number);
+    const clockMinutes = cH * 60 + cM;
+    const statusIn = clockMinutes <= deadlineMin ? 'Tepat Waktu' : 'Terlambat';
+
+    // Upload foto
+    let photoData = { url: 'NO_PHOTO_PROVIDED_BY_FRONTEND', id: null };
+    if (photo_base64) {
+      photoData = uploadBase64ToDrive(photo_base64, `in_${user_id}_${today}.jpg`, 'foto_absensi');
+    }
+
+    // Simpan ke sheet
+    const sheet = getSheet(SHEET.ATTENDANCE);
+    const newId = generateId('ATT');
+    const lastRow = sheet.getLastRow() + 1;
+    
+    sheet.appendRow([
+      newId, user_id, today,
+      timeStr, '',
+      lat, lng,
+      '', '',
+      distanceMeters, '',
+      photoData.url, '',
+      statusIn, '', ''
+    ]);
+
+    // Insert Smart Chip jika upload berhasil
+    if (photoData.id) {
+      try {
+        sheet.getRange(lastRow, 12).insertFileChip(photoData.id); // Kolom L (12)
+      } catch (e) { Logger.log('Chip error: ' + e.message); }
+    }
+
+    return { success: true, attendance_id: newId, status: statusIn, time: timeStr };
+  } finally {
+    lock.releaseLock();
   }
-
-  return { success: true, attendance_id: newId, status: statusIn, time: timeStr };
 }
 
 
 // ============ CLOCK OUT ============
 
 function clockOut(body) {
-  const { user_id, lat, lng, photo_base64, client_time } = body;
-  const today = getTodayString();
-  const now = new Date();
-  const timeStr = client_time || Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
-  const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
-  const isSaturday = (dayName === 'Saturday');
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return { success: false, message: 'Sistem sedang memproses absensi Anda. Silakan tunggu.' };
+  }
 
-  const locationCheck = validateAttendanceLocation(lat, lng);
-  if (!locationCheck.valid) return { success: false, message: locationCheck.message };
-  const distanceMeters = Math.round(locationCheck.distance);
+  try {
+    const { user_id, lat, lng, photo_base64, client_time } = body;
+    const today = getTodayString();
+    const now = new Date();
+    const timeStr = client_time || Utilities.formatDate(now, 'GMT+7', 'HH:mm:ss');
+    const dayName = Utilities.formatDate(now, 'GMT+7', 'EEEE'); // 'Monday', 'Tuesday', ...
+    const isSaturday = (dayName === 'Saturday');
 
-  const sheet = getSheet(SHEET.ATTENDANCE);
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0].map(h => String(h).trim());
-  const idx = {
-    user_id: headers.indexOf('user_id'),
-    date: headers.indexOf('date'),
-    clock_out_time: headers.indexOf('clock_out_time'),
-    lat_out: headers.indexOf('lat_out'),
-    lng_out: headers.indexOf('lng_out'),
-    distance_out_meters: headers.indexOf('distance_out_meters'),
-    photo_out_url: headers.indexOf('photo_out_url'),
-    status_out: headers.indexOf('status_out')
-  };
+    const locationCheck = validateAttendanceLocation(lat, lng);
+    if (!locationCheck.valid) return { success: false, message: locationCheck.message };
+    const distanceMeters = Math.round(locationCheck.distance);
 
-  let rowIndex = -1;
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idx.user_id]) === String(user_id) &&
-        formatDate(data[i][idx.date]) === today &&
-        !data[i][idx.clock_out_time]) {
-      rowIndex = i + 1; break;
+    const sheet = getSheet(SHEET.ATTENDANCE);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).trim());
+    const idx = {
+      user_id: headers.indexOf('user_id'),
+      date: headers.indexOf('date'),
+      clock_out_time: headers.indexOf('clock_out_time'),
+      lat_out: headers.indexOf('lat_out'),
+      lng_out: headers.indexOf('lng_out'),
+      distance_out_meters: headers.indexOf('distance_out_meters'),
+      photo_out_url: headers.indexOf('photo_out_url'),
+      status_out: headers.indexOf('status_out')
+    };
+
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][idx.user_id]) === String(user_id) &&
+          formatDate(data[i][idx.date]) === today &&
+          !data[i][idx.clock_out_time]) {
+        rowIndex = i + 1; break;
+      }
     }
+
+    if (rowIndex === -1) return { success: false, message: 'Data Clock In hari ini tidak ditemukan' };
+
+    // Hitung status pulang
+    let scheduleEnd;
+    if (isSaturday) scheduleEnd = getConfigVal('saturday_end', '17:00');
+    else scheduleEnd = getConfigVal('weekday_end', '19:00');
+    const [eH, eM] = scheduleEnd.split(':').map(Number);
+    const endMinutes = eH * 60 + eM;
+    const [cH, cM] = timeStr.split(':').map(Number);
+    const clockMinutes = cH * 60 + cM;
+    const statusOut = clockMinutes >= endMinutes ? 'Normal' : 'Pulang Cepat';
+
+    // Upload foto
+    let photoData = { url: 'NO_PHOTO_PROVIDED_BY_FRONTEND', id: null };
+    if (photo_base64) {
+      photoData = uploadBase64ToDrive(photo_base64, `out_${user_id}_${today}.jpg`, 'foto_absensi');
+    }
+
+    // Update baris
+    sheet.getRange(rowIndex, idx.clock_out_time + 1).setValue(timeStr);
+    sheet.getRange(rowIndex, idx.lat_out + 1).setValue(lat);
+    sheet.getRange(rowIndex, idx.lng_out + 1).setValue(lng);
+    if (idx.distance_out_meters !== -1) {
+      sheet.getRange(rowIndex, idx.distance_out_meters + 1).setValue(distanceMeters);
+    }
+    sheet.getRange(rowIndex, idx.photo_out_url + 1).setValue(photoData.url);
+    sheet.getRange(rowIndex, idx.status_out + 1).setValue(statusOut);
+
+    // Insert Smart Chip jika upload berhasil
+    if (photoData.id) {
+      try {
+        sheet.getRange(rowIndex, idx.photo_out_url + 1).insertFileChip(photoData.id);
+      } catch (e) { Logger.log('Chip error: ' + e.message); }
+    }
+
+    return { success: true, status: statusOut, time: timeStr };
+  } finally {
+    lock.releaseLock();
   }
-
-  if (rowIndex === -1) return { success: false, message: 'Data Clock In hari ini tidak ditemukan' };
-
-  // Hitung status pulang
-  let scheduleEnd;
-  if (isSaturday) scheduleEnd = getConfigVal('saturday_end', '17:00');
-  else scheduleEnd = getConfigVal('weekday_end', '19:00');
-  const [eH, eM] = scheduleEnd.split(':').map(Number);
-  const endMinutes = eH * 60 + eM;
-  const [cH, cM] = timeStr.split(':').map(Number);
-  const clockMinutes = cH * 60 + cM;
-  const statusOut = clockMinutes >= endMinutes ? 'Normal' : 'Pulang Cepat';
-
-  // Upload foto
-  let photoData = { url: 'NO_PHOTO_PROVIDED_BY_FRONTEND', id: null };
-  if (photo_base64) {
-    photoData = uploadBase64ToDrive(photo_base64, `out_${user_id}_${today}.jpg`, 'foto_absensi');
-  }
-
-  // Update baris
-  sheet.getRange(rowIndex, idx.clock_out_time + 1).setValue(timeStr);
-  sheet.getRange(rowIndex, idx.lat_out + 1).setValue(lat);
-  sheet.getRange(rowIndex, idx.lng_out + 1).setValue(lng);
-  if (idx.distance_out_meters !== -1) {
-    sheet.getRange(rowIndex, idx.distance_out_meters + 1).setValue(distanceMeters);
-  }
-  sheet.getRange(rowIndex, idx.photo_out_url + 1).setValue(photoData.url);
-  sheet.getRange(rowIndex, idx.status_out + 1).setValue(statusOut);
-
-  // Insert Smart Chip jika upload berhasil
-  if (photoData.id) {
-    try {
-      sheet.getRange(rowIndex, idx.photo_out_url + 1).insertFileChip(photoData.id);
-    } catch (e) { Logger.log('Chip error: ' + e.message); }
-  }
-
-  return { success: true, status: statusOut, time: timeStr };
 }
 
 

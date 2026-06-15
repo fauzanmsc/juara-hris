@@ -11,18 +11,30 @@ declare global {
 
 const getDirectUrl = (url?: string) => {
   if (!url) return '';
-  let id = '';
-  if (url.includes('/file/d/')) {
-    id = url.split('/file/d/')[1]?.split('/')[0];
-  } else if (url.includes('id=')) {
-    const match = url.match(/[?&]id=([^&]+)/);
-    if (match) id = match[1];
+  
+  // 1. Raw Base64 handling (if backend stripped the prefix)
+  if (url.length > 100 && !url.startsWith('http') && !url.startsWith('data:')) {
+    // Replace spaces with + in case it was URL-decoded incorrectly by backend
+    return `data:image/jpeg;base64,${url.replace(/ /g, '+')}`;
   }
   
-  if (id) {
-    // Use Google Drive thumbnail API for reliable image embedding without cookie/CORS issues
-    return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+  // 2. Google Drive ID extraction
+  let id = '';
+  if (url.includes('/file/d/')) {
+    id = url.split('/file/d/')[1]?.split('/')[0] || '';
+  } else if (url.match(/[?&]id=([^&]+)/)) {
+    id = url.match(/[?&]id=([^&]+)/)![1];
+  } else if (url.includes('/d/')) {
+    const possibleId = url.split('/d/')[1]?.split('/')[0]?.split('?')[0] || '';
+    if (possibleId.length >= 25) id = possibleId;
   }
+  
+  // Use lh3.googleusercontent.com direct access for instant loading (bypasses thumbnail delay)
+  if (id && (url.includes('google') || url.includes('drive'))) {
+    return `https://lh3.googleusercontent.com/d/${id}`;
+  }
+
+  // 3. Fallback to original
   return url;
 };
 
@@ -58,6 +70,20 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchAndRenderLateChart();
+  }, [chartRange]);
+
+  // Observer to re-render charts when theme changes
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'data-theme') {
+          loadDashboard();
+          fetchAndRenderLateChart();
+        }
+      });
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
   }, [chartRange]);
 
   const loadDashboard = async () => {
@@ -106,9 +132,10 @@ const Dashboard = () => {
       dashPieInstance.current.destroy();
     }
 
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const currentTheme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('hris_theme') || 'light';
+    const isDark = currentTheme === 'dark';
     const textColor = isDark ? '#FFFFFF' : '#1E293B';
-    const chartBorderColor = isDark ? '#13192E' : '#FFFFFF';
+    const chartBorderColor = isDark ? '#121212' : '#FFFFFF';
 
     dashPieInstance.current = new window.Chart(ctx, {
       type: 'doughnut',
@@ -147,7 +174,8 @@ const Dashboard = () => {
       lateChartInstance.current.destroy();
     }
 
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const currentTheme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('hris_theme') || 'light';
+    const isDark = currentTheme === 'dark';
     const textColor = isDark ? '#FFFFFF' : '#1E293B';
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)';
 
@@ -276,7 +304,14 @@ const Dashboard = () => {
               
               return (
                 <button key={i} type="button" className="live-feed-card" onClick={() => { setPreviewPhoto(photo); setZoomLevel(1); }} aria-label={`Preview foto absensi ${log.name}`}>
-                  <img src={photo} alt={`Foto absensi ${log.name}`} loading="lazy" decoding="async" onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
+                  <img src={photo} alt={`Foto absensi ${log.name}`} loading="lazy" decoding="async" onError={(e) => { 
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== rawPhoto && rawPhoto && rawPhoto.startsWith('http')) {
+                      target.src = rawPhoto;
+                    } else if (!target.src.endsWith('/img/profile.png')) {
+                      target.src = '/img/profile.png';
+                    }
+                  }} />
                   <div className="live-feed-overlay">
                     <span className="live-feed-name">{log.name}</span>
                     <span className={`live-feed-badge ${badgeClass}`}>{status}</span>
@@ -336,7 +371,7 @@ const Dashboard = () => {
                     <tr key={i}>
                       <td>
                         <div className="user-cell" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <img src={log.profile_pic_url || log.profile_pic || '/img/profile.png'} alt="P" className="avatar avatar-sm" style={{ objectFit: 'cover', width: 36, height: 36, borderRadius: '50%' }} onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
+                          <img src={log.profile_pic_url || log.profile_pic || '/img/profile.png'} alt="P" className="avatar avatar-sm" style={{ objectFit: 'cover', width: 36, height: 36, borderRadius: '50%' }} onError={(e) => { if (!(e.target as any).src.endsWith('/img/profile.png')) (e.target as any).src = '/img/profile.png'; }} />
                           <div className="user-cell-info" style={{ display: 'flex', flexDirection: 'column' }}>
                             <span className="user-cell-name" style={{ fontWeight: 700, fontSize: 13 }}>{log.name}</span>
                             <span className="user-cell-role" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{log.position}</span>
@@ -402,7 +437,7 @@ const Dashboard = () => {
                       <tr key={i}>
                         <td>
                           <div className="user-cell" style={{ justifyContent: 'flex-start' }}>
-                            <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} onError={(e) => { (e.target as any).src = '/img/profile.png'; }} />
+                            <img src={u.profile_pic_url || '/img/profile.png'} className="avatar avatar-sm" style={{ objectFit: 'cover' }} onError={(e) => { if (!(e.target as any).src.endsWith('/img/profile.png')) (e.target as any).src = '/img/profile.png'; }} />
                             <div className="user-cell-info" style={{ textAlign: 'left', alignItems: 'flex-start' }}>
                               <span className="user-cell-name">{u.name}</span>
                               <span className="user-cell-role">{u.position}</span>

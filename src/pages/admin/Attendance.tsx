@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import * as XLSX from 'xlsx';
 import { fetchApi } from '../../api';
 
 const Attendance = () => {
@@ -64,6 +65,47 @@ const Attendance = () => {
     const matchStatus = statusFilter ? a.status_in === statusFilter : true;
     return matchSearch && matchStatus;
   });
+
+  const exportToExcel = () => {
+    if (filtered.length === 0) {
+      alert('Tidak ada data untuk diexport');
+      return;
+    }
+
+    const exportData = filtered.map((a, i) => ({
+      'No': i + 1,
+      'Nama Karyawan': a.name || 'Karyawan',
+      'Jabatan': a.position || 'Employee',
+      'Tanggal': a.dateStr || a.date || '-',
+      'Jam Masuk': a.clock_in_time || a.clock_in || '-',
+      'Jam Pulang': a.clock_out_time || a.clock_out || '-',
+      'Jarak Masuk (m)': a.distance_in_meters || a.distance_meters || a.distance || '-',
+      'Status Masuk': a.status_in || '-',
+      'Status Pulang': a.status_out || '-'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    
+    // Auto-fit columns
+    const colWidths = [
+      { wch: 5 }, // No
+      { wch: 25 }, // Nama
+      { wch: 20 }, // Jabatan
+      { wch: 15 }, // Tanggal
+      { wch: 15 }, // Jam Masuk
+      { wch: 15 }, // Jam Pulang
+      { wch: 15 }, // Jarak
+      { wch: 15 }, // Status Masuk
+      { wch: 15 }, // Status Pulang
+    ];
+    worksheet['!cols'] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Kehadiran');
+
+    const fileName = `Export_Kehadiran_${filterStart || 'Semua'}_sampai_${filterEnd || 'Semua'}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
 
   return (
     <div className="fade-in" style={{ padding: 20 }}>
@@ -144,7 +186,7 @@ const Attendance = () => {
             </select>
             <button className="btn btn-primary btn-search-round" onClick={loadData}><i className="bi bi-search"></i></button>
             <div className="admin-card-actions">
-              <button className="btn btn-sm btn-success" onClick={() => alert('Fitur Export CSV akan segera tersedia!')}><i className="bi bi-file-earmark-excel-fill"></i> Export CSV</button>
+              <button className="btn btn-sm btn-success" onClick={exportToExcel}><i className="bi bi-file-earmark-excel-fill"></i> Export XLSX</button>
             </div>
           </div>
 
