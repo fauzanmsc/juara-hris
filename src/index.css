@@ -6113,11 +6113,23 @@ table.table-modern {
 table.table-modern thead th {
   position: sticky;
   top: 0;
-  background: var(--bg-card);
   z-index: 10;
-  box-shadow: inset 0 -1.5px 0 var(--border);
-  border-right: 1px solid var(--border);
-  border-radius: 10px;
+  background: transparent;
+  padding: 14px 10px;
+}
+
+table.table-modern thead th::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  right: 6px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  z-index: -1;
 }
 
 table.table-modern thead th:last-child {
