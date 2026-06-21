@@ -8,6 +8,7 @@ function doGet(e) {
       case 'preflight':      result = preflightCheck(e.parameter); break;
       case 'employeeDashboard': result = getEmployeeDashboard(e.parameter); break;
       case 'adminDashboard': result = getAdminDashboard(e.parameter); break;
+      case 'getNotifications': result = getNotifications(e.parameter); break;
       case 'getUsers':       result = getUsers(); break;
       case 'getPendingLeaves': result = getPendingLeaves(); break;
       case 'getAttendance':  result = getAttendanceLog(e.parameter); break;
@@ -15,6 +16,7 @@ function doGet(e) {
       case 'getLeaveReport':  result = getLeaveReport(e.parameter); break;
       case 'getPositions':   result = getPositions(); break;
       case 'getDivisions':   result = getDivisions(); break;
+      case 'getLevels':      result = getLevels(); break;
       case 'getConfig':
         result = {
           success: true,
@@ -58,9 +60,16 @@ function doPost(e) {
       case 'deletePosition': result = deletePosition(body); break;
       case 'addDivision':    result = addDivision(body); break;
       case 'deleteDivision': result = deleteDivision(body); break;
+      case 'addLevel':       result = addLevel(body); break;
+      case 'updateLevel':    result = updateLevel(body); break;
+      case 'deleteLevel':    result = deleteLevel(body); break;
       case 'createTask':     result = createTask(body); break;
       case 'updateTask':     result = updateTask(body); break;
       case 'deleteTask':     result = deleteTask(body); break;
+      case 'updateJobDetails': result = updateJobDetails(body); break;
+      case 'updateSalaryStructure': result = updateSalaryStructure(body); break;
+      case 'updateDeductions': result = updateDeductions(body); break;
+      case 'updateBankAccounts': result = updateBankAccounts(body); break;
       default:               result = { success: false, message: 'Action tidak dikenali' };
     }
     return jsonResponse(result);

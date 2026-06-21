@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { fetchApi } from '../../api';
+import Pagination from '../../components/Pagination';
 
 const LeaveReport = () => {
   const [reports, setReports] = useState<any[]>([]);
@@ -8,6 +9,8 @@ const LeaveReport = () => {
   
   const [filterStart, setFilterStart] = useState('');
   const [filterEnd, setFilterEnd] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [adjustQuotaModal, setAdjustQuotaModal] = useState<any>(null);
 
@@ -66,8 +69,8 @@ const LeaveReport = () => {
           </button>
         </div>
 
-        <div className="table-wrap" style={{ maxHeight: 500, overflowY: 'auto' }}>
-          <table>
+        <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
+          <table className="table-modern">
             <thead>
               <tr>
                 <th style={{ width: 70, textAlign: 'center' }}>Foto</th>
@@ -87,7 +90,7 @@ const LeaveReport = () => {
               ) : reports.length === 0 ? (
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ada data</td></tr>
               ) : (
-                reports.map((r, i) => (
+                reports.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((r, i) => (
                   <tr key={i}>
                     <td style={{ textAlign: 'center' }}>
                       <img src={r.profile_pic_url || '/img/profile.png'} alt="P" className="avatar avatar-sm" style={{ objectFit: 'cover' }} />
@@ -110,6 +113,14 @@ const LeaveReport = () => {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          total={reports.length} 
+          pageSize={pageSize} 
+          currentPage={currentPage} 
+          setPageSize={setPageSize} 
+          setCurrentPage={setCurrentPage} 
+          label="laporan cuti" 
+        />
       </div>
 
       {adjustQuotaModal && createPortal(

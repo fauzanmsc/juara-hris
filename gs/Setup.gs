@@ -65,6 +65,13 @@ function setupSheets() {
       'key',
       'value',
       'format'
+    ],
+
+    tbl_lebel_jabatan: [
+      'level_id',
+      'level_name',
+      'nominal',
+      'created_at'
     ]
   };
 

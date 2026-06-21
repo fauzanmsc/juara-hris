@@ -50,6 +50,8 @@ const Dashboard = () => {
   const [liveLogs, setLiveLogs] = useState<any[]>([]);
   const [belumAbsen, setBelumAbsen] = useState<any[]>([]);
   const [cutiSakit, setCutiSakit] = useState<any[]>([]);
+  const [isHoliday, setIsHoliday] = useState(false);
+  const [holidayName, setHolidayName] = useState('');
   const [loading, setLoading] = useState(true);
   const [chartRange, setChartRange] = useState('monthly');
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
@@ -103,6 +105,8 @@ const Dashboard = () => {
         setLiveLogs(res.live_log || []);
         setBelumAbsen(res.belum_absen_users || []);
         setCutiSakit(res.cuti_users || []);
+        setIsHoliday(res.is_holiday || false);
+        setHolidayName(res.holiday_name || '');
         renderPieChart(res.stats);
       }
     } catch (err) {
@@ -237,6 +241,18 @@ const Dashboard = () => {
           Kelola karyawan, absensi, cuti, dan laporan administrasi HC secara efektif &amp; efisien.
         </p>
       </div>
+
+      {isHoliday && (
+        <div className="card fade-in" style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid var(--info)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--info)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0, boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+            <i className="bi bi-calendar2-heart-fill"></i>
+          </div>
+          <div>
+            <h3 style={{ margin: 0, color: 'var(--info)', fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-head)' }}>Hari Libur Operasional</h3>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{holidayName || 'Hari Minggu / Libur Nasional'}. Tidak ada kewajiban absensi untuk hari ini.</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid-4 stagger">
         <div className="stat-card">
@@ -430,6 +446,8 @@ const Dashboard = () => {
                 <tbody>
                   {loading ? (
                     <tr><td style={{ textAlign: 'center', padding: 20 }}>Memuat...</td></tr>
+                  ) : isHoliday ? (
+                    <tr><td style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}><i className="bi bi-cup-hot" style={{ fontSize: 32, opacity: 0.3, display: 'block', marginBottom: 12 }}></i> <span style={{ fontWeight: 600, fontSize: 14 }}>Hari Libur</span><br/><span style={{ fontSize: 12 }}>Karyawan tidak perlu absen hari ini</span></td></tr>
                   ) : belumAbsen.length === 0 ? (
                     <tr><td style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>Semua sudah absen</td></tr>
                   ) : (

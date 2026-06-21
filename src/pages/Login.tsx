@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchApi } from '../api';
+import logoWhite from '../assets/juara-hris-logo-white.png';
+import logoBlack from '../assets/juara-hris-logo-black.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +20,7 @@ const Login = () => {
   const [waMessage, setWaMessage] = useState('');
 
   const [theme, setTheme] = useState(localStorage.getItem('hris_theme') || 'dark');
+  const [waAdmin, setWaAdmin] = useState('628123456789');
   const [clockTime, setClockTime] = useState('00:00:00');
   const [clockDate, setClockDate] = useState('Memuat waktu...');
   const [typewriterText, setTypewriterText] = useState('');
@@ -47,6 +50,16 @@ const Login = () => {
       } catch (e) { }
     };
     loadPositions();
+
+    const loadConfig = async () => {
+      try {
+        const res = await fetchApi('getConfig', {}, 'GET');
+        if (res.success && res.config && res.config.wa_admin) {
+          setWaAdmin(res.config.wa_admin);
+        }
+      } catch (e) {}
+    };
+    loadConfig();
   }, []);
 
   useEffect(() => {
@@ -136,9 +149,8 @@ const Login = () => {
 
   const sendWAMessage = () => {
     if (!waMessage.trim()) return alert('Tulis pesan Anda terlebih dahulu.');
-    const waNum = '628123456789';
     const formattedMsg = `Hai Admin, ${waMessage.trim()}`;
-    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(formattedMsg)}`, '_blank');
+    window.open(`https://wa.me/${waAdmin}?text=${encodeURIComponent(formattedMsg)}`, '_blank');
     setWaMessage('');
     setWaChatOpen(false);
   };
@@ -166,8 +178,8 @@ const Login = () => {
 
       <div className="left-panel">
         <div className="brand" onClick={() => window.location.reload()} style={{ cursor: 'pointer' }}>
-          <img src="/img/logo-jef.png" alt="JUARA" className="logo-dark" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
-          <img src="/img/logo-jef-light.png" alt="JUARA" className="logo-light" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
+          <img src={logoWhite} alt="JUARA HRIS" className="logo-dark" style={{ height: 72, width: 'auto', objectFit: 'contain' }} />
+          <img src={logoBlack} alt="JUARA HRIS" className="logo-light" style={{ height: 72, width: 'auto', objectFit: 'contain' }} />
         </div>
 
         <div className="hero">
@@ -192,8 +204,8 @@ const Login = () => {
 
       <div className="right-panel">
         <div className="brand mobile-brand" onClick={() => window.location.reload()} style={{ cursor: 'pointer' }}>
-          <img src="/img/logo-jef.png" alt="JUARA" className="logo-dark" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
-          <img src="/img/logo-jef-light.png" alt="JUARA" className="logo-light" style={{ height: 46, width: 'auto', objectFit: 'contain' }} />
+          <img src={logoWhite} alt="JUARA HRIS" className="logo-dark" style={{ height: 64, width: 'auto', objectFit: 'contain' }} />
+          <img src={logoBlack} alt="JUARA HRIS" className="logo-light" style={{ height: 64, width: 'auto', objectFit: 'contain' }} />
         </div>
 
         <div id="loginFormSection" style={{ display: isRegistering ? 'none' : 'block' }}>

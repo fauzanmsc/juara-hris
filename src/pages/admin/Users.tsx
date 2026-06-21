@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { fetchApi } from '../../api';
+import Pagination from '../../components/Pagination';
 
 const Users = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -23,6 +25,8 @@ const Users = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     loadUsers();
@@ -176,7 +180,9 @@ const Users = () => {
     return matchSearch && matchStatus && matchRole;
   });
 
-  const groupedUsers = filteredUsers.reduce((acc, user) => {
+  const paginatedData = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const groupedUsers = paginatedData.reduce((acc, user) => {
     const role = (user.role || 'Employee').toUpperCase();
     if (!acc[role]) acc[role] = [];
     acc[role].push(user);
@@ -225,7 +231,7 @@ const Users = () => {
             <tbody>
               {loading ? (
                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: 30 }}>Memuat data karyawan...</td></tr>
-              ) : filteredUsers.length === 0 ? (
+              ) : paginatedData.length === 0 ? (
                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ditemukan</td></tr>
               ) : (
                 sortedRoles.map(role => (
@@ -257,6 +263,9 @@ const Users = () => {
                             <button className="btn btn-sm" onClick={() => handleEdit(u)} title="Edit" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 50, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                               <i className="bi bi-pencil-fill" style={{ fontSize: 12 }}></i>
                             </button>
+                            <Link to={`/admin/users/${encodeURIComponent(String(u.user_id))}`} className="btn btn-sm" title="Lihat Data" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 50, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--info)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                              <i className="bi bi-eye-fill" style={{ fontSize: 12 }}></i>
+                            </Link>
                             <button className={`btn btn-sm ${(u.status === 'Aktif' || u.status === 'Active') ? 'btn-danger' : 'btn-success'}`} onClick={() => toggleStatus(u.user_id, u.status)} style={{ borderRadius: 50, padding: '0 16px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, height: 32 }}>
                               <i className={`bi ${(u.status === 'Aktif' || u.status === 'Active') ? 'bi-power' : 'bi-check-circle-fill'}`} style={{ fontSize: 12 }}></i> {(u.status === 'Aktif' || u.status === 'Active') ? 'Nonaktif' : 'Aktif'}
                             </button>
@@ -270,6 +279,14 @@ const Users = () => {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          total={filteredUsers.length} 
+          pageSize={pageSize} 
+          currentPage={currentPage} 
+          setPageSize={setPageSize} 
+          setCurrentPage={setCurrentPage} 
+          label="karyawan" 
+        />
       </div>
 
       {isModalOpen && createPortal(

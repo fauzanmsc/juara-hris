@@ -17,7 +17,8 @@ const SHEET = {
   CONFIG: 'tbl_config',
   QUOTAS: 'tbl_leave_quota',
   POSITION: 'tbl_position',
-  TASKS: 'tbl_tasks'
+  TASKS: 'tbl_tasks',
+  LEVEL_JABATAN: 'tbl_lebel_jabatan'
 };
 
 // ============ HELPER: CONFIG ============

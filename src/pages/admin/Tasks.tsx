@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { fetchApi } from '../../api';
+import Pagination from '../../components/Pagination';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -12,6 +13,8 @@ const Tasks = () => {
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -123,6 +126,8 @@ const Tasks = () => {
     return matchSearch && matchCat && matchStatus;
   });
 
+  const paginatedData = filteredTasks.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="fade-in" style={{ padding: 20 }}>
       <div className="insight-banner-wrapper fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
@@ -183,7 +188,7 @@ const Tasks = () => {
           <button className="btn btn-primary" onClick={loadData}><i className="bi bi-search"></i> Cari</button>
         </div>
 
-        <div className="table-wrap" style={{ border: 'none', borderRadius: 0, maxHeight: 600, overflowY: 'auto' }}>
+        <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
           <table className="table-modern">
             <thead>
               <tr>
@@ -198,10 +203,10 @@ const Tasks = () => {
             <tbody>
               {loading ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30 }}>Memuat tugas...</td></tr>
-              ) : filteredTasks.length === 0 ? (
+              ) : paginatedData.length === 0 ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ada data</td></tr>
               ) : (
-                filteredTasks.map((t, i) => (
+                paginatedData.map((t, i) => (
                   <tr key={i}>
                     <td>
                       <div className="user-cell">
@@ -231,6 +236,14 @@ const Tasks = () => {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          total={filteredTasks.length} 
+          pageSize={pageSize} 
+          currentPage={currentPage} 
+          setPageSize={setPageSize} 
+          setCurrentPage={setCurrentPage} 
+          label="tugas" 
+        />
       </div>
 
       {isModalOpen && createPortal(

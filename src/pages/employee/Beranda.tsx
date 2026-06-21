@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useOutletContext, useNavigate } from 'react-router-dom';
 import { fetchApi } from '../../api';
+import logoWhite from '../../assets/juara-hris-logo-white.png';
+import logoBlack from '../../assets/juara-hris-logo-black.png';
 
 const Beranda = () => {
   const navigate = useNavigate();
@@ -106,8 +108,8 @@ const Beranda = () => {
     <>
       <div className="header">
         <div className="header-top">
-          <div className="brand-row">
-            <span>Juara HRIS</span>
+          <div className="brand-row" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src={theme === 'dark' ? logoWhite : logoBlack} alt="Juara HRIS" style={{ height: 32, objectFit: 'contain' }} />
             <span className="live-badge">LIVE</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>

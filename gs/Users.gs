@@ -2,6 +2,7 @@
 
 function getUsers() {
   ensureUsersDivisionMigration();
+  ensurePayrollColumnsMigration();
   const users = sheetToObjects(getSheet(SHEET.USERS));
   const safe = users.map(u => ({
     user_id: u.user_id, 
@@ -11,7 +12,18 @@ function getUsers() {
     role: u.role, 
     status: u.status,
     profile_pic_url: formatImageUrl(u.profile_pic_url),
-    division: u.division || 'Umum'
+    division: u.division || 'Umum',
+    job_level: u.job_level || '',
+    group_level: u.group_level || '',
+    grade_level: u.grade_level || '',
+    base_salary: u.base_salary || '',
+    position_allowance: u.position_allowance || '',
+    grade_allowance: u.grade_allowance || '',
+    group_allowance: u.group_allowance || '',
+    bpjs_tk: u.bpjs_tk || '',
+    bpjs_kes: u.bpjs_kes || '',
+    bank_account: u.bank_account || '',
+    bank_number: u.bank_number || ''
   }));
   return { success: true, users: safe };
 }
@@ -131,4 +143,123 @@ function updateUserStatus(body) {
   return { success: false, message: 'User tidak ditemukan' };
 }
 
+function ensurePayrollColumnsMigration() {
+  try {
+    const sheet = getSheet(SHEET.USERS);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).trim());
+    const newCols = [
+      'job_level', 'group_level', 'grade_level',
+      'base_salary', 'position_allowance', 'grade_allowance', 'group_allowance',
+      'bpjs_tk', 'bpjs_kes',
+      'bank_account', 'bank_number'
+    ];
+    let added = 0;
+    newCols.forEach(col => {
+      if (headers.indexOf(col) === -1) {
+        sheet.getRange(1, headers.length + 1 + added).setValue(col);
+        added++;
+      }
+    });
+  } catch (e) {
+    // Abaikan jika error
+  }
+}
 
+function updateJobDetails(body) {
+  const { user_id, job_level, group_level, grade_level } = body;
+  const sheet = getSheet(SHEET.USERS);
+  ensurePayrollColumnsMigration();
+  const headers = sheet.getDataRange().getValues()[0].map(h => String(h).trim());
+  
+  const idx = {
+    user_id: headers.indexOf('user_id'),
+    job: headers.indexOf('job_level'),
+    group: headers.indexOf('group_level'),
+    grade: headers.indexOf('grade_level')
+  };
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idx.user_id]) === String(user_id)) {
+      sheet.getRange(i+1, idx.job+1).setValue(job_level || '');
+      sheet.getRange(i+1, idx.group+1).setValue(group_level || '');
+      sheet.getRange(i+1, idx.grade+1).setValue(grade_level || '');
+      return { success: true };
+    }
+  }
+  return { success: false, message: 'User tidak ditemukan' };
+}
+
+function updateSalaryStructure(body) {
+  const { user_id, base_salary, position_allowance, grade_allowance, group_allowance } = body;
+  const sheet = getSheet(SHEET.USERS);
+  ensurePayrollColumnsMigration();
+  const headers = sheet.getDataRange().getValues()[0].map(h => String(h).trim());
+  
+  const idx = {
+    user_id: headers.indexOf('user_id'),
+    base: headers.indexOf('base_salary'),
+    pos: headers.indexOf('position_allowance'),
+    grade: headers.indexOf('grade_allowance'),
+    group: headers.indexOf('group_allowance')
+  };
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idx.user_id]) === String(user_id)) {
+      sheet.getRange(i+1, idx.base+1).setValue(base_salary || '');
+      sheet.getRange(i+1, idx.pos+1).setValue(position_allowance || '');
+      sheet.getRange(i+1, idx.grade+1).setValue(grade_allowance || '');
+      sheet.getRange(i+1, idx.group+1).setValue(group_allowance || '');
+      return { success: true };
+    }
+  }
+  return { success: false, message: 'User tidak ditemukan' };
+}
+
+function updateDeductions(body) {
+  const { user_id, bpjs_tk, bpjs_kes } = body;
+  const sheet = getSheet(SHEET.USERS);
+  ensurePayrollColumnsMigration();
+  const headers = sheet.getDataRange().getValues()[0].map(h => String(h).trim());
+  
+  const idx = {
+    user_id: headers.indexOf('user_id'),
+    tk: headers.indexOf('bpjs_tk'),
+    kes: headers.indexOf('bpjs_kes')
+  };
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idx.user_id]) === String(user_id)) {
+      sheet.getRange(i+1, idx.tk+1).setValue(bpjs_tk || '');
+      sheet.getRange(i+1, idx.kes+1).setValue(bpjs_kes || '');
+      return { success: true };
+    }
+  }
+  return { success: false, message: 'User tidak ditemukan' };
+}
+
+function updateBankAccounts(body) {
+  const { user_id, bank_account, bank_number } = body;
+  const sheet = getSheet(SHEET.USERS);
+  ensurePayrollColumnsMigration();
+  const headers = sheet.getDataRange().getValues()[0].map(h => String(h).trim());
+  
+  const idx = {
+    user_id: headers.indexOf('user_id'),
+    account: headers.indexOf('bank_account'),
+    number: headers.indexOf('bank_number')
+  };
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idx.user_id]) === String(user_id)) {
+      sheet.getRange(i+1, idx.account+1).setValue(bank_account || '');
+      sheet.getRange(i+1, idx.number+1).setValue(bank_number || '');
+      return { success: true };
+    }
+  }
+  return { success: false, message: 'User tidak ditemukan' };
+}

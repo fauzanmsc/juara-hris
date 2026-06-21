@@ -41,6 +41,17 @@ const EmployeeLayout = () => {
   }, [location.pathname]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
+        e.preventDefault();
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
     // Check login
     const loggedUser = localStorage.getItem('hris_user');
     if (!loggedUser) {

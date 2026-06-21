@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import * as XLSX from 'xlsx';
 import { fetchApi } from '../../api';
+import Pagination from '../../components/Pagination';
 
 const Attendance = () => {
   const [attendance, setAttendance] = useState<any[]>([]);
@@ -15,6 +16,8 @@ const Attendance = () => {
   const [filterEnd, setFilterEnd] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [editAtt, setEditAtt] = useState<any>(null);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
@@ -65,6 +68,8 @@ const Attendance = () => {
     const matchStatus = statusFilter ? a.status_in === statusFilter : true;
     return matchSearch && matchStatus;
   });
+
+  const paginatedData = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const exportToExcel = () => {
     if (filtered.length === 0) {
@@ -190,7 +195,7 @@ const Attendance = () => {
             </div>
           </div>
 
-          <div className="table-wrap" style={{ border: 'none', borderRadius: 0, borderTop: '1px solid var(--border)', marginTop: 20, maxHeight: 500, overflowY: 'auto' }}>
+          <div className="table-wrap" style={{ border: 'none', borderRadius: 0, borderTop: '1px solid var(--border)', marginTop: 20 }}>
             <table>
               <thead>
                 <tr>
@@ -207,10 +212,10 @@ const Attendance = () => {
               <tbody>
                 {loading ? (
                   <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30 }}>Memuat data absensi...</td></tr>
-                ) : filtered.length === 0 ? (
+                ) : paginatedData.length === 0 ? (
                   <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>Tidak ada data</td></tr>
                 ) : (
-                  filtered.map((a, i) => (
+                  paginatedData.map((a, i) => (
                     <tr key={i}>
                       <td>
                         <div className="user-cell" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
@@ -240,6 +245,14 @@ const Attendance = () => {
               </tbody>
             </table>
           </div>
+          <Pagination 
+            total={filtered.length} 
+            pageSize={pageSize} 
+            currentPage={currentPage} 
+            setPageSize={setPageSize} 
+            setCurrentPage={setCurrentPage} 
+            label="absensi" 
+          />
         </div>
       </div>
 

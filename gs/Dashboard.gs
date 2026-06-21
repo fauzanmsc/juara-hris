@@ -134,12 +134,29 @@ function getAdminDashboard(params) {
   const cutiUserIds = todayLeaves.map(l => l.user_id);
   
   const employeeUsers = users.filter(u => u.role === 'Employee');
-  const absenUsers = employeeUsers.filter(u =>
+  
+  // Check today's holiday and Sunday
+  const isSunday = new Date().getDay() === 0;
+  const holidays = sheetToObjects(getSheet(SHEET.HOLIDAYS));
+  const todayHoliday = holidays.find(h => {
+    const s = h.start_date ? formatDate(h.start_date) : '';
+    const e = h.end_date ? formatDate(h.end_date) : s;
+    return s && today >= s && today <= e;
+  });
+  
+  const isHoliday = isSunday || todayHoliday;
+  
+  let absenUsers = employeeUsers.filter(u =>
     !hadirUserIds.includes(u.user_id) && !cutiUserIds.includes(u.user_id)
   ).map(u => ({
     ...u,
     profile_pic_url: formatImageUrl(u.profile_pic_url || '')
   }));
+  
+  if (isHoliday) {
+    absenUsers = [];
+  }
+  
   const absenCount = absenUsers.length;
 
   const pendingCount = leaves.filter(l => l.status === 'Pending').length;
@@ -187,7 +204,9 @@ function getAdminDashboard(params) {
     pending_count: pendingCount,
     live_log: liveLog,
     belum_absen_users: absenUsers,
-    cuti_users: cutiUsers
+    cuti_users: cutiUsers,
+    is_holiday: isHoliday ? true : false,
+    holiday_name: todayHoliday ? todayHoliday.description : (isSunday ? 'Hari Minggu (Libur)' : null)
   };
 }
 

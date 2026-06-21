@@ -1443,6 +1443,8 @@ body.admin-layout {
   .admin-layout.sidebar-compact .sidebar-link span,
   .admin-layout.sidebar-compact .sidebar-user-info,
   .admin-layout.sidebar-compact .sidebar-user a,
+  .admin-layout.sidebar-compact .workspace-info,
+  .admin-layout.sidebar-compact .workspace-chevron,
   .admin-layout.sidebar-compact .sidebar-link .nav-badge {
     display: none !important;
   }
@@ -5447,7 +5449,6 @@ body.employee-page .icon-blue {
 .reg-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.75);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -5837,7 +5838,6 @@ body.employee-page .icon-blue {
 .reg-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 20, 36, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6095,7 +6095,8 @@ body.employee-page .icon-blue {
 
 /* Scrollable Rows, Fixed Table Headers & Premium Row Separators */
 .table-responsive {
-  max-height: 400px;
+  min-height: calc(100vh - 340px);
+  max-height: calc(100vh - 340px);
   overflow: auto;
   position: relative;
   scrollbar-width: thin;
@@ -7796,4 +7797,36 @@ html[data-theme="dark"] .bottom-nav .nav-item-special.active .special-icon-wrap 
 html[data-theme="light"] .bottom-nav .nav-item-special.active .special-icon-wrap i,
 .bottom-nav .nav-item-special.active .special-icon-wrap i {
   color: #ffffff !important;
+}
+
+/* === SEARCH MODAL === */
+.search-item {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.search-item:hover {
+  background: var(--bg-body);
+  border-left: 3px solid var(--primary);
+  color: var(--primary);
+}
+
+.search-item:hover i:first-child {
+  color: var(--primary) !important;
+}
+
+.search-item:hover .bi-chevron-right {
+  transform: translateX(4px);
+  color: var(--primary) !important;
+  opacity: 1 !important;
+}
+
+.search-item .bi-chevron-right {
+  transition: all 0.2s ease;
 }

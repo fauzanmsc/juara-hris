@@ -5,6 +5,7 @@ import EmployeeLayout from './components/EmployeeLayout';
 
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
+import AdminUserDetail from './pages/admin/UserDetail';
 import AdminApproval from './pages/admin/Approval';
 import AdminApprovalDetail from './pages/admin/ApprovalDetail';
 import AdminAttendance from './pages/admin/Attendance';
@@ -13,6 +14,13 @@ import AdminPositions from './pages/admin/Positions';
 import AdminTasks from './pages/admin/Tasks';
 import AdminHolidays from './pages/admin/Holidays';
 import AdminConfig from './pages/admin/Config';
+
+import AdminJobDetails from './pages/admin/payroll/JobDetails';
+import AdminLevelJabatan from './pages/admin/payroll/LevelJabatan';
+import AdminSalaryStructures from './pages/admin/payroll/SalaryStructures';
+import AdminDeductions from './pages/admin/payroll/Deductions';
+import AdminBankAccounts from './pages/admin/payroll/BankAccounts';
+import AdminRunPayroll from './pages/admin/payroll/RunPayroll';
 
 import EmployeeBeranda from './pages/employee/Beranda';
 import EmployeeAttendance from './pages/employee/Attendance';
@@ -33,6 +41,7 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
+          <Route path="users/:id" element={<AdminUserDetail />} />
           <Route path="approval" element={<AdminApproval />} />
           <Route path="approval/:id" element={<AdminApprovalDetail />} />
           <Route path="attendance" element={<AdminAttendance />} />
@@ -41,6 +50,12 @@ function App() {
           <Route path="tasks" element={<AdminTasks />} />
           <Route path="holidays" element={<AdminHolidays />} />
           <Route path="config" element={<AdminConfig />} />
+          <Route path="payroll/job-details" element={<AdminJobDetails />} />
+          <Route path="payroll/level-jabatan" element={<AdminLevelJabatan />} />
+          <Route path="payroll/salary-structures" element={<AdminSalaryStructures />} />
+          <Route path="payroll/deductions" element={<AdminDeductions />} />
+          <Route path="payroll/bank-accounts" element={<AdminBankAccounts />} />
+          <Route path="payroll/run" element={<AdminRunPayroll />} />
           <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
         </Route>
 
