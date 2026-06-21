@@ -28,7 +28,34 @@ const Tasks = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
 
   // Modals
+  // Modals
   const [viewTask, setViewTask] = useState<any | null>(null);
+
+  const loadMyTasks = async () => {
+    setHistoryLoading(true);
+    try {
+      const userStr = localStorage.getItem('hris_user');
+      if (!userStr) return;
+      const user = JSON.parse(userStr);
+
+      const res = await fetchApi('getTasks', {
+        user_id: user.user_id,
+        start_date: activeDate,
+        end_date: activeDate
+      }, 'GET');
+
+      if (res.success && res.tasks) {
+        setTasks(res.tasks);
+      } else {
+        setTasks([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setTasks([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (tab === 'history') {
@@ -101,31 +128,6 @@ const Tasks = () => {
     }
   };
 
-  const loadMyTasks = async () => {
-    setHistoryLoading(true);
-    try {
-      const userStr = localStorage.getItem('hris_user');
-      if (!userStr) return;
-      const user = JSON.parse(userStr);
-
-      const res = await fetchApi('getTasks', {
-        user_id: user.user_id,
-        start_date: activeDate,
-        end_date: activeDate
-      }, 'GET');
-
-      if (res.success && res.tasks) {
-        setTasks(res.tasks);
-      } else {
-        setTasks([]);
-      }
-    } catch (err) {
-      console.error(err);
-      setTasks([]);
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
 
   const shiftDate = (days: number) => {
     const d = new Date(activeDate);
@@ -139,7 +141,7 @@ const Tasks = () => {
 
   return (
     <>
-      <div className="header">
+      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <NavLink to="/employee/beranda" className="back-btn"><i className="bi bi-arrow-left"></i></NavLink>
           <div className="header-info">
@@ -161,7 +163,7 @@ const Tasks = () => {
         <div className={`tab-item ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>Daftar Tugas</div>
       </div>
 
-      <div className="content">
+      <div style={{ padding: '24px 24px 100px 24px' }}>
         {tab === 'form' && (
           <div className="card fade-in" style={{ marginTop: 20 }}>
             <form onSubmit={submitTask}>

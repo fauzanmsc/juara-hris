@@ -160,6 +160,26 @@ const AdminLayout = () => {
     return 'Admin Panel';
   };
 
+  const handleHardReset = () => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus cache dan memuat ulang aplikasi untuk mendapatkan versi terbaru?")) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
+  };
+
   const getSearchMenu = () => {
     const menu = [
       { category: 'HR & Operasional', title: 'Dashboard Utama', path: '/admin/dashboard', icon: 'bi-grid-1x2-fill' },
@@ -371,25 +391,19 @@ const AdminLayout = () => {
                   {!compact && <path d="M9 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4V3z" fill="currentColor" stroke="none"></path>}
                 </svg>
               </button>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div
-                  className="global-search-trigger"
+              <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <div 
                   onClick={() => setSearchModalOpen(true)}
-                  style={{
-                    display: 'flex', alignItems: 'center', background: 'var(--bg-surface)',
-                    border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
-                    padding: '8px 16px', gap: 12, cursor: 'text', width: 320,
-                    color: 'var(--text-muted)', fontSize: 14, transition: 'all var(--transition)'
-                  }}
+                  className="global-search-input-wrap"
                 >
                   <i className="bi bi-search" style={{ fontSize: 16 }}></i>
                   <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Cari data, menu, atau akses...</span>
-                  <div style={{ background: 'var(--bg-deep)', padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, border: '1px solid var(--border)' }}>⌘ K</div>
+                  <div className="hide-on-mobile" style={{ background: 'var(--bg-deep)', padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, border: '1px solid var(--border)' }}>⌘ K</div>
                 </div>
               </div>
             </div>
             <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div className="user-dropdown-wrap hover-dropdown">
+              <div className="user-dropdown-wrap hover-dropdown hide-on-mobile">
                 <button className="topbar-btn" data-tooltip="Notifikasi">
                   <i className="bi bi-bell"></i>
                   {unreadCount > 0 && <span className="topbar-badge" id="notifBadgeCount">{unreadCount > 99 ? '99+' : unreadCount}</span>}
@@ -450,11 +464,15 @@ const AdminLayout = () => {
               </div>
 
               <button
-                className="topbar-btn"
+                className="topbar-btn hide-on-mobile"
                 data-tooltip="Pusat Bantuan"
                 onClick={() => window.open(`https://wa.me/${waAdmin}?text=Halo%20Admin,%20saya%20membutuhkan%20bantuan%20terkait%20sistem%20JUARA%20HRIS.`, '_blank')}
               >
                 <i className="bi bi-question-circle"></i>
+              </button>
+
+              <button className="topbar-btn hide-on-mobile" onClick={handleHardReset} data-tooltip="Bersihkan Cache & Refresh">
+                <i className="bi bi-arrow-clockwise"></i>
               </button>
 
               <button className="topbar-btn" onClick={toggleTheme} data-tooltip="Beralih mode (⌘ L)">

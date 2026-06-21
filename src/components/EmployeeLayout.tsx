@@ -111,27 +111,23 @@ const EmployeeLayout = () => {
       <div className="wrap-employee">
         <Outlet context={{ toggleTheme, handleLogout, user, notifOpen, setNotifOpen, notifs, setNotifs, theme }} />
 
-        <nav className="bottom-nav">
-          <NavLink to="/employee/beranda" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <i className="bi bi-house-fill"></i>Beranda
+        <nav className="employee-bottom-nav">
+          <NavLink to="/employee/beranda" className={({ isActive }) => `emp-nav-icon ${isActive ? 'active' : ''}`}>
+            <i className="bi bi-house-door-fill"></i>
           </NavLink>
-          <NavLink to="/employee/tasks" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <i className="bi bi-list-task"></i>Tugas
-          </NavLink>
-
-          {/* Middle Absensi Button */}
-          <NavLink to="/employee/attendance" className={({ isActive }) => `nav-item nav-item-special ${isActive ? 'active' : ''}`}>
-            <div className="special-icon-wrap">
-              <i className="bi bi-person-bounding-box"></i>
-            </div>
-            <span>Absensi</span>
+          <NavLink to="/employee/leave" className={({ isActive }) => `emp-nav-icon ${isActive ? 'active' : ''}`}>
+            <i className="bi bi-journal-text"></i>
           </NavLink>
 
-          <NavLink to="/employee/leave" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <i className="bi bi-calendar2-check-fill"></i>Pengajuan
+          <NavLink to="/employee/attendance" className="scan-btn-center">
+            <i className="bi bi-person-bounding-box"></i>
           </NavLink>
-          <NavLink to="/employee/history" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <i className="bi bi-clock-history"></i>Riwayat
+
+          <NavLink to="/employee/history" className={({ isActive }) => `emp-nav-icon ${isActive ? 'active' : ''}`}>
+            <i className="bi bi-calendar4-week"></i>
+          </NavLink>
+          <NavLink to="/employee/profile" className={({ isActive }) => `emp-nav-icon ${isActive ? 'active' : ''}`}>
+            <i className="bi bi-person"></i>
           </NavLink>
         </nav>
       </div>

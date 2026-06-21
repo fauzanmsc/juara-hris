@@ -27,6 +27,7 @@ import EmployeeAttendance from './pages/employee/Attendance';
 import EmployeeLeave from './pages/employee/Leave';
 import EmployeeTasks from './pages/employee/Tasks';
 import EmployeeHistory from './pages/employee/History';
+import EmployeeProfile from './pages/employee/Profile';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 import './index.css';
@@ -65,6 +66,7 @@ function App() {
           <Route path="leave" element={<EmployeeLeave />} />
           <Route path="tasks" element={<EmployeeTasks />} />
           <Route path="history" element={<EmployeeHistory />} />
+          <Route path="profile" element={<EmployeeProfile />} />
           <Route path="" element={<Navigate to="/employee/beranda" replace />} />
         </Route>
 
