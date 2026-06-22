@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import { fetchApi } from '../../api';
+import PageHeader from '../../components/PageHeader';
 import './Tasks.css';
 
 const Tasks = () => {
@@ -141,22 +142,7 @@ const Tasks = () => {
 
   return (
     <>
-      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <NavLink to="/employee/beranda" className="back-btn"><i className="bi bi-arrow-left"></i></NavLink>
-          <div className="header-info">
-            <h2>Tugas Daily</h2>
-            <p>Productivity Monitoring</p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="theme-toggle-btn" onClick={toggleTheme} title="Ganti Mode"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontSize: 16, transition: 'all var(--transition)', cursor: 'pointer' }}>
-            <i className={theme === 'dark' ? "bi bi-brightness-high-fill" : "bi bi-moon-stars-fill"}></i>
-          </button>
-          <button className="btn-logout" onClick={handleLogout}><i className="bi bi-box-arrow-right"></i> Keluar</button>
-        </div>
-      </div>
+      <PageHeader title="Tugas Daily" />
 
       <div className="tabs">
         <div className={`tab-item ${tab === 'form' ? 'active' : ''}`} onClick={() => setTab('form')}>Lapor Tugas</div>

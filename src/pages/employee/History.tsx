@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { fetchApi } from '../../api';
+import PageHeader from '../../components/PageHeader';
 
 const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -20,7 +21,6 @@ const parseTime = (val: any) => {
 };
 
 const History = () => {
-  const { toggleTheme, handleLogout, theme } = useOutletContext<any>();
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
@@ -58,24 +58,7 @@ const History = () => {
 
   return (
     <>
-      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 'none', padding: '16px 24px', position: 'sticky', top: 0, zIndex: 100, background: 'var(--bg-deep)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <NavLink to="/employee/beranda" className="back-btn" style={{ width: 40, height: 40, borderRadius: '50%', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontSize: 18, transition: 'all 0.3s' }}>
-            <i className="bi bi-arrow-left"></i>
-          </NavLink>
-          <div className="header-info">
-            <h2 style={{ fontSize: 22, margin: 0, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Riwayat Kehadiran</h2>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="theme-toggle-btn" onClick={toggleTheme} title="Ganti Mode" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 16, cursor: 'pointer', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s', boxShadow: 'var(--shadow-neu)' }}>
-            <i className={theme === 'dark' ? "bi bi-moon-fill" : "bi bi-brightness-high-fill"}></i>
-          </button>
-          <button onClick={handleLogout} style={{ width: 40, height: 40, borderRadius: '50%', background: '#EF4444', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)', transition: 'all 0.3s' }}>
-            <i className="bi bi-box-arrow-right"></i>
-          </button>
-        </div>
-      </div>
+      <PageHeader title="Riwayat Kehadiran" />
 
       <div style={{ padding: '24px 24px 100px 24px' }}>
         <div className="filter-chips">

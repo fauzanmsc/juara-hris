@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate, useOutletContext } from 'react-router-dom';
 import { fetchApi } from '../../api';
+import PageHeader from '../../components/PageHeader';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -111,24 +112,7 @@ const Profile = () => {
 
   return (
     <>
-      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 'none', padding: '16px 24px', position: 'sticky', top: 0, zIndex: 100, background: 'var(--bg-deep)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <NavLink to="/employee/beranda" className="back-btn" style={{ width: 40, height: 40, borderRadius: '50%', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontSize: 18, transition: 'all 0.3s' }}>
-            <i className="bi bi-arrow-left"></i>
-          </NavLink>
-          <div className="header-info">
-            <h2 style={{ fontSize: 22, margin: 0, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Profile</h2>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="theme-toggle-btn" onClick={toggleTheme} title="Ganti Mode" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 16, cursor: 'pointer', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s', boxShadow: 'var(--shadow-neu)' }}>
-            <i className={theme === 'dark' ? "bi bi-moon-fill" : "bi bi-brightness-high-fill"}></i>
-          </button>
-          <button onClick={handleLogout} style={{ width: 40, height: 40, borderRadius: '50%', background: '#EF4444', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)', transition: 'all 0.3s' }}>
-            <i className="bi bi-box-arrow-right"></i>
-          </button>
-        </div>
-      </div>
+      <PageHeader title="Profile" />
 
       <div style={{ padding: '20px 24px 100px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Foto Profil Area */}
@@ -151,7 +135,7 @@ const Profile = () => {
             }}
           >
             {photoPreview && !imgError ? (
-              <img src={photoPreview} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setImgError(true)} />
+              <img src={photoPreview} alt="Profile" style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%', objectFit: 'cover', display: 'block' }} onError={() => setImgError(true)} />
             ) : (
               <div style={{ fontSize: 40, fontWeight: 800, color: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: '#F59E0B' }}>
                 {user?.initial || <i className="bi bi-person-fill" style={{ fontSize: 40, color: '#111' }}></i>}
@@ -223,22 +207,22 @@ const Profile = () => {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 8 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
               <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>Jabatan</label>
               <input 
                 type="text" 
                 value={formData.position} 
                 disabled
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '16px 18px', borderRadius: 16, color: 'var(--text-muted)', fontSize: 15, opacity: 0.6 }}
+                style={{ width: '100%', boxSizing: 'border-box', minWidth: 0, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '16px 18px', borderRadius: 16, color: 'var(--text-muted)', fontSize: 15, opacity: 0.6 }}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
               <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>Divisi</label>
               <input 
                 type="text" 
                 value={formData.division} 
                 disabled
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '16px 18px', borderRadius: 16, color: 'var(--text-muted)', fontSize: 15, opacity: 0.6 }}
+                style={{ width: '100%', boxSizing: 'border-box', minWidth: 0, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '16px 18px', borderRadius: 16, color: 'var(--text-muted)', fontSize: 15, opacity: 0.6 }}
               />
             </div>
           </div>

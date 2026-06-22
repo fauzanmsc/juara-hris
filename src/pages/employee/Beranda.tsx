@@ -7,7 +7,7 @@ import logoBlack from '../../assets/juara-hris-logo-black.png';
 const Beranda = () => {
   const navigate = useNavigate();
   const { toggleTheme, handleLogout, user, notifOpen, setNotifOpen, notifs, setNotifs, theme } = useOutletContext<any>();
-  const [stats, setStats] = useState({ hadir: 0, terlambat: 0, cuti: 0, rate: 100 });
+  const [stats, setStats] = useState({ hadir: 0, terlambat: 0, cuti: 0, rate: 0 });
   const [todayLog, setTodayLog] = useState({ clockIn: '', clockOut: '', statusIn: '', statusOut: '' });
   const [activities, setActivities] = useState<any[]>([]);
   const [clockDate, setClockDate] = useState('');
@@ -16,6 +16,7 @@ const Beranda = () => {
   const [todayHoliday, setTodayHoliday] = useState<string | null>(null);
   const [todayLeave, setTodayLeave] = useState<string | null>(null);
   const [imgError, setImgError] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
   useEffect(() => {
     setImgError(false);
@@ -71,21 +72,21 @@ const Beranda = () => {
 
   const executeHardReset = () => {
     setShowRefreshConfirm(false);
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function (registrations) {
-          for (let registration of registrations) {
-            registration.unregister();
-          }
-        });
-      }
-      if ('caches' in window) {
-        caches.keys().then((names) => {
-          for (let name of names) caches.delete(name);
-        });
-      }
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        for (let name of names) caches.delete(name);
+      });
+    }
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   useEffect(() => {
@@ -106,7 +107,7 @@ const Beranda = () => {
             if (cached.todayLeave) setTodayLeave(cached.todayLeave);
             if (cached.activities) setActivities(cached.activities);
             setLoading(false); // UI is ready immediately!
-          } catch (e) {}
+          } catch (e) { }
         }
 
         // Fetch both APIs concurrently
@@ -120,7 +121,7 @@ const Beranda = () => {
           const hadir = st.hadir || 0;
           const terlambat = st.terlambat || 0;
           const rate = hadir > 0 ? Math.round(((hadir - terlambat) / hadir) * 100) : 100;
-          
+
           const newStats = { hadir, terlambat, cuti: st.sisa_cuti || 0, rate };
           const newTodayLog = {
             clockIn: dashRes.today_in || '',
@@ -146,7 +147,9 @@ const Beranda = () => {
                 date: r.date,
                 title: hasOut ? 'Clock In & Out' : (r.clock_in_time ? 'Clock In' : 'Belum Absen'),
                 time: r.clock_in_time ? `${inTime} - ${outTime}` : 'Tidak Hadir',
-                type: hasOut ? 'out' : (r.clock_in_time ? 'in' : 'other')
+                type: hasOut ? 'out' : (r.clock_in_time ? 'in' : 'other'),
+                photoIn: r.photo_in,
+                photoOut: r.photo_out
               };
             });
           } else {
@@ -189,58 +192,285 @@ const Beranda = () => {
 
   return (
     <>
-      <div className="header" style={{ borderBottom: 'none', padding: '16px 24px', position: 'sticky', top: 0, zIndex: 100, background: 'var(--bg-surface)', borderBottomLeftRadius: 24, borderBottomRightRadius: 24, boxShadow: '0px 8px 20px 0px rgb(2 2 2 / 14%)', marginBottom: 24 }}>
+      <style>
+        {`
+          .beranda-header {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: -1px !important;
+            border-bottom: none;
+            padding: 16px 24px;
+            z-index: 100;
+            background: var(--bg-surface);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            box-shadow: 0px 8px 20px 0px rgb(2 2 2 / 14%);
+            margin-bottom: 24px;
+          }
+          .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          .brand-logo {
+            height: 38px;
+            object-fit: contain;
+          }
+          .live-badge {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #4ADE80;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+          .live-badge-dot {
+            width: 6px;
+            height: 6px;
+            background: #4ADE80;
+            border-radius: 50%;
+          }
+          .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+          }
+          .icon-btn-rounded {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-neu);
+          }
+          .logout-btn-rounded {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #EF4444;
+            color: #FFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+          }
+          .profile-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 24px;
+          }
+          .profile-row-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+            margin-right: 12px;
+          }
+          .avatar-container {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid #F59E0B;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-deep);
+            padding: 0;
+          }
+          .avatar-img {
+            width: 100%;
+            height: 100%;
+            min-width: 100%;
+            min-height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          .avatar-placeholder {
+            color: #F59E0B;
+            font-weight: 800;
+            font-size: 24px;
+            line-height: 1;
+          }
+          .profile-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 0;
+            flex: 1;
+          }
+          .profile-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+          }
+          .profile-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+          }
+          .profile-name-icon {
+            color: #F59E0B;
+            font-size: 16px;
+            flex-shrink: 0;
+          }
+          .profile-badges {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+          }
+          .profile-badge-item {
+            white-space: nowrap;
+          }
+          .badge-position {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #FDE68A 0%, #D97706 100%);
+            color: #111;
+          }
+          .badge-division {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 50px;
+            background: #222;
+            color: #FFF;
+          }
+          .profile-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+          }
+          .notif-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FDE68A 0%, #D97706 100%);
+            color: #FFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: none;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+          }
+          .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #EF4444;
+            color: white;
+            font-size: 9px;
+            font-weight: 800;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #D97706;
+          }
+          @media (max-width: 375px) {
+            .profile-name {
+              font-size: 15px !important;
+            }
+            .profile-badges {
+              gap: 4px !important;
+            }
+            .profile-badge-item {
+              font-size: 9px !important;
+              padding: 3px 8px !important;
+            }
+            .clock-label {
+              font-size: 14px !important;
+              margin-bottom: 4px !important;
+            }
+            .clock-time {
+              font-size: 32px !important;
+              margin-bottom: 8px !important;
+            }
+            .clock-status {
+              font-size: 10px !important;
+              padding: 4px 12px !important;
+            }
+          }
+        `}
+      </style>
+      <div className="header beranda-header">
         <div className="header-top">
-          <div className="brand-row" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src={theme === 'dark' ? logoWhite : logoBlack} alt="Juara HRIS" style={{ height: 38, objectFit: 'contain' }} />
-            <span className="live-badge" style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.4)', color: '#4ADE80', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 50, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 6, height: 6, background: '#4ADE80', borderRadius: '50%' }}></div> LIVE
+          <div className="brand-row">
+            <img src={theme === 'dark' ? logoWhite : logoBlack} alt="Juara HRIS" className="brand-logo" />
+            <span className="live-badge">
+              <div className="live-badge-dot"></div> LIVE
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
-            <button className="theme-toggle-btn" onClick={handleHardReset} title="Bersihkan Cache & Refresh"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 14, cursor: 'pointer', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-neu)' }}>
+          <div className="header-actions">
+            <button className="icon-btn-rounded" onClick={handleHardReset} title="Bersihkan Cache & Refresh">
               <i className="bi bi-arrow-clockwise"></i>
             </button>
-            <button className="theme-toggle-btn" onClick={toggleTheme} title="Ganti Mode"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 14, cursor: 'pointer', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-neu)' }}>
+            <button className="icon-btn-rounded" onClick={toggleTheme} title="Ganti Mode">
               <i className={theme === 'dark' ? "bi bi-moon-fill" : "bi bi-brightness-high-fill"}></i>
             </button>
-            <button onClick={handleLogout} style={{ width: 32, height: 32, borderRadius: '50%', background: '#EF4444', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+            <button onClick={handleLogout} className="logout-btn-rounded">
               <i className="bi bi-box-arrow-right"></i>
             </button>
           </div>
         </div>
 
-        <div className="profile-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="avatar-container" style={{ width: 60, height: 60, borderRadius: '50%', border: '2px solid #F59E0B', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-deep)' }}>
+        <div className="profile-row">
+          <div className="profile-row-left">
+            <div className="avatar-container">
               {user.profile_pic_url && !imgError ? (
-                <img src={user.profile_pic_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={() => setImgError(true)} />
+                <img src={user.profile_pic_url} alt="Profile" className="avatar-img" onError={() => setImgError(true)} />
               ) : (
-                <span style={{ color: '#F59E0B', fontWeight: 800, fontSize: 24, lineHeight: 1 }}>{user.initial || user.name.charAt(0)}</span>
+                <span className="avatar-placeholder">{user.initial || user.name.charAt(0)}</span>
               )}
             </div>
-            <div className="profile-info" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>{user.name}</h3>
-                <i className="bi bi-patch-check-fill" style={{ color: '#F59E0B', fontSize: 16 }}></i>
+            <div className="profile-info">
+              <div className="profile-name-row">
+                <h3 className="profile-name">{user.name}</h3>
+                <i className="bi bi-patch-check-fill profile-name-icon"></i>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, padding: '4px 12px', borderRadius: 50, background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', color: '#111' }}>{user.position || 'Head Manager'}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 50, background: '#222', color: '#FFF' }}>{user.division || 'Manajemen'}</span>
+              <div className="profile-badges">
+                <span className="profile-badge-item badge-position">{user.position || 'Head Manager'}</span>
+                <span className="profile-badge-item badge-division">{user.division || 'Manajemen'}</span>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)' }}>
-              <i className="bi bi-chat-text-fill"></i>
-            </button>
-            <button onClick={() => setNotifOpen(!notifOpen)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: 'none', position: 'relative', cursor: 'pointer', boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)' }}>
+          <div className="profile-actions">
+            <button onClick={() => setNotifOpen(!notifOpen)} className="notif-btn">
               <i className="bi bi-bell-fill"></i>
               {notifs.length > 0 && (
-                <span style={{ position: 'absolute', top: -2, right: -2, background: '#EF4444', color: 'white', fontSize: 9, fontWeight: 800, borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #D97706' }}>
+                <span className="notif-badge">
                   {notifs.length}
                 </span>
               )}
@@ -271,40 +501,40 @@ const Beranda = () => {
       <div className="red-hero-wrapper" style={{ position: 'relative', paddingBottom: 24 }}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '150%', height: '100%', background: 'radial-gradient(circle, rgba(217, 119, 6, 0.15) 0%, rgba(30, 30, 30, 0) 65%)', zIndex: 0, pointerEvents: 'none' }}></div>
         {loading ? (
-          <div style={{ padding: '0 24px', position: 'relative', zIndex: 10 }}>
+          <div style={{ padding: '0 12px', position: 'relative', zIndex: 10 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '20vh', gap: 20 }}>
               <div style={{ width: 48, height: 48, border: '3px solid rgba(255,255,255,0.2)', borderTopColor: '#FFF', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
               <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>Memuat Dashboard...</p>
             </div>
           </div>
         ) : (
-          <div style={{ padding: '0 24px', position: 'relative', zIndex: 10 }}>
+          <div style={{ padding: '0 12px', position: 'relative', zIndex: 10 }}>
             {/* Unified Golden Card */}
             <div style={{ borderRadius: 24, overflow: 'hidden', boxShadow: '0 12px 32px rgba(0,0,0,0.4)', marginBottom: 24 }}>
               {/* Top part: Masuk / Pulang */}
-              <div className="golden-card" style={{ padding: '24px', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)' }}>
+              <div className="golden-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ textAlign: 'center', flex: 1 }}>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#111', marginBottom: 8 }}>Masuk</div>
-                    <div style={{ fontFamily: 'var(--font-head)', fontSize: 44, fontWeight: 900, color: '#111', letterSpacing: '-2px', marginBottom: 12 }}>
+                    <div className="clock-label" style={{ fontSize: 18, fontWeight: 800, color: '#111', marginBottom: 8 }}>Masuk</div>
+                    <div className="clock-time" style={{ fontFamily: 'var(--font-head)', fontSize: 44, fontWeight: 900, color: '#111', letterSpacing: '-2px', marginBottom: 12 }}>
                       {todayLog.clockIn || '--:--'}
                     </div>
                     {todayLog.clockIn ? (
-                      <div style={{ background: todayLog.statusIn === 'Terlambat' ? '#EF4444' : '#22C55E', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>{todayLog.statusIn || 'Tepat Waktu'}</div>
+                      <div className="clock-status" style={{ background: todayLog.statusIn === 'Terlambat' ? '#EF4444' : '#22C55E', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>{todayLog.statusIn || 'Tepat Waktu'}</div>
                     ) : (
-                      <div style={{ background: '#EF4444', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>Terlambat</div>
+                      <div className="clock-status" style={{ background: '#374151', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>Belum</div>
                     )}
                   </div>
                   <div style={{ width: 1, height: 80, background: 'rgba(0,0,0,0.1)' }}></div>
                   <div style={{ textAlign: 'center', flex: 1 }}>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#111', marginBottom: 8 }}>Pulang</div>
-                    <div style={{ fontFamily: 'var(--font-head)', fontSize: 44, fontWeight: 900, color: '#111', letterSpacing: '-2px', marginBottom: 12 }}>
+                    <div className="clock-label" style={{ fontSize: 18, fontWeight: 800, color: '#111', marginBottom: 8 }}>Pulang</div>
+                    <div className="clock-time" style={{ fontFamily: 'var(--font-head)', fontSize: 44, fontWeight: 900, color: '#111', letterSpacing: '-2px', marginBottom: 12 }}>
                       {todayLog.clockOut || '--:--'}
                     </div>
                     {todayLog.clockOut ? (
-                      <div style={{ background: '#22C55E', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>{todayLog.statusOut || 'Tepat Waktu'}</div>
+                      <div className="clock-status" style={{ background: '#22C55E', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>{todayLog.statusOut || 'Tepat Waktu'}</div>
                     ) : (
-                      <div style={{ background: '#22C55E', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>Tepat Waktu</div>
+                      <div className="clock-status" style={{ background: '#374151', color: '#FFF', fontSize: 12, fontWeight: 800, padding: '6px 16px', borderRadius: 50, display: 'inline-block' }}>Belum</div>
                     )}
                   </div>
                 </div>
@@ -315,7 +545,7 @@ const Beranda = () => {
                   <div style={{ fontSize: 20, fontWeight: 800, color: '#FFF', lineHeight: 1.2 }}>{getDayName()}</div>
                   <div style={{ fontSize: 13, color: '#FFF', opacity: 0.9 }}>{clockDate}</div>
                 </div>
-                <div style={{ background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', color: '#111', padding: '8px 20px', borderRadius: 50, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: 24, letterSpacing: '-0.5px' }}>
+                <div className="main-clock-badge">
                   <i className="bi bi-clock"></i> {clockTime.replace(/:/g, '.')}
                 </div>
               </div>
@@ -324,45 +554,47 @@ const Beranda = () => {
         )}
       </div>
 
-      <div style={{ padding: '0 24px 100px 24px', position: 'relative' }}>
+      <div className="wrapper-app">
         <div className="red-bg-bottom"></div>
         <div style={{ position: 'relative', zIndex: 10 }}>
           {loading ? null : (
             <>
               {/* Ringkasan Bulan Ini */}
               <div className="section-label" style={{ color: '#D97706', fontSize: 16, textTransform: 'none', marginBottom: 16, fontWeight: 800 }}>Ringkasan Bulan Ini</div>
-              <div className="ringkasan-wrapper" style={{ display: 'flex', marginBottom: 32 }}>
+              <div className="ringkasan-wrapper" style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 32 }}>
                 {/* Radial Chart */}
-                <div className="golden-card ringkasan-chart-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', borderRadius: 24, padding: 16 }}>
-                  <div className="radial-chart-container">
-                    <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%', display: 'block' }}>
-                      <circle cx="50" cy="50" r="44" stroke="rgba(0,0,0,0.2)" strokeWidth="12" fill="#31220a" />
-                      <circle cx="50" cy="50" r="44" stroke="#22C55E" strokeWidth="12" fill="transparent" strokeDasharray="276.46" strokeDashoffset={276.46 - (276.46 * stats.rate / 100)} style={{ strokeLinecap: 'round', transition: 'stroke-dashoffset 1s ease-out' }} />
+                <div className="golden-card ringkasan-chart-card" style={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', borderRadius: 24, padding: 24, boxShadow: '0 12px 24px rgba(217, 119, 6, 0.25)', position: 'relative', overflow: 'hidden' }}>
+                  {/* Background flare */}
+                  <div style={{ position: 'absolute', width: 250, height: 250, background: 'radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 60%)', top: -80, left: '50%', transform: 'translateX(-50%)' }}></div>
+                  <div className="radial-chart-container" style={{ width: 140, height: 140, position: 'relative', zIndex: 1 }}>
+                    <svg viewBox="0 0 140 140" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%', display: 'block', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))' }}>
+                      <circle cx="70" cy="70" r="58" stroke="rgba(0,0,0,0.1)" strokeWidth="12" fill="rgba(255,255,255,0.15)" />
+                      <circle cx="70" cy="70" r="58" stroke="#22C55E" strokeWidth="12" fill="transparent" strokeDasharray="364.42" strokeDashoffset={364.42 - (364.42 * stats.rate / 100)} style={{ strokeLinecap: 'round', transition: 'stroke-dashoffset 2s cubic-bezier(0.1, 0.7, 0.1, 1)' }} />
                     </svg>
-                    <div className="radial-chart-text">
-                      <span className="radial-chart-val">{stats.rate}%</span>
-                      <span className="radial-chart-label">ON-TIME</span>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 1s ease-out' }}>
+                      <span style={{ fontSize: 32, fontWeight: 900, color: '#111', lineHeight: 1, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{stats.rate}%</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,0.6)', letterSpacing: 1, marginTop: 4 }}>ON-TIME</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Pills */}
-                <div className="ringkasan-grid-pills" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                  <div className="mini-stat-pill">
-                    <div className="mini-stat-val" style={{ background: '#22C55E' }}>{stats.hadir}</div>
-                    <span style={{ fontWeight: 600 }}>Hadir</span>
+                <div className="ringkasan-grid-pills" style={{ flex: '2 1 200px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
+                  <div className="mini-stat-pill" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-neu)', transition: 'transform 0.2s' }}>
+                    <div className="mini-stat-val" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22C55E', width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>{stats.hadir}</div>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Hadir</span>
                   </div>
-                  <div className="mini-stat-pill">
-                    <div className="mini-stat-val" style={{ background: '#EF4444' }}>{stats.gakHadir || 3}</div>
-                    <span style={{ fontWeight: 600 }}>Gak Hadir</span>
+                  <div className="mini-stat-pill" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-neu)', transition: 'transform 0.2s' }}>
+                    <div className="mini-stat-val" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>{stats.gakHadir || 3}</div>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Gak Hadir</span>
                   </div>
-                  <div className="mini-stat-pill">
-                    <div className="mini-stat-val" style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)' }}>{stats.terlambat}</div>
-                    <span style={{ fontWeight: 600 }}>Terlambat</span>
+                  <div className="mini-stat-pill" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-neu)', transition: 'transform 0.2s' }}>
+                    <div className="mini-stat-val" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>{stats.terlambat}</div>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Terlambat</span>
                   </div>
-                  <div className="mini-stat-pill">
-                    <div className="mini-stat-val" style={{ background: '#3B82F6' }}>{stats.cuti}</div>
-                    <span style={{ fontWeight: 600 }}>Sisa Cuti</span>
+                  <div className="mini-stat-pill" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-neu)', transition: 'transform 0.2s' }}>
+                    <div className="mini-stat-val" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>{stats.cuti}</div>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Sisa Cuti</span>
                   </div>
                 </div>
               </div>
@@ -372,30 +604,30 @@ const Beranda = () => {
               <div className="menu-grid stagger fade-in" style={{ gap: 12, marginBottom: 32 }}>
                 <NavLink to="/employee/attendance" className="golden-menu-card">
                   <div className="golden-menu-icon"><i className="bi bi-fingerprint"></i></div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#FFF' }}>Absensi</h4>
-                    <p style={{ margin: 0, fontSize: 10, color: '#9CA3AF' }}>Clock In &amp; Clock Out harian</p>
+                  <div className="golden-menu-text">
+                    <h4 className="text-menu-utama">Absensi</h4>
+                    <p className="text-menu-utama-sub">Clock In &amp; Clock Out harian</p>
                   </div>
                 </NavLink>
                 <NavLink to="/employee/leave" className="golden-menu-card">
-                  <div className="golden-menu-icon"><i className="bi bi-calendar-check-fill"></i></div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#FFF' }}>Pengajuan</h4>
-                    <p style={{ margin: 0, fontSize: 10, color: '#9CA3AF' }}>Cuti, Sakit &amp; Izin</p>
+                  <div className="golden-menu-icon" ><i className="bi bi-calendar-check-fill"></i></div>
+                  <div className="golden-menu-text">
+                    <h4 className="text-menu-utama">Pengajuan</h4>
+                    <p className="text-menu-utama-sub">Cuti, Sakit &amp; Izin</p>
                   </div>
                 </NavLink>
                 <NavLink to="/employee/history" className="golden-menu-card">
-                  <div className="golden-menu-icon"><i className="bi bi-clock-history"></i></div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#FFF' }}>Riwayat</h4>
-                    <p style={{ margin: 0, fontSize: 10, color: '#9CA3AF' }}>Histori Kehadiran Anda</p>
+                  <div className="golden-menu-icon" ><i className="bi bi-clock-history"></i></div>
+                  <div className="golden-menu-text">
+                    <h4 className="text-menu-utama">Riwayat</h4>
+                    <p className="text-menu-utama-sub">Histori Kehadiran</p>
                   </div>
                 </NavLink>
                 <NavLink to="/employee/tasks" className="golden-menu-card">
-                  <div className="golden-menu-icon"><i className="bi bi-journal-text"></i></div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#FFF' }}>Status Ajuan</h4>
-                    <p style={{ margin: 0, fontSize: 10, color: '#9CA3AF' }}>Tracking Pengajuan</p>
+                  <div className="golden-menu-icon" ><i className="bi bi-journal-text"></i></div>
+                  <div className="golden-menu-text">
+                    <h4 className="text-menu-utama">Status Ajuan</h4>
+                    <p className="text-menu-utama-sub">Detail Pengajuan</p>
                   </div>
                 </NavLink>
               </div>
@@ -406,19 +638,24 @@ const Beranda = () => {
                 {activities.length > 0 ? activities.map((act, i) => {
                   const dayName = getDayName(act.date);
                   const dateStr = getFormatDateStr(act.date);
+                  const displayPhoto = act.photoIn || act.photoOut;
                   return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', borderRadius: 20, padding: '16px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                      <div style={{ width: 60, height: 60, borderRadius: 16, background: '#222', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, marginRight: 20, flexShrink: 0 }}>
-                        <i className="bi bi-box-arrow-right"></i>
+                    <div key={i} className="card-gradient">
+                      <div onClick={() => displayPhoto && setPreviewPhoto(displayPhoto)} className="photo-box">
+                        {displayPhoto ? (
+                          <img src={displayPhoto} alt="Absensi" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <i className="bi bi-box-arrow-right"></i>
+                        )}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                          <span style={{ fontSize: 12, color: '#111', fontWeight: 600 }}>{dayName}</span>
-                          <span style={{ fontSize: 12, color: '#111', fontWeight: 600 }}>{act.title}</span>
+                      <div className="golden-menu-text">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 4 }}>
+                          <span style={{ fontSize: 13, color: '#111', fontWeight: 700 }}>{dayName}</span>
+                          <span style={{ fontSize: 10, color: '#111', fontWeight: 800, padding: '3px 10px', background: 'rgba(255,255,255,0.35)', borderRadius: 50, whiteSpace: 'nowrap' }}>{act.title}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: 16, fontWeight: 900, color: '#111' }}>{dateStr}</span>
-                          <span style={{ fontSize: 15, fontWeight: 900, color: '#111' }}>{act.time || '09:00 AM - 05:00 PM'}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+                          <span style={{ fontSize: 14, fontWeight: 900, color: '#111' }}>{dateStr}</span>
+                          <span style={{ fontSize: 13, fontWeight: 900, color: '#111', whiteSpace: 'nowrap' }}>{act.time || '09:00 AM - 05:00 PM'}</span>
                         </div>
                       </div>
                     </div>
@@ -451,9 +688,9 @@ const Beranda = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'relative', zIndex: 2 }}>
                 <div className="reg-avatar-upload-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', cursor: 'pointer', marginBottom: 8 }}>
                   <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                    <div className="reg-avatar-preview" style={{ width: 84, height: 84, borderRadius: '50%', border: '2px solid var(--primary)', padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: 'var(--bg-deep)', transition: 'all var(--transition)', boxShadow: 'var(--shadow-neu-inset)' }}>
+                    <div className="reg-avatar-preview" style={{ width: 84, height: 84, borderRadius: '50%', border: '2px solid var(--primary)', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: 'var(--bg-deep)', transition: 'all var(--transition)', boxShadow: 'var(--shadow-neu-inset)' }}>
                       {editPhotoPreview ? (
-                        <img src={editPhotoPreview} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="Preview" />
+                        <img src={editPhotoPreview} style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }} alt="Preview" />
                       ) : (
                         <span style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: 28, color: 'var(--primary)' }}>
                           {user.initial || 'U'}
@@ -564,6 +801,16 @@ const Beranda = () => {
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={executeHardReset} style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#ef4444', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 16px rgba(239,68,68,0.2)', transition: 'all 0.2s' }}>Oke, Muat Ulang</button>
             </div>
+          </div>
+        </div>
+      )}
+      {previewPhoto && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, animation: 'fadeIn 0.2s ease-out' }} onClick={() => setPreviewPhoto(null)}>
+          <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setPreviewPhoto(null)} style={{ position: 'absolute', top: -16, right: -16, width: 36, height: 36, borderRadius: '50%', background: '#EF4444', color: '#FFF', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, cursor: 'pointer', zIndex: 10 }}>
+              <i className="bi bi-x-lg"></i>
+            </button>
+            <img src={previewPhoto} alt="Preview Absensi" style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: 16, objectFit: 'contain', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }} />
           </div>
         </div>
       )}

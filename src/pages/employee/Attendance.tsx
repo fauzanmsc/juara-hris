@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useOutletContext } from 'react-router-dom';
 import { fetchApi } from '../../api';
+import PageHeader from '../../components/PageHeader';
 import logoWhite from '../../assets/juara-hris-logo-white.png';
 import logoBlack from '../../assets/juara-hris-logo-black.png';
 
@@ -258,24 +259,7 @@ const Attendance = () => {
 
   return (
     <>
-      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 'none', padding: '16px 24px', position: 'sticky', top: 0, zIndex: 100, background: 'var(--bg-deep)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <NavLink to="/employee/beranda" className="back-btn" style={{ width: 40, height: 40, borderRadius: '50%', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontSize: 18, transition: 'all 0.3s' }}>
-            <i className="bi bi-arrow-left"></i>
-          </NavLink>
-          <div className="header-info">
-            <h2 style={{ fontSize: 22, margin: 0, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Absensi</h2>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="theme-toggle-btn" onClick={toggleTheme} title="Ganti Mode" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 16, cursor: 'pointer', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s', boxShadow: 'var(--shadow-neu)' }}>
-            <i className={theme === 'dark' ? "bi bi-moon-fill" : "bi bi-brightness-high-fill"}></i>
-          </button>
-          <button onClick={handleLogout} style={{ width: 40, height: 40, borderRadius: '50%', background: '#EF4444', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)', transition: 'all 0.3s' }}>
-            <i className="bi bi-box-arrow-right"></i>
-          </button>
-        </div>
-      </div>
+      <PageHeader title="Absensi" />
 
       <div style={{ padding: '24px 24px 100px 24px', position: 'relative' }}>
         {/* Waktu Saat Ini Golden Card */}
@@ -358,8 +342,8 @@ const Attendance = () => {
         </div>
 
         <button disabled={isSubmitDisabled} onClick={submitAttendance} style={{ width: '100%', padding: 20, borderRadius: 50, background: isSubmitDisabled ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', color: isSubmitDisabled ? 'var(--text-muted)' : '#111', fontSize: 18, fontWeight: 900, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: isSubmitDisabled ? 'not-allowed' : 'pointer', boxShadow: isSubmitDisabled ? 'none' : '0 12px 32px rgba(217, 119, 6, 0.4)', textTransform: 'uppercase', transition: 'all 0.3s' }}>
-          <i className="bi bi-box-arrow-in-up" style={{ fontSize: 24, strokeWidth: 1 }}></i>
-          <span>{loading ? 'MEMPROSES...' : 'CLOCK IN'}</span>
+          <i className={attType === 'in' ? "bi bi-box-arrow-in-up" : "bi bi-box-arrow-up"} style={{ fontSize: 24, strokeWidth: 1 }}></i>
+          <span>{loading ? 'MEMPROSES...' : (attType === 'in' ? 'CLOCK IN' : 'CLOCK OUT')}</span>
         </button>
       </div>
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
