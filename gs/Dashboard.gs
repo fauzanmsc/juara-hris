@@ -20,7 +20,9 @@ function getEmployeeDashboard(params) {
     title: a.clock_out_time ? 'Clock In & Out' : 'Clock In',
     desc: a.status_in || '',
     time: formatDate(a.date), // Use actual attendance date as requested by the user
-    color: a.status_in === 'Terlambat' ? 'orange' : 'green'
+    color: a.status_in === 'Terlambat' ? 'orange' : 'green',
+    photo_in_url: a.photo_in_url ? formatImageUrl(a.photo_in_url) : null,
+    photo_out_url: a.photo_out_url ? formatImageUrl(a.photo_out_url) : null
   }));
 
   const user = sheetToObjects(getSheet(SHEET.USERS)).find(u => u.user_id === user_id);
@@ -85,11 +87,45 @@ function getEmployeeDashboard(params) {
 
   const remainingQuota = allowedQuota - overallApprovedCuti;
 
+  // Calculate Absen (Gak Hadir)
+  let absenCount = 0;
+  const todayDateObj = new Date(today);
+  const startObj = new Date(monthStart);
+  
+  for (let d = new Date(startObj); d < todayDateObj; d.setDate(d.getDate() + 1)) {
+    const dStr = formatDate(d);
+    const isSunday = d.getDay() === 0;
+    
+    const isHol = holidays.find(h => {
+      const s = h.start_date ? formatDate(h.start_date) : '';
+      const e = h.end_date ? formatDate(h.end_date) : s;
+      return s && dStr >= s && dStr <= e;
+    });
+
+    if (isSunday || isHol) {
+      continue;
+    }
+
+    const hasAtt = thisMonth.some(a => formatDate(a.date) === dStr);
+    const hasLeave = leaves.some(l => {
+      if (l.user_id !== user_id) return false;
+      const statusStr = String(l.status || '').trim().toLowerCase();
+      if (statusStr !== 'approved') return false;
+      const s = l.start_date ? formatDate(l.start_date) : '';
+      const e = l.end_date ? formatDate(l.end_date) : s;
+      return s && e && dStr >= s && dStr <= e;
+    });
+
+    if (!hasAtt && !hasLeave) {
+       absenCount++;
+    }
+  }
+
   return {
     success: true,
     profile_pic_url: user ? formatImageUrl(user.profile_pic_url || '') : '',
     division: user ? (user.division || 'Umum') : 'Umum',
-    stats: { hadir, terlambat, sisa_cuti: remainingQuota >= 0 ? remainingQuota : 0 },
+    stats: { hadir, terlambat, sisa_cuti: remainingQuota >= 0 ? remainingQuota : 0, absen: absenCount },
     today_in: todayAtt ? formatTimeVal(todayAtt.clock_in_time) : null,
     today_out: todayAtt ? formatTimeVal(todayAtt.clock_out_time) : null,
     status_in: todayAtt ? todayAtt.status_in : null,

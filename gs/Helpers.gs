@@ -126,7 +126,7 @@ function formatImageUrl(url) {
   }
   
   if (id) {
-    return `https://lh3.googleusercontent.com/d/${id}`;
+    return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
   }
   return url;
 }

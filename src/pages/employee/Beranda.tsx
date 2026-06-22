@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useOutletContext, useNavigate } from 'react-router-dom';
-import { fetchApi } from '../../api';
+import { fetchApi, formatDriveUrl } from '../../api';
 import logoWhite from '../../assets/juara-hris-logo-white.png';
 import logoBlack from '../../assets/juara-hris-logo-black.png';
 
@@ -122,7 +122,7 @@ const Beranda = () => {
           const terlambat = st.terlambat || 0;
           const rate = hadir > 0 ? Math.round(((hadir - terlambat) / hadir) * 100) : 100;
 
-          const newStats = { hadir, terlambat, cuti: st.sisa_cuti || 0, rate };
+          const newStats = { hadir, terlambat, cuti: st.sisa_cuti || 0, rate, gakHadir: st.absen || 0 };
           const newTodayLog = {
             clockIn: dashRes.today_in || '',
             clockOut: dashRes.today_out || '',
@@ -155,7 +155,9 @@ const Beranda = () => {
           } else {
             mappedActivities = (dashRes.activities || []).map((a: any) => ({
               ...a,
-              type: a.title === 'Clock In' ? 'in' : a.title === 'Clock In & Out' ? 'out' : 'other'
+              type: a.title === 'Clock In' ? 'in' : a.title === 'Clock In & Out' ? 'out' : 'other',
+              photoIn: a.photo_in_url || null,
+              photoOut: a.photo_out_url || null
             }));
           }
           setActivities(mappedActivities);
@@ -449,7 +451,7 @@ const Beranda = () => {
           <div className="profile-row-left">
             <div className="avatar-container">
               {user.profile_pic_url && !imgError ? (
-                <img src={user.profile_pic_url} alt="Profile" className="avatar-img" onError={() => setImgError(true)} />
+                <img src={formatDriveUrl(user.profile_pic_url)} alt="Profile" className="avatar-img" onError={() => setImgError(true)} />
               ) : (
                 <span className="avatar-placeholder">{user.initial || user.name.charAt(0)}</span>
               )}
@@ -499,7 +501,7 @@ const Beranda = () => {
         </div>
       </div>
       <div className="red-hero-wrapper" style={{ position: 'relative', paddingBottom: 24 }}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '150%', height: '100%', background: 'radial-gradient(circle, rgba(217, 119, 6, 0.15) 0%, rgba(30, 30, 30, 0) 65%)', zIndex: 0, pointerEvents: 'none' }}></div>
+
         {loading ? (
           <div style={{ padding: '0 12px', position: 'relative', zIndex: 10 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '20vh', gap: 20 }}>
@@ -510,7 +512,7 @@ const Beranda = () => {
         ) : (
           <div style={{ padding: '0 18px', position: 'relative', zIndex: 10 }}>
             {/* Unified Golden Card */}
-            <div style={{ borderRadius: 24, overflow: 'hidden', boxShadow: '0 12px 32px rgba(0,0,0,0.4)', marginBottom: 24 }}>
+            <div className="card-clock-in-out">
               {/* Top part: Masuk / Pulang */}
               <div className="golden-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -560,18 +562,20 @@ const Beranda = () => {
           {loading ? null : (
             <>
               {/* Ringkasan Bulan Ini */}
-              <div className="section-label" style={{ color: '#D97706', fontSize: 16, textTransform: 'none', marginBottom: 16, fontWeight: 800 }}>Ringkasan Bulan Ini</div>
+              <div className="section-title-employee">Ringkasan Bulan Ini</div>
               <div className="ringkasan-wrapper" style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 32 }}>
                 {/* Radial Chart */}
-                <div className="golden-card ringkasan-chart-card" style={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', borderRadius: 24, padding: 24, boxShadow: '0 12px 24px rgba(217, 119, 6, 0.25)', position: 'relative', overflow: 'hidden' }}>
+                <div className="golden-card ringkasan-chart-card" style={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FDE68A 0%, #D97706 100%)', borderRadius: 24, padding: '24px 16px', boxShadow: '0 12px 24px rgba(217, 119, 6, 0.25)', position: 'relative', overflow: 'hidden' }}>
                   {/* Background flare */}
-                  <div style={{ position: 'absolute', width: 250, height: 250, background: 'radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 60%)', top: -80, left: '50%', transform: 'translateX(-50%)' }}></div>
-                  <div className="radial-chart-container" style={{ width: 140, height: 140, position: 'relative', zIndex: 1 }}>
-                    <svg viewBox="0 0 140 140" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%', display: 'block', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))' }}>
-                      <circle cx="70" cy="70" r="58" stroke="rgba(0,0,0,0.1)" strokeWidth="12" fill="rgba(255,255,255,0.15)" />
-                      <circle cx="70" cy="70" r="58" stroke="#22C55E" strokeWidth="12" fill="transparent" strokeDasharray="364.42" strokeDashoffset={364.42 - (364.42 * stats.rate / 100)} style={{ strokeLinecap: 'round', transition: 'stroke-dashoffset 2s cubic-bezier(0.1, 0.7, 0.1, 1)' }} />
+                  <div style={{ position: 'absolute', width: 300, height: 300, background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%)', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }}></div>
+
+                  {/* Circle Chart */}
+                  <div style={{ position: 'relative', width: 130, height: 130, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg viewBox="0 0 100 100" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', transform: 'rotate(-90deg)', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))' }}>
+                      <circle cx="50" cy="50" r="42" stroke="rgba(0,0,0,0.1)" strokeWidth="10" fill="rgba(255,255,255,0.15)" />
+                      <circle cx="50" cy="50" r="42" stroke="#22C55E" strokeWidth="10" fill="transparent" strokeDasharray="263.89" strokeDashoffset={263.89 - (263.89 * stats.rate / 100)} style={{ strokeLinecap: 'round', transition: 'stroke-dashoffset 2s cubic-bezier(0.1, 0.7, 0.1, 1)' }} />
                     </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 1s ease-out' }}>
+                    <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 1s ease-out' }}>
                       <span style={{ fontSize: 32, fontWeight: 900, color: '#111', lineHeight: 1, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{stats.rate}%</span>
                       <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,0.6)', letterSpacing: 1, marginTop: 4 }}>ON-TIME</span>
                     </div>
@@ -600,7 +604,7 @@ const Beranda = () => {
               </div>
 
               {/* Menu Utama */}
-              <div className="section-label" style={{ color: '#D97706', fontSize: 16, textTransform: 'none', marginBottom: 16, fontWeight: 800 }}>Menu Utama</div>
+              <div className="section-title-employee text-gradient-gold">Menu Utama</div>
               <div className="menu-grid stagger fade-in" style={{ gap: 12, marginBottom: 32 }}>
                 <NavLink to="/employee/attendance" className="golden-menu-card">
                   <div className="golden-menu-icon"><i className="bi bi-fingerprint"></i></div>
@@ -633,7 +637,7 @@ const Beranda = () => {
               </div>
 
               {/* Aktivitas Absensi */}
-              <div className="section-label" style={{ color: '#D97706', fontSize: 16, textTransform: 'none', marginBottom: 16, fontWeight: 800 }}>Aktivitas Absensi Minggu Ini</div>
+              <div className="section-title-employee">Aktivitas Absensi Minggu Ini</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {activities.length > 0 ? activities.map((act, i) => {
                   const dayName = getDayName(act.date);
@@ -641,11 +645,11 @@ const Beranda = () => {
                   const displayPhoto = act.photoIn || act.photoOut;
                   return (
                     <div key={i} className="card-gradient">
-                      <div onClick={() => displayPhoto && setPreviewPhoto(displayPhoto)} className="photo-box">
+                      <div onClick={() => displayPhoto && setPreviewPhoto(formatDriveUrl(displayPhoto))} className="photo-box" style={{ cursor: displayPhoto ? 'pointer' : 'default' }}>
                         {displayPhoto ? (
-                          <img src={displayPhoto} alt="Absensi" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={formatDriveUrl(displayPhoto)} alt="Absensi" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
-                          <i className="bi bi-box-arrow-right"></i>
+                          <i className={`bi bi-image`}></i>
                         )}
                       </div>
                       <div className="golden-menu-text">

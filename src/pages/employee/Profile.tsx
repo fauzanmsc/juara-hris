@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate, useOutletContext } from 'react-router-dom';
-import { fetchApi } from '../../api';
+import { fetchApi, formatDriveUrl } from '../../api';
 import PageHeader from '../../components/PageHeader';
 
 const Profile = () => {
@@ -135,7 +135,7 @@ const Profile = () => {
             }}
           >
             {photoPreview && !imgError ? (
-              <img src={photoPreview} alt="Profile" style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%', objectFit: 'cover', display: 'block' }} onError={() => setImgError(true)} />
+              <img src={formatDriveUrl(photoPreview)} alt="Profile" style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%', objectFit: 'cover', display: 'block' }} onError={() => setImgError(true)} />
             ) : (
               <div style={{ fontSize: 40, fontWeight: 800, color: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: '#F59E0B' }}>
                 {user?.initial || <i className="bi bi-person-fill" style={{ fontSize: 40, color: '#111' }}></i>}

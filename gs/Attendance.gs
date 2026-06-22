@@ -261,7 +261,9 @@ function getAttendanceLog(params) {
       clock_in_time: clockInStr,
       clock_out_time: clockOutStr,
       status_in: statusIn,
-      status_out: statusOut
+      status_out: statusOut,
+      photo_in: a.photo_in_url ? formatImageUrl(a.photo_in_url) : '',
+      photo_out: a.photo_out_url ? formatImageUrl(a.photo_out_url) : ''
     });
   });
 

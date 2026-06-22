@@ -54,3 +54,25 @@ export const fetchApi = async (
     return { success: false, message: 'Gagal terhubung ke server. Cek koneksi internet Anda.' };
   }
 };
+
+/**
+ * Convert any Google Drive URL to a public thumbnail URL that browsers can render without CORS issues.
+ */
+export const formatDriveUrl = (url: string | null | undefined): string => {
+  if (!url) return '';
+  // Already a thumbnail / googleusercontent CDN url -- keep it
+  if (url.includes('drive.google.com/thumbnail')) return url;
+  // lh3 redirect -- replace with thumbnail api
+  let id = '';
+  const matchId = url.match(/[?&]id=([^&]+)/);
+  if (matchId) {
+    id = matchId[1];
+  } else {
+    const matchD = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if (matchD) id = matchD[1];
+  }
+  if (id) {
+    return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+  }
+  return url;
+};

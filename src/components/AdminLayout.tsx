@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { fetchApi } from '../api';
+import { fetchApi, formatDriveUrl } from '../api';
 import logoWhite from '../assets/juara-hris-logo-white.png';
 import logoBlack from '../assets/juara-hris-logo-black.png';
 
@@ -484,7 +484,7 @@ const AdminLayout = () => {
               <div className="user-dropdown-wrap hover-dropdown">
                 <button className="topbar-btn user-btn" style={{ padding: user.profile_pic_url ? 2 : undefined, overflow: 'hidden' }}>
                   {user.profile_pic_url ? (
-                    <img src={user.profile_pic_url} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={formatDriveUrl(user.profile_pic_url)} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                   ) : (
                     <i className="bi bi-person"></i>
                   )}

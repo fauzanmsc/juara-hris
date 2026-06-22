@@ -3401,6 +3401,17 @@ body.employee-page .section-label {
   margin-top: 4px;
 }
 
+
+
+
+.section-title-employee {
+  color: var(--text);
+  font-size: 16px;
+  text-transform: none;
+  margin-bottom: 16px;
+  font-weight: 800;
+}
+
 body.employee-page .stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -4064,6 +4075,12 @@ body.attendance-page .face-guide {
   border-radius: 50%;
   pointer-events: none;
   animation: guidePulse 2s ease-in-out infinite;
+}
+
+.card-clock-in-out {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0px 6px 10px rgba(217, 119, 6, 0.077), inset 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
 @keyframes guidePulse {
@@ -8003,7 +8020,7 @@ body.employee-page .bottom-nav {
   justify-content: center;
   font-size: 32px;
   color: #FFF !important;
-  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 5px 10px rgb(217 119 6 / 29%), inset 0 2px 4px rgb(255 255 255 / 29%);
   transform: translateY(-18px);
   border: 7px solid #222222;
   /* Matches bottom nav background exactly */
