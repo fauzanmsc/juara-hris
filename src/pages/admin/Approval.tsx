@@ -11,6 +11,9 @@ const Approval = () => {
   const [limit, setLimit] = useState(10);
 
   const [editApp, setEditApp] = useState<any>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newApp, setNewApp] = useState({ user_id: '', type: 'Cuti', start_date: '', end_date: '', reason: '', status: 'Approved' });
+  const [users, setUsers] = useState<any[]>([]);
 
   const [file, setFile] = useState<File | null>(null);
   const [fileBase64, setFileBase64] = useState('');
@@ -22,7 +25,19 @@ const Approval = () => {
 
   useEffect(() => {
     loadApprovals();
+    loadUsers();
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      const res = await fetchApi('getUsers', {}, 'GET');
+      if (res.success && res.users) {
+        setUsers(res.users.filter((u: any) => u.role === 'Employee' && u.status === 'Active'));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const loadApprovals = async () => {
     setLoading(true);
@@ -135,6 +150,63 @@ const Approval = () => {
     }
   };
 
+  const saveNew = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (!newApp.user_id) {
+        alert('Pilih karyawan terlebih dahulu');
+        return;
+      }
+      const userStr = localStorage.getItem('hris_user');
+      const adminUser = userStr ? JSON.parse(userStr) : { name: 'Admin' };
+      
+      const payload: any = { 
+        ...newApp,
+        approved_by: newApp.status === 'Approved' ? adminUser.name : ''
+      };
+
+      if (fileBase64) {
+        payload.attachment_base64 = fileBase64;
+        payload.attachment_name = fileName;
+      }
+
+      const res = await fetchApi('submitLeave', payload);
+      if (res.success) {
+        setShowAddModal(false);
+        clearFile();
+        setNewApp({ user_id: '', type: 'Cuti', start_date: '', end_date: '', reason: '', status: 'Approved' });
+        loadApprovals();
+      } else {
+        alert(res.message || 'Gagal menambahkan pengajuan');
+      }
+    } catch (err) {
+      alert('Error koneksi');
+    }
+  };
+
+  const deleteRequest = async (id: string) => {
+    if (confirm('Apakah Anda yakin ingin menghapus pengajuan ini secara permanen?')) {
+      try {
+        const userStr = localStorage.getItem('hris_user');
+        const adminUser = userStr ? JSON.parse(userStr) : { user_id: '', role: 'Admin' };
+        
+        const res = await fetchApi('deleteLeaveRequest', { 
+          request_id: id, 
+          user_role: adminUser.role, 
+          user_id: adminUser.user_id 
+        });
+        
+        if (res.success) {
+          loadApprovals();
+        } else {
+          alert(res.message || 'Gagal menghapus pengajuan');
+        }
+      } catch (err) {
+        alert('Error koneksi');
+      }
+    }
+  };
+
   const filteredApprovals = approvals.filter(a => {
     const matchSearch = (a.user_name || '').toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter ? (a.leave_type || a.type) === typeFilter : true;
@@ -166,6 +238,10 @@ const Approval = () => {
             {(search || typeFilter) && (
               <button className="btn btn-ghost" onClick={() => { setSearch(''); setTypeFilter(''); }} style={{ height: 44, borderRadius: 12, padding: '0 16px', color: '#ef4444' }} title="Reset Filter"><i className="bi bi-x-lg"></i></button>
             )}
+
+            <button className="btn btn-primary" onClick={() => { clearFile(); setShowAddModal(true); }} style={{ height: 44, borderRadius: 12, padding: '0 20px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+              <i className="bi bi-plus-lg"></i> Tambah
+            </button>
           </div>
         </div>
 
@@ -221,6 +297,7 @@ const Approval = () => {
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
                         <button className="btn btn-sm btn-ghost" onClick={() => { setEditApp(a); clearFile(); }} title="Edit"><i className="bi bi-pencil-square"></i></button>
+                        <button className="btn btn-sm btn-ghost" onClick={() => deleteRequest(a.request_id)} title="Hapus" style={{ color: '#ef4444' }}><i className="bi bi-trash"></i></button>
                         <Link to={`/admin/approval/${a.request_id}`} className="btn btn-sm btn-primary" title="Lihat Detail"><i className="bi bi-eye"></i></Link>
                       </div>
                     </td>
@@ -261,6 +338,135 @@ const Approval = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Modal */}
+      {showAddModal && createPortal(
+        <div className="reg-modal-overlay">
+          <div className="reg-modal-container">
+            <div className="reg-modal-card fade-in">
+              <div className="reg-modal-header" style={{ paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
+                <h3 className="reg-modal-title" style={{ fontSize: 18, fontWeight: 700 }}><i className="bi bi-plus-circle text-primary" style={{ marginRight: 8 }}></i> Tambah Pengajuan</h3>
+                <button type="button" className="reg-modal-close" onClick={() => { setShowAddModal(false); clearFile(); }}><i className="bi bi-x"></i></button>
+              </div>
+              <form onSubmit={saveNew} style={{ display: 'contents' }}>
+                <div className="reg-modal-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 14 }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: 11, letterSpacing: '0.5px' }}>KARYAWAN</label>
+                      <select 
+                        className="form-control" 
+                        required 
+                        value={newApp.user_id} 
+                        onChange={e => setNewApp({...newApp, user_id: e.target.value})}
+                        style={{ height: 42, borderRadius: 10, padding: '0 12px', background: 'rgba(255,255,255,0.03)' }}
+                      >
+                        <option value="" disabled style={{ color: '#000' }}>Pilih Karyawan</option>
+                        {users.map(u => (
+                          <option key={u.user_id} value={u.user_id} style={{ color: '#000' }}>{u.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: 11, letterSpacing: '0.5px' }}>JENIS PENGAJUAN</label>
+                      <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid var(--border)', padding: 4, height: 42 }}>
+                        {['Cuti', 'Sakit', 'Izin'].map((type) => (
+                          <label key={type} style={{ flex: 1, cursor: 'pointer', margin: 0 }}>
+                            <input type="radio" name="new_leave_type" value={type} checked={newApp.type === type} onChange={() => setNewApp({...newApp, type})} style={{ display: 'none' }} />
+                            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, background: newApp.type === type ? 'var(--primary)' : 'transparent', color: newApp.type === type ? '#fff' : 'var(--text-muted)', fontWeight: newApp.type === type ? 600 : 500, fontSize: 13, transition: 'all 0.2s' }}>
+                              {type}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: 11, letterSpacing: '0.5px' }}>TANGGAL MULAI</label>
+                      <input type="date" className="form-control" required value={newApp.start_date} onChange={e => setNewApp({ ...newApp, start_date: e.target.value })} style={{ height: 42, borderRadius: 10, padding: '0 12px' }} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: 11, letterSpacing: '0.5px' }}>TANGGAL SELESAI</label>
+                      <input type="date" className="form-control" required value={newApp.end_date} onChange={e => setNewApp({ ...newApp, end_date: e.target.value })} style={{ height: 42, borderRadius: 10, padding: '0 12px' }} />
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: 11, letterSpacing: '0.5px' }}>CATATAN / ALASAN</label>
+                    <textarea className="form-control" rows={2} required value={newApp.reason} onChange={e => setNewApp({ ...newApp, reason: e.target.value })} style={{ borderRadius: 10, resize: 'none', padding: '8px 12px', fontSize: 13 }}></textarea>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: 11, letterSpacing: '0.5px' }}>DOKUMEN LAMPIRAN</label>
+                    {!file ? (
+                      <div className="upload-area" style={{ position: 'relative', border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 10, padding: '16px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', transition: 'all 0.3s' }} onMouseOver={e => e.currentTarget.style.borderColor = 'var(--primary)'} onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}>
+                        <input type="file" accept="image/*,application/pdf" onChange={handleFile} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontSize: 20 }}>
+                          <i className="bi bi-cloud-arrow-up-fill"></i>
+                        </div>
+                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>Ketuk atau Tarik file ke sini</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>PDF, JPG, PNG (Maks 5MB)</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          {file && file.type.startsWith('image/') ? (
+                            <img src={URL.createObjectURL(file)} alt="preview" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }} />
+                          ) : (
+                            <div style={{ width: 40, height: 40, borderRadius: 8, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}><i className="bi bi-file-pdf-fill"></i></div>
+                          )}
+                          
+                          <div>
+                            <strong style={{ fontSize: 13, display: 'block', marginBottom: 2, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>{fileName}</strong>
+                            <span style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 500 }}><i className="bi bi-check-circle-fill" style={{ marginRight: 4 }}></i>{fileSize}</span>
+                          </div>
+                        </div>
+                        
+                        <button type="button" onClick={clearFile} style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }} title="Hapus Dokumen">
+                          <i className="bi bi-trash3-fill" style={{ fontSize: 14 }}></i>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: 11, letterSpacing: '0.5px' }}>STATUS PERSETUJUAN</label>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <label style={{ flex: 1, cursor: 'pointer' }}>
+                        <input type="radio" name="new_status" value="Approved" checked={newApp.status === 'Approved'} onChange={() => setNewApp({...newApp, status: 'Approved'})} style={{ display: 'none' }} />
+                        <div style={{ padding: '10px 8px', textAlign: 'center', borderRadius: 10, border: `2px solid ${newApp.status === 'Approved' ? '#10B981' : 'var(--border)'}`, background: newApp.status === 'Approved' ? 'rgba(16, 185, 129, 0.1)' : 'transparent', color: newApp.status === 'Approved' ? '#10B981' : 'var(--text-muted)', fontWeight: newApp.status === 'Approved' ? 700 : 500, transition: 'all 0.2s', fontSize: 13 }}>
+                          <i className="bi bi-check-circle-fill" style={{ marginRight: 6 }}></i>Disetujui
+                        </div>
+                      </label>
+                      <label style={{ flex: 1, cursor: 'pointer' }}>
+                        <input type="radio" name="new_status" value="Rejected" checked={newApp.status === 'Rejected'} onChange={() => setNewApp({...newApp, status: 'Rejected'})} style={{ display: 'none' }} />
+                        <div style={{ padding: '10px 8px', textAlign: 'center', borderRadius: 10, border: `2px solid ${newApp.status === 'Rejected' ? '#EF4444' : 'var(--border)'}`, background: newApp.status === 'Rejected' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: newApp.status === 'Rejected' ? '#EF4444' : 'var(--text-muted)', fontWeight: newApp.status === 'Rejected' ? 700 : 500, transition: 'all 0.2s', fontSize: 13 }}>
+                          <i className="bi bi-x-circle-fill" style={{ marginRight: 6 }}></i>Ditolak
+                        </div>
+                      </label>
+                      <label style={{ flex: 1, cursor: 'pointer' }}>
+                        <input type="radio" name="new_status" value="Pending" checked={newApp.status === 'Pending'} onChange={() => setNewApp({...newApp, status: 'Pending'})} style={{ display: 'none' }} />
+                        <div style={{ padding: '10px 8px', textAlign: 'center', borderRadius: 10, border: `2px solid ${newApp.status === 'Pending' ? '#F59E0B' : 'var(--border)'}`, background: newApp.status === 'Pending' ? 'rgba(245, 158, 11, 0.1)' : 'transparent', color: newApp.status === 'Pending' ? '#F59E0B' : 'var(--text-muted)', fontWeight: newApp.status === 'Pending' ? 700 : 500, transition: 'all 0.2s', fontSize: 13 }}>
+                          <i className="bi bi-clock-fill" style={{ marginRight: 6 }}></i>Menunggu
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+                <div className="reg-modal-footer" style={{ padding: '16px 24px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--border)' }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => { setShowAddModal(false); clearFile(); }} style={{ padding: '8px 20px', fontSize: 13 }}>Batal</button>
+                  <button type="submit" className="btn btn-primary" style={{ padding: '8px 20px', fontWeight: 600, fontSize: 13 }}>Buat Pengajuan</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {editApp && createPortal(
         <div className="reg-modal-overlay">

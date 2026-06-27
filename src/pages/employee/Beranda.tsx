@@ -7,7 +7,7 @@ import logoBlack from '../../assets/juara-hris-logo-black.png';
 const Beranda = () => {
   const navigate = useNavigate();
   const { toggleTheme, handleLogout, user, notifOpen, setNotifOpen, notifs, setNotifs, theme } = useOutletContext<any>();
-  const [stats, setStats] = useState({ hadir: 0, terlambat: 0, cuti: 0, rate: 0 });
+  const [stats, setStats] = useState({ hadir: 0, terlambat: 0, cuti: 0, rate: 0, gakHadir: 0 });
   const [todayLog, setTodayLog] = useState({ clockIn: '', clockOut: '', statusIn: '', statusOut: '' });
   const [activities, setActivities] = useState<any[]>([]);
   const [clockDate, setClockDate] = useState('');
@@ -589,7 +589,7 @@ const Beranda = () => {
                     <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Hadir</span>
                   </div>
                   <div className="mini-stat-pill" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-neu)', transition: 'transform 0.2s' }}>
-                    <div className="mini-stat-val" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>{stats.gakHadir || 3}</div>
+                    <div className="mini-stat-val" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>{stats.gakHadir ?? 0}</div>
                     <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Gak Hadir</span>
                   </div>
                   <div className="mini-stat-pill" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--shadow-neu)', transition: 'transform 0.2s' }}>

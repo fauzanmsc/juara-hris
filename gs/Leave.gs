@@ -59,10 +59,13 @@ function submitLeave(body) {
       }
     }
 
+    const finalStatus = body.status || 'Pending';
+    const finalApprovedBy = body.approved_by || '';
+
     sheet.appendRow([
       newId, user_id, type,
       start_date, end_date, reason,
-      photoData.url, 'Pending', '', // attachment, status, approved_by
+      photoData.url, finalStatus, finalApprovedBy, // attachment, status, approved_by
       new Date().toISOString() // created_at
     ]);
 

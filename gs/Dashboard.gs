@@ -8,7 +8,7 @@ function getEmployeeDashboard(params) {
 
   const attendance = sheetToObjects(getSheet(SHEET.ATTENDANCE));
   const thisMonth = attendance.filter(a =>
-    a.user_id === user_id && formatDate(a.date) >= monthStart
+    String(a.user_id).trim() === String(user_id).trim() && formatDate(a.date) >= monthStart
   );
 
   const todayAtt = thisMonth.find(a => formatDate(a.date) === today);
@@ -88,37 +88,52 @@ function getEmployeeDashboard(params) {
   const remainingQuota = allowedQuota - overallApprovedCuti;
 
   // Calculate Absen (Gak Hadir)
+  // We iterate from monthStart up to (but NOT including) today.
+  // Skip Sundays and public holidays; skip days covered by approved leave.
   let absenCount = 0;
-  const todayDateObj = new Date(today);
-  const startObj = new Date(monthStart);
-  
-  for (let d = new Date(startObj); d < todayDateObj; d.setDate(d.getDate() + 1)) {
-    const dStr = formatDate(d);
-    const isSunday = d.getDay() === 0;
-    
-    const isHol = holidays.find(h => {
-      const s = h.start_date ? formatDate(h.start_date) : '';
-      const e = h.end_date ? formatDate(h.end_date) : s;
-      return s && dStr >= s && dStr <= e;
-    });
 
-    if (isSunday || isHol) {
-      continue;
+  // Build a Set of dates the user attended this month for O(1) lookups
+  const attendedDates = new Set(thisMonth.map(a => formatDate(a.date)));
+
+  // Build approved leave ranges for this user for quick lookup
+  const userLeaveRanges = leaves
+    .filter(l => String(l.user_id).trim() === String(user_id).trim() &&
+      String(l.status || '').trim().toLowerCase() === 'approved')
+    .map(l => ({
+      s: l.start_date ? formatDate(l.start_date) : '',
+      e: l.end_date ? formatDate(l.end_date) : (l.start_date ? formatDate(l.start_date) : '')
+    }))
+    .filter(r => r.s && r.e);
+
+  // Iterate each calendar day in the month before today
+  const startObj2 = new Date(monthStart + 'T00:00:00');
+  const todayObj2 = new Date(today + 'T00:00:00');
+
+  let cur = new Date(startObj2);
+  while (cur < todayObj2) {
+    // Get the date string in GMT+7 via Utilities
+    const dStr = Utilities.formatDate(cur, 'GMT+7', 'yyyy-MM-dd');
+    // Get day-of-week in GMT+7 (0=Sunday)
+    const dayOfWeek = parseInt(Utilities.formatDate(cur, 'GMT+7', 'u'), 10) % 7; // 'u' = 1(Mon)..7(Sun)
+    const isSunday = dayOfWeek === 0;
+
+    if (!isSunday) {
+      const isHol = holidays.some(h => {
+        const hs = h.start_date ? formatDate(h.start_date) : '';
+        const he = h.end_date ? formatDate(h.end_date) : hs;
+        return hs && dStr >= hs && dStr <= he;
+      });
+
+      if (!isHol) {
+        const hasAtt = attendedDates.has(dStr);
+        const hasLeave = userLeaveRanges.some(r => dStr >= r.s && dStr <= r.e);
+
+        if (!hasAtt && !hasLeave) {
+          absenCount++;
+        }
+      }
     }
-
-    const hasAtt = thisMonth.some(a => formatDate(a.date) === dStr);
-    const hasLeave = leaves.some(l => {
-      if (l.user_id !== user_id) return false;
-      const statusStr = String(l.status || '').trim().toLowerCase();
-      if (statusStr !== 'approved') return false;
-      const s = l.start_date ? formatDate(l.start_date) : '';
-      const e = l.end_date ? formatDate(l.end_date) : s;
-      return s && e && dStr >= s && dStr <= e;
-    });
-
-    if (!hasAtt && !hasLeave) {
-       absenCount++;
-    }
+    cur.setDate(cur.getDate() + 1);
   }
 
   return {
